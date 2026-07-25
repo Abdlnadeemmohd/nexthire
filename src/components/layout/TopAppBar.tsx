@@ -113,13 +113,14 @@ export function TopAppBar() {
   const isItemActive = (currentPath: string, targetHref: string): boolean => {
     if (currentPath === targetHref) return true;
 
-    // Root dashboards and primary hub pages require EXACT equality
     if (
       targetHref === "/recruiter" ||
       targetHref === "/admin" ||
       targetHref === "/dashboard" ||
       targetHref === "/jobs" ||
-      targetHref === "/profile"
+      targetHref === "/profile" ||
+      targetHref === "/recruiter/billing" ||
+      targetHref === "/admin/subscriptions"
     ) {
       return currentPath === targetHref;
     }
@@ -234,8 +235,8 @@ export function TopAppBar() {
             })}
           </nav>
 
-          {/* Right: Actions, Notifications & Profile */}
-          <div className="flex items-center gap-3 relative">
+          {/* Right: Actions, Notifications & Profile with Vertical Divider */}
+          <div className="flex items-center gap-2 relative">
             {!isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link
@@ -252,11 +253,11 @@ export function TopAppBar() {
                 </Link>
               </div>
             ) : (
-              <>
-                {/* Notification Trigger Button */}
+              <div className="flex items-center gap-2">
+                {/* Notification Trigger Button with soft background hover */}
                 <button
                   onClick={toggleNotif}
-                  className={`relative p-2.5 rounded-full transition-colors ${
+                  className={`relative p-2.5 rounded-full transition-all ${
                     isNotifOpen
                       ? "bg-primary-container/20 text-primary"
                       : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
@@ -264,17 +265,21 @@ export function TopAppBar() {
                   aria-label="Open notifications"
                 >
                   <span className="material-symbols-outlined text-xl">notifications</span>
-                  {/* Render red unread badge ONLY if unreadCount > 0 */}
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-error rounded-full ring-2 ring-surface" />
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-error rounded-full ring-2 ring-surface animate-pulse" />
                   )}
                 </button>
 
-                {/* Profile Trigger Button */}
+                {/* Vertical Divider */}
+                <div className="h-6 w-px bg-outline-variant/30 hidden sm:block mx-1" />
+
+                {/* Profile Trigger Avatar with subtle border & active ring */}
                 <button
                   onClick={toggleProfile}
                   className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all block ${
-                    isProfileOpen ? "border-primary ring-2 ring-primary/30" : "border-outline-variant/40 hover:border-primary"
+                    isProfileOpen
+                      ? "border-primary ring-2 ring-primary/30 scale-105"
+                      : "border-outline-variant/40 hover:border-primary hover:ring-2 hover:ring-primary/20"
                   }`}
                   aria-label="Open profile menu"
                 >
@@ -297,7 +302,7 @@ export function TopAppBar() {
                   isOpen={isProfileOpen}
                   onClose={() => setIsProfileOpen(false)}
                 />
-              </>
+              </div>
             )}
           </div>
         </div>

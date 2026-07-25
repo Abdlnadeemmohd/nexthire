@@ -116,7 +116,8 @@ export default function AdminCompanyModerationPage() {
       <div className="flex pt-16 min-h-screen bg-surface">
         <SidebarNav portal="admin" />
 
-        <main className="flex-1 lg:pl-72 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto w-full space-y-8">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
             <div>
@@ -306,9 +307,9 @@ export default function AdminCompanyModerationPage() {
             </div>
           )}
         </main>
+        <Footer />
       </div>
-
-      <Footer />
+    </div>
 
       {/* Moderation Details & Document Verification Modal */}
       {selectedCompanyModal && (

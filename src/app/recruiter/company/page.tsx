@@ -62,7 +62,8 @@ export default function RecruiterCompanyProfilePage() {
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="recruiter" />
 
-        <main className="flex-1 lg:ml-72 p-6 md:p-10 space-y-8 max-w-7xl">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-6 md:p-10 space-y-8 max-w-[1600px] w-full">
           {/* Header & Quick Action Triggers */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -467,9 +468,9 @@ export default function RecruiterCompanyProfilePage() {
             </div>
           </div>
         </main>
+        <Footer />
       </div>
-
-      <Footer />
+    </div>
     </ProtectedRoute>
   );
 }

@@ -15,25 +15,17 @@ export function SidebarNav({ portal }: SidebarNavProps) {
   const { user, logout } = useAuth();
 
   // Precise Route Active Matching: EXACT 1 active item per page
-  const isItemActive = (currentPath: string, targetHref: string): boolean => {
-    if (currentPath === targetHref) return true;
-
-    if (
-      targetHref === "/recruiter" ||
-      targetHref === "/admin" ||
-      targetHref === "/dashboard" ||
-      targetHref === "/profile" ||
-      targetHref === "/recruiter/billing"
-    ) {
-      return currentPath === targetHref;
-    }
-
-    if (targetHref !== "/" && currentPath.startsWith(targetHref)) {
-      return true;
-    }
-
-    return false;
-  };
+const isItemActive = (currentPath: string, targetHref: string): boolean => {
+  const [hrefPath, hrefHash] = targetHref.split('#');
+  if (hrefHash) {
+    return (
+      currentPath === hrefPath &&
+      typeof window !== 'undefined' &&
+      window.location.hash === `#${hrefHash}`
+    );
+  }
+  return currentPath === targetHref;
+};
 
   const getMenuGroups = () => {
     if (portal === "seeker") {
@@ -132,35 +124,35 @@ export function SidebarNav({ portal }: SidebarNavProps) {
   const menuGroups = getMenuGroups();
 
   return (
-    <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/20 hidden lg:flex flex-col fixed left-0 top-16 bottom-0 z-30 transition-colors duration-200">
-      <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+    <aside className="w-[270px] bg-surface-container-lowest border-r border-outline-variant/20 hidden lg:flex flex-col fixed left-0 top-16 bottom-0 z-30 transition-all duration-200">
+      <div className="p-5 space-y-5 flex-1 overflow-y-auto">
         <div className="space-y-1">
           <span className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider">
             Active Portal
           </span>
-          <h3 className="font-headline-sm text-sm font-bold text-on-surface capitalize flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+          <h3 className="font-headline-sm text-xs font-bold text-on-surface capitalize flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-tertiary"></span>
             {portal === "seeker" ? "Job Seeker Portal" : portal === "recruiter" ? "Recruiter Workspace" : "Admin Operations"}
           </h3>
         </div>
 
-        <nav className="space-y-6">
+        <nav className="space-y-5">
           {menuGroups.map((group, idx) => (
-            <div key={idx} className="space-y-2">
+            <div key={idx} className="space-y-1.5">
               <h4 className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider px-3 select-none">
                 {group.title}
               </h4>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const isActive = isItemActive(pathname, item.href);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-label-md font-bold transition-all ${
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-label-md transition-all ${
                         isActive
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface bg-transparent"
+                          ? "border-l-4 border-primary pl-3 bg-primary/10 text-primary font-bold shadow-2xs"
+                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface bg-transparent font-medium"
                       }`}
                     >
                       <span className="material-symbols-outlined text-lg flex-shrink-0">{item.icon}</span>
@@ -174,25 +166,33 @@ export function SidebarNav({ portal }: SidebarNavProps) {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <img
-            src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
-            alt={user?.name || "User Avatar"}
-            className="w-9 h-9 rounded-full object-cover border border-outline-variant/40 flex-shrink-0"
-          />
-          <div className="min-w-0">
+      {/* Spacious Bottom User Profile Card */}
+      <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex-shrink-0">
+        <div className="p-3 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl space-y-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <img
+              src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
+              alt={user?.name || "User Avatar"}
+              className="w-10 h-10 rounded-xl object-cover border border-outline-variant/40 flex-shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <h4 className="font-bold text-xs text-on-surface truncate">{user?.name || "Alex Rivers"}</h4>
+              <p className="text-[10px] text-on-surface-variant truncate">{user?.email || "alex.rivers@gmail.com"}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
             <VerifiedBadge role={user?.role} size="sm" />
+
+            <button
+              onClick={logout}
+              className="p-1.5 text-outline hover:text-error hover:bg-error-container/20 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
+              title="Sign Out"
+            >
+              <span className="material-symbols-outlined text-base">logout</span>
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={logout}
-          className="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-xl transition-colors"
-          title="Sign Out"
-        >
-          <span className="material-symbols-outlined text-lg">logout</span>
-        </button>
       </div>
     </aside>
   );

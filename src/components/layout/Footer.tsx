@@ -5,16 +5,17 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-surface-container border-t border-outline-variant/20 pt-16 pb-12 transition-colors duration-200">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <footer className="bg-surface-container border-t border-outline-variant/20 pt-12 pb-8 transition-colors duration-200 mt-auto w-full">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Main Footer Links Grid */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Brand Column */}
-          <div className="md:col-span-2 space-y-4">
+          <div className="md:col-span-2 space-y-3">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-xl shadow-xs">
+              <div className="w-8 h-8 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-lg shadow-xs">
                 N
               </div>
-              <span className="font-display font-bold text-xl text-on-surface tracking-tight">
+              <span className="font-display font-bold text-lg text-on-surface tracking-tight">
                 Next<span className="text-primary">Hire</span>
               </span>
             </Link>
@@ -23,24 +24,24 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Universal Footer Navigation Columns */}
-          <div className="space-y-3">
+          {/* Navigation Columns */}
+          <div className="space-y-2.5">
             <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-              Platform & Solutions
+              Platform
             </h4>
-            <ul className="space-y-2 text-xs text-on-surface-variant">
+            <ul className="space-y-1.5 text-xs text-on-surface-variant">
               <li><Link href="/jobs" className="hover:text-primary transition-colors">Browse Live Jobs</Link></li>
               <li><Link href="/companies/c-1" className="hover:text-primary transition-colors">Employer Profiles</Link></li>
               <li><Link href="/about" className="hover:text-primary transition-colors">About NextHire</Link></li>
-              <li><Link href="/admin/subscriptions" className="hover:text-primary transition-colors">Pricing & Plans</Link></li>
+              <li><Link href="/recruiter/billing" className="hover:text-primary transition-colors">Pricing & Plans</Link></li>
             </ul>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-              Help & Resources
+              Support
             </h4>
-            <ul className="space-y-2 text-xs text-on-surface-variant">
+            <ul className="space-y-1.5 text-xs text-on-surface-variant">
               <li><Link href="/help" className="hover:text-primary transition-colors">Help Centre</Link></li>
               <li><Link href="/help" className="hover:text-primary transition-colors">Contact Support</Link></li>
               <li><Link href="/help" className="hover:text-primary transition-colors">Recruiter Guides</Link></li>
@@ -48,11 +49,11 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-              Legal & Compliance
+              Legal
             </h4>
-            <ul className="space-y-2 text-xs text-on-surface-variant">
+            <ul className="space-y-1.5 text-xs text-on-surface-variant">
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/cookies" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
@@ -61,15 +62,11 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Universal Clean Bottom Bar */}
-        <div className="border-t border-outline-variant/20 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-outline font-label-md">
+        {/* Bottom Copyright & Version Bar */}
+        <div className="border-t border-outline-variant/20 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-outline font-label-md">
           <p>© {new Date().getFullYear()} NextHire Technologies Inc. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-on-surface-variant">
-            <a href="https://www.nexthire.cloud" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">
-              www.nexthire.cloud
-            </a>
-            <span>•</span>
-            <span className="font-semibold text-outline">NextHire v1.0.0</span>
+          <div className="flex items-center gap-3 text-outline">
+            <span className="text-[11px]">Version 1.0.0</span>
           </div>
         </div>
       </div>
