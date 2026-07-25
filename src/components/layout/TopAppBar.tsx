@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationDropdown } from "./NotificationDropdown";
@@ -11,18 +11,72 @@ export function TopAppBar() {
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  const navItems = [
-    { label: "Find Jobs", href: "/jobs" },
-    { label: "Seeker Dashboard", href: "/dashboard" },
-    { label: "Applications", href: "/applications" },
-    { label: "Recruiter Suite", href: "/recruiter" },
-    { label: "Admin Console", href: "/admin" },
-  ];
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Dynamic Role-Based Navigation Items
+  const getNavItems = () => {
+    if (!isAuthenticated || !user) {
+      return [
+        { label: "Find Jobs", href: "/jobs" },
+        { label: "Companies", href: "/companies/c-1" },
+        { label: "About NextHire", href: "/about" },
+        { label: "Help & Support", href: "/help" },
+      ];
+    }
+
+    if (user.role === "JOB_SEEKER") {
+      return [
+        { label: "Find Jobs", href: "/jobs" },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Applications", href: "/applications" },
+        { label: "Resume Studio", href: "/profile" },
+        { label: "Help & Support", href: "/help" },
+      ];
+    }
+
+    if (user.role === "RECRUITER") {
+      return [
+        { label: "Recruiter Suite", href: "/recruiter" },
+        { label: "Applicants", href: "/recruiter/applicants" },
+        { label: "Post a Job", href: "/recruiter/jobs/new" },
+        { label: "Company Profile", href: "/recruiter/company" },
+        { label: "Help & Support", href: "/help" },
+      ];
+    }
+
+    if (user.role === "PLATFORM_ADMIN") {
+      return [
+        { label: "Admin Operations", href: "/admin" },
+        { label: "User Directory", href: "/admin/users" },
+        { label: "Moderation Audit", href: "/admin/companies" },
+        { label: "Subscriptions", href: "/admin/subscriptions" },
+        { label: "Help & Support", href: "/help" },
+      ];
+    }
+
+    return [
+      { label: "Find Jobs", href: "/jobs" },
+      { label: "Help & Support", href: "/help" },
+    ];
+  };
+
+  const navItems = getNavItems();
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 h-16 transition-all">
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 h-16 transition-all duration-300 ${
+          isScrolled ? "shadow-md shadow-black/5 bg-surface/95" : ""
+        }`}
+      >
         <div className="max-w-[1600px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Left: Brand Logo & Mobile Toggle */}
           <div className="flex items-center gap-4">
@@ -46,18 +100,18 @@ export function TopAppBar() {
             </Link>
           </div>
 
-          {/* Center: Desktop Navigation Bar */}
+          {/* Center: Dynamic Role-Aware Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`text-xs font-label-md font-bold transition-all relative py-2 ${
                     isActive
-                      ? "text-primary"
-                      : "text-on-surface-variant hover:text-on-surface"
+                      ? "text-primary font-bold"
+                      : "text-on-surface-variant hover:text-on-surface font-semibold"
                   }`}
                 >
                   {item.label}
@@ -69,118 +123,95 @@ export function TopAppBar() {
             })}
           </nav>
 
-          {/* Right: User Controls / Notification / Profile */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            {isAuthenticated && user ? (
-              <>
-                <NotificationDropdown />
-                <ProfileDropdown />
-              </>
-            ) : (
+          {/* Right: Actions, Notifications & Profile */}
+          <div className="flex items-center gap-3">
+            {!isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="px-4 py-2 font-label-md font-bold text-xs text-on-surface-variant hover:text-primary transition-colors"
+                  className="px-4 py-2 text-xs font-label-md font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-full transition-all"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-xs"
+                  className="px-5 py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs"
                 >
-                  Get Started
+                  Sign Up
                 </Link>
               </div>
+            ) : (
+              <>
+                <NotificationDropdown />
+                <ProfileDropdown />
+              </>
             )}
           </div>
         </div>
       </header>
 
-      {/* Mobile Slide-Out Drawer Navigation */}
+      {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-on-surface/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-
-          {/* Drawer Panel */}
-          <div className="fixed top-16 left-0 bottom-0 w-72 bg-surface border-r border-outline-variant/20 p-6 flex flex-col justify-between shadow-2xl z-50 animate-in slide-in-from-left duration-300">
-            <div className="space-y-6">
-              {/* User info header if logged in */}
-              {isAuthenticated && user && (
-                <div className="p-3 bg-surface-container rounded-xl flex items-center gap-3">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-10 h-10 rounded-full object-cover border border-outline-variant/30"
-                  />
-                  <div className="overflow-hidden">
-                    <h4 className="font-bold text-xs text-on-surface truncate">{user.name}</h4>
-                    <p className="text-[11px] text-on-surface-variant truncate">{user.email}</p>
-                    <span className="inline-block mt-0.5 px-2 py-0.5 bg-primary-container text-on-primary-container font-label-sm text-[10px] font-bold rounded-full">
-                      {user.role.replace("_", " ")}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Navigation Links */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider px-3">
-                  Navigation Menu
-                </span>
-                {navItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-xs font-bold transition-all ${
-                        isActive
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "text-on-surface-variant hover:bg-surface-container-high"
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
+        <div className="fixed inset-0 z-40 lg:hidden flex flex-col bg-surface pt-16 animate-fade-in">
+          <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+            <div className="space-y-1 pb-4 border-b border-outline-variant/20">
+              <span className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider">
+                Role Menu ({user?.role?.replace("_", " ") || "Guest Visitor"})
+              </span>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="pt-4 border-t border-outline-variant/20 text-xs">
-              {!isAuthenticated ? (
-                <div className="space-y-2">
+            <nav className="space-y-2">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
                   <Link
-                    href="/login"
+                    key={item.href}
+                    href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 bg-surface border border-outline-variant/30 text-center font-bold text-on-surface rounded-xl block"
+                    className={`block px-4 py-3 rounded-xl text-sm font-label-md font-bold transition-all ${
+                      isActive
+                        ? "bg-primary-container text-on-primary-container"
+                        : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+                    }`}
                   >
-                    Sign In
+                    {item.label}
                   </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 bg-primary text-on-primary text-center font-bold rounded-xl block shadow-sm"
-                  >
-                    Create Account
-                  </Link>
-                </div>
-              ) : (
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="p-6 border-t border-outline-variant/20 bg-surface-container-lowest">
+            {!isAuthenticated ? (
+              <div className="flex flex-col gap-2">
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 text-error font-bold px-3 py-2 hover:bg-error-container/20 rounded-xl"
+                  className="w-full py-3 text-center text-xs font-label-md font-bold border border-outline-variant/40 rounded-xl text-on-surface"
                 >
-                  <span className="material-symbols-outlined text-base">logout</span>
-                  Sign Out
+                  Sign In
                 </Link>
-              )}
-            </div>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 text-center text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl"
+                >
+                  Create Account
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <img
+                  src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                  alt={user?.name || "User Avatar"}
+                  className="w-10 h-10 rounded-full object-cover border border-outline-variant"
+                />
+                <div>
+                  <h4 className="font-bold text-xs text-on-surface">{user?.name}</h4>
+                  <p className="text-[11px] text-on-surface-variant">{user?.email}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

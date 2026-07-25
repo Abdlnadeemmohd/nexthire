@@ -49,19 +49,30 @@ export const PRECONFIGURED_USERS: AuthUser[] = [
 export function hasRouteAccess(userRole: UserRole | undefined, pathname: string): boolean {
   if (!userRole) return false;
 
-  // Platform Owner (Super Admin) has unrestricted access across all portals
-  if (userRole === "PLATFORM_ADMIN") return true;
-
-  // Recruiter Access Controls
-  if (userRole === "RECRUITER") {
-    if (pathname.startsWith("/admin")) return false; // Blocked from Admin Console
+  // 1. Platform Owner (Super Admin) Access Controls
+  if (userRole === "PLATFORM_ADMIN") {
+    // Admin is restricted from candidate portal & resume creation
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/applications") || pathname.startsWith("/profile")) {
+      return false;
+    }
     return true;
   }
 
-  // Job Seeker Access Controls
+  // 2. Recruiter Access Controls
+  if (userRole === "RECRUITER") {
+    // Recruiter is strictly blocked from Admin Console and Candidate Portal
+    if (pathname.startsWith("/admin")) return false;
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/applications") || pathname.startsWith("/profile")) {
+      return false;
+    }
+    return true;
+  }
+
+  // 3. Job Seeker Access Controls
   if (userRole === "JOB_SEEKER") {
-    if (pathname.startsWith("/recruiter")) return false; // Blocked from Recruiter Suite
-    if (pathname.startsWith("/admin")) return false; // Blocked from Admin Console
+    // Job Seeker is strictly blocked from Recruiter Suite and Admin Console
+    if (pathname.startsWith("/recruiter")) return false;
+    if (pathname.startsWith("/admin")) return false;
     return true;
   }
 

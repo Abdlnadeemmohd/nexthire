@@ -3,110 +3,176 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarNavProps {
-  portal?: "seeker" | "recruiter" | "admin";
+  portal: "seeker" | "recruiter" | "admin";
 }
 
-export function SidebarNav({ portal = "seeker" }: SidebarNavProps) {
+export function SidebarNav({ portal }: SidebarNavProps) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
-  const isActive = (path: string) => pathname === path;
+  const getMenuGroups = () => {
+    if (portal === "seeker") {
+      return [
+        {
+          title: "Dashboard",
+          items: [
+            { label: "Dashboard", href: "/dashboard", icon: "grid_view" },
+            { label: "Search Jobs", href: "/jobs", icon: "search" },
+            { label: "Application Tracker", href: "/applications", icon: "assignment" },
+          ],
+        },
+        {
+          title: "Profile & Resume",
+          items: [
+            { label: "My Profile", href: "/profile", icon: "person" },
+            { label: "Resume Studio", href: "/profile", icon: "description" },
+          ],
+        },
+        {
+          title: "Communication",
+          items: [
+            { label: "Messages", href: "/messages", icon: "mail" },
+          ],
+        },
+        {
+          title: "Account",
+          items: [
+            { label: "Settings", href: "/settings", icon: "settings" },
+            { label: "Help Centre", href: "/help", icon: "help" },
+          ],
+        },
+      ];
+    }
 
-  const seekerLinks = [
-    { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
-    { label: "Job Search", href: "/jobs", icon: "work_outline" },
-    { label: "Applications", href: "/applications", icon: "fact_check" },
-    { label: "Messages", href: "/messages", icon: "chat_bubble_outline" },
-    { label: "My Profile", href: "/profile", icon: "account_circle" },
-  ];
+    if (portal === "recruiter") {
+      return [
+        {
+          title: "Dashboard & Jobs",
+          items: [
+            { label: "Recruiter Suite", href: "/recruiter", icon: "dashboard" },
+            { label: "Company Profile", href: "/recruiter/company", icon: "business" },
+            { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },
+            { label: "Candidate Pipeline", href: "/recruiter/applicants", icon: "view_kanban" },
+          ],
+        },
+        {
+          title: "Recruitment",
+          items: [
+            { label: "Messages", href: "/messages", icon: "chat" },
+            { label: "Search Candidates", href: "/jobs", icon: "badge" },
+          ],
+        },
+        {
+          title: "Business & Subscription",
+          items: [
+            { label: "Subscription & Billing", href: "/admin/subscriptions", icon: "credit_card" },
+          ],
+        },
+        {
+          title: "Account",
+          items: [
+            { label: "Settings", href: "/settings", icon: "settings" },
+            { label: "Help Centre", href: "/help", icon: "help" },
+          ],
+        },
+      ];
+    }
 
-  const recruiterLinks = [
-    { label: "Dashboard", href: "/recruiter", icon: "dashboard" },
-    { label: "Candidate Pipeline", href: "/recruiter/applicants", icon: "group" },
-    { label: "Post a Job", href: "/recruiter/jobs/new", icon: "post_add" },
-    { label: "Company Profile", href: "/recruiter/company", icon: "domain" },
-    { label: "Messages", href: "/messages", icon: "chat_bubble_outline" },
-  ];
+    // Admin Portal
+    return [
+      {
+        title: "Administration",
+        items: [
+          { label: "Admin Operations", href: "/admin", icon: "admin_panel_settings" },
+          { label: "User Directory", href: "/admin/users", icon: "group" },
+          { label: "Company Moderation", href: "/admin/companies", icon: "verified_user" },
+        ],
+      },
+      {
+        title: "Platform & Revenue",
+        items: [
+          { label: "Subscriptions & Revenue", href: "/admin/subscriptions", icon: "payments" },
+        ],
+      },
+      {
+        title: "Account",
+        items: [
+          { label: "Settings", href: "/settings", icon: "settings" },
+          { label: "Help Centre", href: "/help", icon: "help" },
+        ],
+      },
+    ];
+  };
 
-  const adminLinks = [
-    { label: "Overview", href: "/admin", icon: "admin_panel_settings" },
-    { label: "User Management", href: "/admin/users", icon: "people" },
-    { label: "Company Moderation", href: "/admin/companies", icon: "business" },
-    { label: "Subscriptions & Billing", href: "/admin/subscriptions", icon: "credit_card" },
-  ];
-
-  const links =
-    portal === "recruiter"
-      ? recruiterLinks
-      : portal === "admin"
-      ? adminLinks
-      : seekerLinks;
+  const menuGroups = getMenuGroups();
 
   return (
-    <aside className="hidden lg:flex flex-col h-screen fixed left-0 top-0 border-r border-outline-variant/20 py-8 w-72 bg-surface pt-24 z-40">
-      {/* User Header Widget */}
-      <div className="px-6 mb-6 flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCohtV2Z0aDLDnAjCiN9bVGyy23UBK2eUaFPXAmILSLmTWMtP5mNAQBOGNOKEumuaKYIrTbgg8HxYkR0BkzjQKbnZY6AomJue9dlrGeS7LUmBLE19pwl7THpOA-Q9SNXeNmKxubmdGOHk_odhKF4Bc4kTPkMK7ZBHYi-0CUCyvPmvlq7U6ACptlDENQxAUgJI34gc6pdN1Dvu6jkM7Iuzox9T9iAtNf-1nCFP2PYJ0woS8ZXB1QnfmjuwJbhNJc53KKfsCErff_c5F8"
-            alt="Alex Rivers"
-            className="w-12 h-12 rounded-full object-cover border-2 border-primary-fixed shadow-sm"
-          />
-          <div className="min-w-0">
-            <h3 className="font-headline-sm text-sm font-bold text-on-surface truncate">
-              Alex Rivers
-            </h3>
-            <p className="font-label-md text-xs text-on-surface-variant truncate">
-              {portal === "recruiter"
-                ? "Senior Tech Recruiter"
-                : portal === "admin"
-                ? "Platform Administrator"
-                : "Senior Product Designer"}
-            </p>
-          </div>
+    <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/20 hidden lg:flex flex-col fixed left-0 top-16 bottom-0 z-30">
+      <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+        <div className="space-y-1">
+          <span className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider">
+            Active Portal
+          </span>
+          <h3 className="font-headline-sm text-sm font-bold text-on-surface capitalize flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+            {portal === "seeker" ? "Job Seeker Portal" : portal === "recruiter" ? "Recruiter Workspace" : "Admin Operations"}
+          </h3>
         </div>
-        <span className="inline-block mt-1 px-3 py-0.5 bg-primary-container/20 text-primary text-[10px] font-bold rounded-full w-fit">
-          {portal === "admin" ? "SUPER ADMIN" : "PREMIUM MEMBER"}
-        </span>
+
+        <nav className="space-y-6">
+          {menuGroups.map((group, idx) => (
+            <div key={idx} className="space-y-2">
+              <h4 className="text-[11px] font-label-sm font-bold text-outline uppercase tracking-wider px-3">
+                {group.title}
+              </h4>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-label-md font-bold transition-all ${
+                        isActive
+                          ? "bg-primary text-on-primary shadow-xs"
+                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
       </div>
 
-      {/* Nav Items List */}
-      <nav className="flex-1 space-y-1.5 px-3">
-        {links.map((link) => {
-          const active = isActive(link.href);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`flex items-center gap-4 py-3 px-5 rounded-full font-label-md text-xs transition-all ${
-                active
-                  ? "bg-secondary-container text-on-secondary-container font-bold shadow-xs"
-                  : "text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1"
-              }`}
-            >
-              <span className="material-symbols-outlined text-xl">{link.icon}</span>
-              <span className="font-label-md">{link.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {/* User Footer Profile & Logout */}
+      <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex items-center justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          <img
+            src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
+            alt={user?.name || "User Avatar"}
+            className="w-9 h-9 rounded-full object-cover border border-outline-variant/40 flex-shrink-0"
+          />
+          <div className="min-w-0">
+            <h4 className="font-bold text-xs text-on-surface truncate">{user?.name || "Guest User"}</h4>
+            <p className="text-[10px] text-on-surface-variant truncate">{user?.role?.replace("_", " ")}</p>
+          </div>
+        </div>
 
-      {/* Switch Portal Footer Link */}
-      <div className="px-6 pt-4 border-t border-outline-variant/20 space-y-2">
-        <Link
-          href={
-            portal === "recruiter"
-              ? "/dashboard"
-              : portal === "admin"
-              ? "/dashboard"
-              : "/recruiter"
-          }
-          className="flex items-center gap-2 text-xs font-label-md font-bold text-primary hover:underline"
+        <button
+          onClick={logout}
+          className="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-xl transition-colors"
+          title="Sign Out"
         >
-          <span className="material-symbols-outlined text-base">swap_horiz</span>
-          Switch to {portal === "recruiter" ? "Seeker Portal" : "Employer Suite"}
-        </Link>
+          <span className="material-symbols-outlined text-lg">logout</span>
+        </button>
       </div>
     </aside>
   );

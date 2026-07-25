@@ -1,13 +1,18 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
+import { useAuth } from "@/context/AuthContext";
 
 export default function JobSearchPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
@@ -52,6 +57,14 @@ export default function JobSearchPage() {
     });
   }, [keyword, location, selectedCategory, selectedEmploymentType, remoteOnly, minSalary]);
 
+  const handleApplyClick = (job: Job) => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=/jobs/${job.id}&message=Please sign in or create an account to continue with your application.`);
+    } else {
+      setSelectedJobToApply(job);
+    }
+  };
+
   return (
     <>
       <TopAppBar />
@@ -74,7 +87,6 @@ export default function JobSearchPage() {
               </p>
             </div>
 
-            {/* Quick Sort Dropdown */}
             <div className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/30 px-4 py-2 rounded-xl">
               <span className="text-xs font-label-md text-outline font-semibold">Sort by:</span>
               <select className="bg-transparent text-xs font-label-md font-bold text-on-surface focus:outline-none cursor-pointer">
@@ -105,104 +117,120 @@ export default function JobSearchPage() {
                   setRemoteOnly(false);
                   setMinSalary(100000);
                 }}
-                className="text-xs font-label-md text-primary hover:underline"
+                className="text-xs text-primary font-bold hover:underline"
               >
                 Reset All
               </button>
             </div>
 
-            {/* Keyword Filter */}
+            {/* Keyword Input */}
             <div className="space-y-2">
-              <label className="block text-xs font-label-md font-bold uppercase tracking-wider text-on-surface-variant">
-                Keyword
+              <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                Title, Skill, or Keyphrase
               </label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">
-                  search
-                </span>
                 <input
                   type="text"
-                  placeholder="Title, skill or company..."
+                  placeholder="e.g. React, Next.js, Product Manager"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-9 pr-3 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary text-on-surface"
                 />
+                <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-outline text-base">
+                  search
+                </span>
               </div>
             </div>
 
-            {/* Location Filter */}
+            {/* Location Input */}
             <div className="space-y-2">
-              <label className="block text-xs font-label-md font-bold uppercase tracking-wider text-on-surface-variant">
-                Location
+              <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                Location or Country
               </label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">
-                  location_on
-                </span>
                 <input
                   type="text"
-                  placeholder="City, State, or Country..."
+                  placeholder="e.g. San Francisco, Remote, London"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-9 pr-3 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary text-on-surface"
                 />
+                <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-outline text-base">
+                  location_on
+                </span>
               </div>
             </div>
 
-            {/* Remote Toggle */}
-            <div className="flex items-center justify-between p-3 bg-primary-container/10 border border-primary/20 rounded-xl">
-              <span className="text-xs font-label-md font-bold text-on-surface">
-                Remote Jobs Only
-              </span>
-              <input
-                type="checkbox"
-                checked={remoteOnly}
-                onChange={(e) => setRemoteOnly(e.target.checked)}
-                className="w-4 h-4 text-primary rounded border-outline-variant focus:ring-primary cursor-pointer"
-              />
-            </div>
-
-            {/* Category Filter */}
+            {/* Category Select */}
             <div className="space-y-2">
-              <label className="block text-xs font-label-md font-bold uppercase tracking-wider text-on-surface-variant">
+              <label className="block text-xs font-label-md font-bold text-outline uppercase">
                 Category
               </label>
-              <div className="space-y-1.5 text-xs font-label-md text-on-surface">
-                {["ALL", "Design", "Engineering", "Product"].map((cat) => (
-                  <label
-                    key={cat}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="category"
-                        checked={selectedCategory === cat}
-                        onChange={() => setSelectedCategory(cat)}
-                        className="text-primary focus:ring-primary"
-                      />
-                      <span>{cat === "ALL" ? "All Categories" : cat}</span>
-                    </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs font-label-md text-on-surface focus:outline-none cursor-pointer"
+              >
+                <option value="ALL">All Categories</option>
+                <option value="Engineering">Software Engineering</option>
+                <option value="Product">Product Management</option>
+                <option value="AI / ML">Artificial Intelligence & ML</option>
+                <option value="Design">UI/UX & Product Design</option>
+                <option value="Data">Data & Analytics</option>
+              </select>
+            </div>
+
+            {/* Employment Type */}
+            <div className="space-y-2">
+              <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                Employment Type
+              </label>
+              <div className="space-y-2 text-xs font-body-sm">
+                {["ALL", "Full-time", "Contract", "Part-time"].map((type) => (
+                  <label key={type} className="flex items-center gap-2 cursor-pointer text-on-surface-variant hover:text-on-surface">
+                    <input
+                      type="radio"
+                      name="employmentType"
+                      checked={selectedEmploymentType === type}
+                      onChange={() => setSelectedEmploymentType(type)}
+                      className="text-primary focus:ring-primary"
+                    />
+                    <span>{type === "ALL" ? "Any Type" : type}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* Minimum Salary Slider */}
-            <div className="space-y-2">
+            {/* Remote Only Toggle */}
+            <div className="pt-2 border-t border-outline-variant/10">
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-xs font-label-md font-bold text-on-surface">
+                  Remote Positions Only
+                </span>
+                <input
+                  type="checkbox"
+                  checked={remoteOnly}
+                  onChange={(e) => setRemoteOnly(e.target.checked)}
+                  className="w-4 h-4 text-primary rounded border-outline-variant"
+                />
+              </label>
+            </div>
+
+            {/* Salary Range Slider */}
+            <div className="space-y-2 pt-2 border-t border-outline-variant/10">
               <div className="flex justify-between items-center">
-                <label className="block text-xs font-label-md font-bold uppercase tracking-wider text-on-surface-variant">
-                  Min Salary
+                <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                  Minimum Salary
                 </label>
                 <span className="text-xs font-bold text-primary">
-                  ${Math.round(minSalary / 1000)}k/yr
+                  ${(minSalary / 1000).toFixed(0)}k+ / yr
                 </span>
               </div>
               <input
                 type="range"
-                min={80000}
-                max={250000}
-                step={10000}
+                min="50000"
+                max="300000"
+                step="10000"
                 value={minSalary}
                 onChange={(e) => setMinSalary(Number(e.target.value))}
                 className="w-full accent-primary cursor-pointer"
@@ -210,42 +238,28 @@ export default function JobSearchPage() {
             </div>
           </aside>
 
-          {/* Job Feed Grid */}
-          <div className="lg:col-span-3 space-y-6">
+          {/* Job Listings Column */}
+          <div className="lg:col-span-3 space-y-4">
             {filteredJobs.length === 0 ? (
-              <div className="glass-card rounded-2xl p-12 text-center space-y-4 border border-outline-variant/20">
-                <span className="material-symbols-outlined text-outline text-5xl">
+              <div className="p-12 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/20 space-y-3">
+                <span className="material-symbols-outlined text-4xl text-outline">
                   search_off
                 </span>
-                <h3 className="font-headline-sm text-xl font-bold text-on-surface">
+                <h3 className="font-headline-sm text-lg font-bold text-on-surface">
                   No matching jobs found
                 </h3>
-                <p className="text-on-surface-variant text-sm max-w-md mx-auto">
-                  Try adjusting your filter criteria or clearing keywords to see more opportunities.
+                <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
+                  Try adjusting your keywords, lowering minimum salary, or clearing filters.
                 </p>
-                <button
-                  onClick={() => {
-                    setKeyword("");
-                    setLocation("");
-                    setSelectedCategory("ALL");
-                    setRemoteOnly(false);
-                    setMinSalary(80000);
-                  }}
-                  className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold"
-                >
-                  Clear Filters
-                </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onApplyClick={(j) => setSelectedJobToApply(j)}
-                  />
-                ))}
-              </div>
+              filteredJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onApplyClick={handleApplyClick}
+                />
+              ))
             )}
           </div>
         </div>
@@ -257,9 +271,7 @@ export default function JobSearchPage() {
         job={selectedJobToApply}
         isOpen={!!selectedJobToApply}
         onClose={() => setSelectedJobToApply(null)}
-        onSuccess={(j) => {
-          console.log("Applied to", j.title);
-        }}
+        onSuccess={(job) => console.log("Applied for", job.title)}
       />
     </>
   );

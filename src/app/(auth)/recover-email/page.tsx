@@ -2,22 +2,22 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { authService } from "@/services/authService";
 import { useToast } from "@/components/ui/Toast";
 
-export default function ForgotPasswordPage() {
+export default function RecoverEmailPage() {
   const { showToast } = useToast();
-  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneOrCompany, setPhoneOrCompany] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await authService.sendPasswordReset(email);
+    await new Promise((res) => setTimeout(res, 600));
     setLoading(false);
     setSubmitted(true);
-    showToast("Password reset link sent!", "success");
+    showToast("Account recovery request submitted!", "success");
   };
 
   return (
@@ -26,23 +26,23 @@ export default function ForgotPasswordPage() {
         <div className="glass-card rounded-3xl p-8 border border-white/60 shadow-2xl space-y-6">
           <div className="space-y-2 text-center">
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-              Reset Your Password
+              Account Email Recovery
             </h1>
             <p className="text-on-surface-variant text-xs font-body-md">
-              Enter your registered email address and we'll send a secure password reset link.
+              Can't remember your registered email? Submit a secure verification request below.
             </p>
           </div>
 
           {submitted ? (
             <div className="p-6 text-center space-y-4">
               <div className="w-14 h-14 bg-tertiary-container/30 text-tertiary rounded-full flex items-center justify-center mx-auto text-2xl">
-                <span className="material-symbols-outlined text-3xl">send</span>
+                <span className="material-symbols-outlined text-3xl">mark_email_read</span>
               </div>
               <h3 className="font-headline-sm text-lg font-bold text-on-surface">
-                Reset Link Sent!
+                Recovery Request Received
               </h3>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                We sent a password reset email to <span className="font-bold text-on-surface">{email}</span>. Click the link in the email to set your new password.
+                If your details match an active profile, our account security team will contact you via phone or SMS within 2 hours.
               </p>
               <Link
                 href="/login"
@@ -55,17 +55,35 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-body-sm">
               <div className="space-y-1">
                 <label className="block text-outline font-label-md font-bold uppercase">
-                  Registered Email Address
+                  Full Name
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="you@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. Alex Rivers"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="w-full p-3 bg-surface border border-outline-variant/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-on-surface"
                 />
               </div>
+
+              <div className="space-y-1">
+                <label className="block text-outline font-label-md font-bold uppercase">
+                  Phone Number or Company Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. +1 (555) 019-2834 or Stellar Systems"
+                  value={phoneOrCompany}
+                  onChange={(e) => setPhoneOrCompany(e.target.value)}
+                  className="w-full p-3 bg-surface border border-outline-variant/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-on-surface"
+                />
+              </div>
+
+              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                🔒 For privacy protection, account details are verified manually to prevent unauthorized access.
+              </p>
 
               <button
                 type="submit"
@@ -75,19 +93,16 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Sending Reset Email...
+                    Submitting Request...
                   </>
                 ) : (
-                  "Send Reset Email"
+                  "Submit Recovery Request"
                 )}
               </button>
             </form>
           )}
 
-          <div className="text-center pt-2 border-t border-outline-variant/10 text-xs flex justify-between items-center text-outline">
-            <Link href="/recover-email" className="hover:text-primary font-bold">
-              Forgot your email?
-            </Link>
+          <div className="text-center pt-2 border-t border-outline-variant/10 text-xs">
             <Link href="/login" className="text-primary font-bold hover:underline">
               ← Back to Sign In
             </Link>

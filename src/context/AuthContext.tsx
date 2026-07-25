@@ -8,7 +8,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (role: UserRole, email: string, pass: string, remember: boolean) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, pass: string, role?: UserRole, remember?: boolean) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
   registerSeeker: (name: string, email: string, phone: string, country: string, pass: string) => Promise<{ success: boolean }>;
   registerRecruiter: (name: string, company: string, email: string, website: string, phone: string, location: string, designation: string, pass: string) => Promise<{ success: boolean }>;
   logout: () => void;
@@ -17,7 +17,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Default to Alex Rivers (Job Seeker) for instant preview if no session stored
   const [user, setUser] = useState<AuthUser | null>(PRECONFIGURED_USERS[2]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,14 +27,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (role: UserRole, email: string, pass: string, remember: boolean) => {
+  const login = async (email: string, pass: string, role?: UserRole, remember: boolean = true) => {
     setIsLoading(true);
     const res = await authService.login(email, pass, role, remember);
     setIsLoading(false);
 
     if (res.success && res.user) {
       setUser(res.user);
-      return { success: true };
+      return { success: true, user: res.user };
     }
     return { success: false, error: res.error || "Authentication failed." };
   };

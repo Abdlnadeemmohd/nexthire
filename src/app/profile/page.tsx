@@ -6,21 +6,17 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { PROFILE_DATA } from "@/lib/mockData";
+import { useToast } from "@/components/ui/Toast";
 
 export default function ProfilePage() {
+  const { showToast } = useToast();
   const [profile, setProfile] = useState(PROFILE_DATA);
   const [isEditing, setIsEditing] = useState(false);
-  const [reparsing, setReparsing] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
 
-  const handleReparse = () => {
-    setReparsing(true);
-    setTimeout(() => {
-      setReparsing(false);
-      setProfile((prev) => ({
-        ...prev,
-        resumeScore: Math.min(100, prev.resumeScore + 2),
-      }));
-    }, 1200);
+  const handleAction = (actionName: string) => {
+    setShowMoreActions(false);
+    showToast(`Triggered: ${actionName}`, "info");
   };
 
   return (
@@ -31,7 +27,7 @@ export default function ProfilePage() {
         <SidebarNav portal="seeker" />
 
         <main className="flex-1 lg:ml-72 p-6 md:p-10 space-y-8 max-w-7xl">
-          {/* Profile Banner Card */}
+          {/* Clean Profile Header */}
           <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="flex items-center gap-6">
@@ -61,21 +57,61 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleReparse}
-                  disabled={reparsing}
-                  className="px-5 py-2.5 bg-surface-container-high text-on-surface font-label-md font-bold text-xs rounded-full hover:bg-primary-container/20 hover:text-primary transition-all flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base">auto_awesome</span>
-                  {reparsing ? "Analyzing..." : "Re-parse Resume AI"}
-                </button>
+              {/* Action Buttons: Clean Edit Profile + More Actions Dropdown */}
+              <div className="flex items-center gap-3 relative">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm"
+                  className="px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2"
                 >
+                  <span className="material-symbols-outlined text-base">
+                    {isEditing ? "check" : "edit"}
+                  </span>
                   {isEditing ? "Save Profile" : "Edit Profile"}
                 </button>
+
+                {/* More Actions Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMoreActions(!showMoreActions)}
+                    className="p-2.5 bg-surface-container-high text-on-surface hover:text-primary rounded-full transition-colors border border-outline-variant/30 flex items-center justify-center"
+                    aria-label="More Profile Actions"
+                  >
+                    <span className="material-symbols-outlined text-lg">more_vert</span>
+                  </button>
+
+                  {showMoreActions && (
+                    <div className="absolute right-0 mt-2 w-52 bg-surface border border-outline-variant/20 rounded-2xl shadow-xl p-2 z-30 space-y-1 text-xs font-label-md">
+                      <button
+                        onClick={() => handleAction("Download Resume PDF")}
+                        className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-base">download</span>
+                        Download Resume
+                      </button>
+                      <button
+                        onClick={() => handleAction("Upload New Resume")}
+                        className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-base">upload_file</span>
+                        Upload New Resume
+                      </button>
+                      <button
+                        onClick={() => handleAction("AI Skill Gap Analysis")}
+                        className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-base">analytics</span>
+                        Resume AI Analysis
+                      </button>
+                      <button
+                        onClick={() => handleAction("Delete Current Resume")}
+                        className="w-full text-left px-3 py-2 text-error hover:bg-error-container/20 rounded-xl flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-base">delete</span>
+                        Delete Resume
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -98,7 +134,7 @@ export default function ProfilePage() {
                     cy="56"
                     r="45"
                     stroke="#e6e8ea"
-                    strokeWidth="10"
+                    strokeWidth="8"
                     fill="transparent"
                   />
                   <circle
@@ -106,126 +142,96 @@ export default function ProfilePage() {
                     cy="56"
                     r="45"
                     stroke="#006242"
-                    strokeWidth="10"
-                    fill="transparent"
-                    strokeDasharray={282}
-                    strokeDashoffset={282 - (282 * profile.resumeScore) / 100}
+                    strokeWidth="8"
+                    strokeDasharray={283}
+                    strokeDashoffset={283 - (283 * profile.resumeScore) / 100}
                     strokeLinecap="round"
-                    className="transition-all duration-1000"
+                    fill="transparent"
                   />
                 </svg>
-                <span className="absolute font-display text-2xl font-bold text-tertiary">
+                <span className="absolute font-display font-bold text-2xl text-on-surface">
                   {profile.resumeScore}%
                 </span>
               </div>
-              <p className="text-xs text-on-surface-variant font-label-md">
-                Optimized for Tier-1 Tech Companies & Executive Search
-              </p>
+              <span className="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm font-bold text-xs rounded-full">
+                ATS Optimized
+              </span>
             </div>
 
-            {/* Profile Completeness Card */}
+            {/* Profile Completion Card */}
             <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4 md:col-span-2 flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-headline-sm text-base font-bold text-on-surface">
-                    Profile Completeness
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+                    Profile Strength
                   </h3>
-                  <span className="font-bold text-primary text-sm">
-                    {profile.completeness}%
-                  </span>
+                  <span className="text-primary font-bold text-sm">92% Complete</span>
                 </div>
                 <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-primary h-full rounded-full transition-all duration-700"
-                    style={{ width: `${profile.completeness}%` }}
-                  ></div>
+                  <div className="bg-primary h-full rounded-full w-[92%]" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-tertiary">check_circle</span>
-                  <span>Work Experience Verified</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-body-sm pt-2">
+                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
+                  <span className="text-outline font-label-md">Skill Tags</span>
+                  <p className="font-bold text-on-surface text-sm">14 Added</p>
                 </div>
-                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-tertiary">check_circle</span>
-                  <span>Portfolio Links Active</span>
+                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
+                  <span className="text-outline font-label-md font-bold">Experience</span>
+                  <p className="font-bold text-on-surface text-sm">6+ Years</p>
+                </div>
+                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
+                  <span className="text-outline font-label-md font-bold">Education</span>
+                  <p className="font-bold text-on-surface text-sm">B.S. CompSci</p>
+                </div>
+                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
+                  <span className="text-outline font-label-md font-bold">Certifications</span>
+                  <p className="font-bold text-on-surface text-sm">AWS Dev</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Skills & Experience Breakdown */}
+          {/* Experience & Skills Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              {/* Work Experience */}
-              <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6">
+              {/* Experience */}
+              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
                 <h3 className="font-headline-sm text-xl font-bold text-on-surface">
                   Work Experience
                 </h3>
                 <div className="space-y-6">
                   {profile.experience.map((exp, i) => (
-                    <div
-                      key={i}
-                      className="border-l-2 border-primary/30 pl-4 space-y-1 relative"
-                    >
-                      <div className="w-3 h-3 bg-primary rounded-full absolute -left-[7px] top-1.5"></div>
-                      <h4 className="font-headline-sm text-base font-bold text-on-surface">
-                        {exp.title}
-                      </h4>
-                      <p className="text-xs font-label-md text-primary font-bold">
-                        {exp.company} • {exp.period}
-                      </p>
-                      <p className="text-xs text-on-surface-variant leading-relaxed">
-                        {exp.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Portfolio Showcase */}
-              <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6">
-                <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-                  Portfolio & Case Studies
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {profile.portfolio.map((item, i) => (
-                    <a
-                      key={i}
-                      href={item.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-5 bg-surface rounded-xl border border-outline-variant/20 hover:border-primary transition-all group block space-y-2"
-                    >
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-headline-sm text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                          {item.title}
-                        </h4>
-                        <span className="material-symbols-outlined text-outline text-base group-hover:text-primary">
-                          launch
-                        </span>
+                    <div key={i} className="flex items-start gap-4 pb-6 border-b border-outline-variant/10 last:border-0 last:pb-0">
+                      <div className="w-10 h-10 bg-primary-fixed text-on-primary-fixed rounded-xl flex items-center justify-center font-bold">
+                        <span className="material-symbols-outlined">work</span>
                       </div>
-                      <p className="text-xs text-on-surface-variant line-clamp-2">
-                        {item.description}
-                      </p>
-                    </a>
+                      <div className="space-y-1 flex-1">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-bold text-on-surface text-base">{exp.title}</h4>
+                          <span className="text-outline text-xs font-label-md">{exp.period}</span>
+                        </div>
+                        <p className="text-primary font-label-md text-xs font-semibold">{exp.company}</p>
+                        <p className="text-on-surface-variant text-xs leading-relaxed pt-1">{exp.description}</p>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Skills */}
+            {/* Skills Sidebar */}
             <div className="space-y-6">
               <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4">
-                <h3 className="font-headline-sm text-base font-bold text-on-surface">
+                <h3 className="font-headline-sm text-lg font-bold text-on-surface">
                   Verified Skills
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {profile.skills.map((skill, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1 bg-surface-container-high text-on-surface rounded-full text-xs font-label-md font-semibold border border-outline-variant/10"
+                      className="px-3 py-1 bg-surface-container-high text-on-surface font-label-sm font-bold text-xs rounded-full border border-outline-variant/30"
                     >
                       {skill}
                     </span>
@@ -236,6 +242,8 @@ export default function ProfilePage() {
           </div>
         </main>
       </div>
+
+      <Footer />
     </>
   );
 }

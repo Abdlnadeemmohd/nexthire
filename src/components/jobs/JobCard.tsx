@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Job } from "@/lib/mockData";
+import { useAuth } from "@/context/AuthContext";
 
 interface JobCardProps {
   job: Job;
@@ -11,6 +12,9 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, featured = false, onApplyClick }: JobCardProps) {
+  const { user } = useAuth();
+  const userRole = user?.role;
+
   return (
     <div
       className={`glass-card rounded-2xl p-6 sm:p-8 border transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 flex flex-col justify-between h-full ${
@@ -100,12 +104,35 @@ export function JobCard({ job, featured = false, onApplyClick }: JobCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => onApplyClick && onApplyClick(job)}
-            className="flex-1 sm:flex-initial px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-xs text-center touch-target"
+          <Link
+            href={`/jobs/${job.id}`}
+            className="px-4 py-2.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-full transition-all text-center"
           >
-            Apply Now
-          </button>
+            View Details
+          </Link>
+
+          {userRole === "RECRUITER" ? (
+            <Link
+              href="/recruiter/applicants"
+              className="px-5 py-2.5 text-xs font-label-md font-bold bg-surface-container-high hover:bg-primary-container/20 text-primary rounded-full transition-all text-center"
+            >
+              Recruiter View
+            </Link>
+          ) : userRole === "PLATFORM_ADMIN" ? (
+            <Link
+              href="/admin/companies"
+              className="px-5 py-2.5 text-xs font-label-md font-bold bg-surface-container-high text-on-surface rounded-full transition-all text-center"
+            >
+              Admin Audit
+            </Link>
+          ) : (
+            <button
+              onClick={() => onApplyClick && onApplyClick(job)}
+              className="px-6 py-2.5 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-sm active:scale-95 text-center"
+            >
+              Apply Now
+            </button>
+          )}
         </div>
       </div>
     </div>

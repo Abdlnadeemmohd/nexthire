@@ -45,6 +45,14 @@ export default function ApplicationTrackerPage() {
                 Track your active interviews, recruiter feedback, and offer status in real-time.
               </p>
             </div>
+
+            <Link
+              href={`/applications/${selectedApp.id}/feedback`}
+              className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-md flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">reviews</span>
+              View Recruiter Feedback & AI Guidance →
+            </Link>
           </div>
 
           {/* Interactive Pipeline Timeline Bar */}
@@ -100,19 +108,17 @@ export default function ApplicationTrackerPage() {
                         }`}
                       >
                         {isCompleted ? (
-                          <span className="material-symbols-outlined text-base">
-                            check
-                          </span>
+                          <span className="material-symbols-outlined text-lg">check</span>
                         ) : (
                           index + 1
                         )}
                       </div>
                       <span
-                        className={`text-xs font-label-md hidden sm:block ${
+                        className={`text-[11px] font-label-md font-bold whitespace-nowrap ${
                           isCurrent
-                            ? "font-bold text-primary"
+                            ? "text-primary"
                             : isCompleted
-                            ? "font-semibold text-on-surface"
+                            ? "text-on-surface"
                             : "text-outline"
                         }`}
                       >
@@ -123,83 +129,47 @@ export default function ApplicationTrackerPage() {
                 })}
               </div>
             </div>
-
-            {/* Recruiter Notes & Timeline Info */}
-            {selectedApp.notes && (
-              <div className="p-4 bg-tertiary-container/10 border border-tertiary/30 rounded-xl flex items-start gap-3 text-xs">
-                <span className="material-symbols-outlined text-tertiary text-xl mt-0.5">
-                  info
-                </span>
-                <div>
-                  <h4 className="font-bold text-on-surface font-label-md">
-                    Recruiter Feedback Note
-                  </h4>
-                  <p className="text-on-surface-variant font-body-sm mt-0.5">
-                    {selectedApp.notes}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* All Submitted Applications List */}
+          {/* Submitted Applications Feed */}
           <div className="space-y-4">
-            <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-              All Applications ({INITIAL_APPLICATIONS.length})
+            <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+              All Active Applications ({INITIAL_APPLICATIONS.length})
             </h3>
-
             <div className="space-y-4">
               {INITIAL_APPLICATIONS.map((app) => (
                 <div
                   key={app.id}
                   onClick={() => setSelectedApp(app)}
-                  className={`glass-card rounded-2xl p-6 border transition-all cursor-pointer flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${
+                  className={`glass-card rounded-2xl p-6 border transition-all cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
                     selectedApp.id === app.id
-                      ? "border-primary ring-2 ring-primary/20 bg-primary-fixed/5"
-                      : "border-outline-variant/20 hover:border-primary/40"
+                      ? "border-primary ring-2 ring-primary/20 shadow-md"
+                      : "border-outline-variant/20 hover:border-outline-variant/40"
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-outline-variant/20 p-2 overflow-hidden shadow-xs">
-                      <img
-                        src={app.companyLogo}
-                        alt={app.companyName}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
+                    <img
+                      src={app.companyLogo}
+                      alt={app.companyName}
+                      className="w-12 h-12 rounded-xl object-contain bg-white p-2 border border-outline-variant/20 shadow-xs"
+                    />
                     <div>
-                      <h4 className="font-headline-sm text-base font-bold text-on-surface">
-                        {app.jobTitle}
-                      </h4>
+                      <h4 className="font-bold text-on-surface text-base">{app.jobTitle}</h4>
                       <p className="text-xs text-on-surface-variant font-label-md">
-                        {app.companyName} • {app.location} • Applied {app.appliedAt}
+                        {app.companyName} • Applied {app.appliedAt}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                    <span className="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-xs font-bold rounded-full">
-                      {app.matchScore}% Match
-                    </span>
-                    <span
-                      className={`px-3 py-1 text-xs font-label-md font-bold rounded-full ${
-                        app.status === "INTERVIEW"
-                          ? "bg-tertiary text-on-tertiary"
-                          : app.status === "OFFER"
-                          ? "bg-primary text-on-primary"
-                          : "bg-surface-container-high text-on-surface-variant"
-                      }`}
-                    >
-                      {app.status.replace("_", " ")}
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 bg-tertiary-container/30 text-tertiary font-label-sm font-bold text-xs rounded-full">
+                      Match: {app.matchScore}%
                     </span>
                     <Link
-                      href="/messages"
-                      className="p-2 text-primary hover:bg-primary-container/20 rounded-full transition-colors"
-                      title="Chat Recruiter"
+                      href={`/applications/${app.id}/feedback`}
+                      className="px-3 py-1 bg-surface-container-high hover:bg-primary-container/20 text-primary font-label-md font-bold text-xs rounded-full"
                     >
-                      <span className="material-symbols-outlined text-lg">
-                        chat
-                      </span>
+                      Feedback & AI Advice
                     </Link>
                   </div>
                 </div>
@@ -208,6 +178,8 @@ export default function ApplicationTrackerPage() {
           </div>
         </main>
       </div>
+
+      <Footer />
     </>
   );
 }
