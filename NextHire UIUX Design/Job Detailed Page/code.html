@@ -1,0 +1,468 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>NextHire | Senior Product Designer Role</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "inverse-surface": "#2d3133",
+                    "secondary": "#565e74",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary": "#006242",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#0053db",
+                    "surface-container": "#eceef0",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-secondary-fixed": "#131b2e",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "outline": "#737686",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "primary-container": "#2563eb",
+                    "secondary-container": "#dae2fd",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-tertiary-container": "#bdffdb",
+                    "on-primary-fixed": "#00174b",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-low": "#f2f4f6",
+                    "primary": "#004ac6",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#dae2fd",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-primary-container": "#eeefff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-dim": "#d8dadc",
+                    "outline-variant": "#c3c6d7",
+                    "on-surface-variant": "#434655",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-bright": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#5c647a",
+                    "tertiary-container": "#007d55",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "margin-desktop": "40px",
+                    "margin-mobile": "16px",
+                    "unit": "8px",
+                    "stack-sm": "8px",
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Poppins"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Poppins"],
+                    "headline-lg": ["Poppins"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-sm": ["Poppins"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "display": ["Poppins"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #f7f9fb;
+            color: #191c1e;
+            font-family: 'Hanken Grotesk', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm dark:shadow-none border-b border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-between items-center h-16">
+<div class="flex items-center gap-3"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt2V5nXpb5KnptP4zhHTR84czevD11kd4UdB_tgO3f8XHMFTlMq6lro7rmumog_Q2AHlQyaTCOCpbTL7tQzFYANa2Lksb3RO8GjsRr8uh5Fw8dx5WhUOd-PyAgN64wa584Pe1To-_5U2FMgDQh4qtOvEw_WKTqgnPtB4XZxmYwN9ZlLb3FsO2oKUEWdN9s6HdDnBz-QG7FWtNRCOIj3spIoBWw_89MAQJJapt1qlcXgVEcijtw6POmaLP_R" alt="NextHire Logo" class="h-8 w-auto object-contain"></div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary dark:text-primary-fixed font-semibold border-b-2 border-primary py-5" href="#">Job Search</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary py-5 transition-colors duration-200" href="#">Applications</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary py-5 transition-colors duration-200" href="#">Messages</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-primary/5 p-2 rounded-full transition-colors" data-icon="notifications">notifications</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden cursor-pointer hover:scale-105 transition-transform">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of a senior user for a recruitment platform, featuring a warm and confident expression. The lighting is bright and airy, reflecting a clean and sophisticated light-mode UI aesthetic. The background is a soft, blurred corporate office setting with subtle blue and white tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCt3IGB7xXTa_JHvBdKK6rW95AJuI1VwyMVv1z5OkjiAh7j42y5XTsg81LVfwGjdlziGLanmBwilYPq_9GHX1kYSAkzCOILa_zVZPuzUevx87m2YV_zK4hOt6HRVz5SW0E766FGX24tZqrE-_UKaSaHgWENPKaGm2iWaKYbM5J7KOmzItyGuu6735he-6sAkY7DM-n0DDEgAwrrZIfbjVi7GbpbOo-ZMVMX-LbDIKFvZ7zKqmAHp53fog_PMSxCKeHt5LXT8Ay9LWtu">
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-20 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Main Content: Job Details -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Header Section -->
+<section class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/30 shadow-sm">
+<div class="flex items-start justify-between mb-6">
+<div class="flex gap-4">
+<div class="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="token">token</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-1">Senior Product Designer</h1>
+<div class="flex items-center gap-3 text-on-surface-variant font-body-md text-body-md">
+<span class="font-semibold text-primary">Lumina Tech</span>
+<span class="">•</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span> San Francisco, CA (Remote)</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+</button>
+<button class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="bookmark_border">bookmark_border</span>
+</button>
+</div>
+</div>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md">Full-time</span>
+<span class="px-4 py-1.5 bg-tertiary/10 text-tertiary rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="verified" data-weight="fill">verified</span> AI Match: 98%
+                        </span>
+<span class="px-4 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full font-label-md text-label-md">$160k – $220k / yr</span>
+</div>
+</section>
+<!-- Navigation Tabs (Internal) -->
+<nav class="flex gap-8 border-b border-outline-variant/30 px-2 overflow-x-auto no-scrollbar">
+<a class="pb-4 text-primary border-b-2 border-primary font-semibold font-label-md text-label-md whitespace-nowrap" href="#description">Description</a>
+<a class="pb-4 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors whitespace-nowrap" href="#responsibilities">Responsibilities</a>
+<a class="pb-4 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors whitespace-nowrap" href="#benefits">Benefits</a>
+<a class="pb-4 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors whitespace-nowrap" href="#company">Company Profile</a>
+</nav>
+<!-- Detailed Content -->
+<article class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/30 shadow-sm space-y-12">
+<section class="space-y-4" id="description">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Description</h2>
+<div class="text-on-surface-variant font-body-lg text-body-lg leading-relaxed space-y-4">
+<p class="">We are seeking a visionary Senior Product Designer to lead the next generation of our data visualization platform. Lumina Tech is at the forefront of AI-driven insights, and we need a designer who can bridge the gap between complex algorithmic data and human-centric clarity.</p>
+<p class="">In this role, you will be responsible for the end-to-end design lifecycle, from strategic discovery and user research to high-fidelity prototyping and design system maintenance. You'll collaborate closely with our engineering and data science teams to create interfaces that aren't just beautiful, but deeply functional and intelligent.</p>
+</div>
+</section>
+<section class="space-y-6" id="responsibilities">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Responsibilities</h3>
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<li class="flex items-start gap-3 p-4 bg-surface rounded-lg border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-primary mt-1" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Lead user research sessions to uncover deep architectural needs for enterprise clients.</span>
+</li>
+<li class="flex items-start gap-3 p-4 bg-surface rounded-lg border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-primary mt-1" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Architect and evolve our global design system to ensure consistency across mobile and web.</span>
+</li>
+<li class="flex items-start gap-3 p-4 bg-surface rounded-lg border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-primary mt-1" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Collaborate with AI engineers to translate complex logic into intuitive UX flows.</span>
+</li>
+<li class="flex items-start gap-3 p-4 bg-surface rounded-lg border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-primary mt-1" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Mentor junior designers and advocate for design excellence across the organization.</span>
+</li>
+</ul>
+</section>
+<section class="space-y-6" id="benefits">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Benefits</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<div class="text-center space-y-2">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-primary" data-icon="health_and_safety">health_and_safety</span>
+</div>
+<span class="block font-label-md text-label-md text-on-surface">Premium Health</span>
+</div>
+<div class="text-center space-y-2">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-primary" data-icon="distance">distance</span>
+</div>
+<span class="block font-label-md text-label-md text-on-surface">Remote First</span>
+</div>
+<div class="text-center space-y-2">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-primary" data-icon="monetization_on">monetization_on</span>
+</div>
+<span class="block font-label-md text-label-md text-on-surface">Equity &amp; 401k</span>
+</div>
+<div class="text-center space-y-2">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-primary" data-icon="fitness_center">fitness_center</span>
+</div>
+<span class="block font-label-md text-label-md text-on-surface">Wellness Grant</span>
+</div>
+</div>
+</section>
+</article>
+<!-- Similar Jobs Bento Section -->
+<section class="space-y-6">
+<h3 class="font-headline-md text-headline-md text-on-surface">Similar Opportunities</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-on-surface/5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="dataset">dataset</span>
+</div>
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">94% Match</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm group-hover:text-primary transition-colors">Visual Designer, AI</h4>
+<p class="text-on-surface-variant font-body-sm text-body-sm mt-1">DataStream Lab • Remote</p>
+<div class="mt-4 flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<span class="">$145k - $190k</span>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 hover:shadow-md transition-shadow cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-on-surface/5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="layers">layers</span>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded">89% Match</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm group-hover:text-primary transition-colors">UX Architect</h4>
+<p class="text-on-surface-variant font-body-sm text-body-sm mt-1">Synthetix • Austin, TX</p>
+<div class="mt-4 flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<span class="">$170k - $210k</span>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Sidebar: Sticky Apply & Company Info -->
+<aside class="lg:col-span-4 space-y-8 sticky top-24">
+<!-- Sticky Apply Card -->
+<div class="bg-primary-container text-on-primary-container rounded-2xl p-8 shadow-lg border border-primary/20">
+<div class="space-y-6">
+<div>
+<span class="text-label-md font-label-md opacity-80 uppercase tracking-widest">Apply Before</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-headline-sm text-headline-sm">Oct 24, 2024</span>
+</div>
+</div>
+<div class="h-px bg-on-primary-container/20"></div>
+<div class="space-y-4">
+<button class="w-full bg-white text-primary font-headline-sm text-headline-sm py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-md">Apply Now</button>
+<button class="w-full bg-primary/20 text-on-primary-container border border-on-primary-container/20 font-label-md text-label-md py-4 rounded-xl hover:bg-primary/30 transition-colors">Send Inquiry</button>
+</div>
+<p class="text-center font-body-sm text-body-sm opacity-80">14 designers have applied this week</p>
+</div>
+</div>
+<!-- Company Preview Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 overflow-hidden shadow-sm" id="company">
+<div class="h-32 bg-cover bg-center" data-alt="A cinematic, high-angle aerial view of a sleek, modern corporate campus at dusk. The architecture features vast glass facades and soft interior lighting, emphasizing a tech-forward and innovative environment. The color palette is composed of cool blues, deep slates, and warm interior glows, reflecting a premium professional aesthetic consistent with a light-mode recruitment platform." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD0yEQFl9TfGNggVJQB48tFajObAcoeVxR2tvfwKGSNPuK_RTJL6S_YS-hVvep0fOQRiJ5RSTUSoMSY1LN-vHbXuUCjGcSGjXdq47xI92mNr6cXHB8KKPvCSJHmO5j5BO_RUtMdTsP2dwLtRQMhcmnIqwUZ_eNno4_D1gcgpkiH0xkMymLndzJkEhLOV9CLHd9fkExwnYz_9B_n7G0yKXhj9wfUgJhtcIQ4fnCIZ-8Grt64fMbRYxqKWg1dXgN3_XEHXX1oSUw21hQp')"></div>
+<div class="p-6 -mt-10">
+<div class="w-16 h-16 bg-white rounded-xl shadow-md p-3 mb-4 flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="token">token</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm">Lumina Tech</h4>
+<p class="text-on-surface-variant font-body-sm text-body-sm mt-1">AI-Powered Business Intelligence Platform. Leading the future of enterprise decision making.</p>
+<div class="mt-6 space-y-4">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-outline" data-icon="groups">groups</span>
+<span class="font-body-md text-body-md">500 - 1,000 Employees</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-outline" data-icon="language">language</span>
+<a class="font-body-md text-body-md text-primary hover:underline" href="#">lumina-tech.ai</a>
+</div>
+</div>
+<button class="w-full mt-8 py-3 rounded-lg border border-outline text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-colors">Follow Company</button>
+</div>
+</div>
+<!-- AI Insights Sidebar -->
+<div class="bg-[#EFF6FF] rounded-xl p-6 border border-primary/10">
+<div class="flex items-center gap-2 mb-4 text-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<h4 class="font-label-md text-label-md font-bold uppercase tracking-wider">AI Insight</h4>
+</div>
+<p class="text-on-secondary-container font-body-md text-body-md leading-relaxed">
+                        Your background at <span class="font-bold">DesignOne</span> and proficiency with <span class="font-bold">Figma &amp; React</span> makes you a top-tier candidate. The "Match Score" is exceptionally high for the prototyping requirements of this role.
+                    </p>
+<div class="mt-4 flex items-center gap-2">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a male recruiter, smiling warmly. He is dressed in business casual attire with soft studio lighting that creates a bright, trustworthy aesthetic. The background is a minimalist, light-toned office wall." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCelfoknWIJXCqVqGOM3dCK29m1Jx_4G5GdDZ_UZOhBWIwIIpUrnehvpAktEQcq5dM38zl876XgoMrPWeT2aJFaLOngEEoauTN8C9AzM8ls1Nm-0j9T8txBWNGnEKe2d52m8z8RdyZtbTPpKsYJYclJrgNlOUUTUQhDfDvWRWkBnwN7KIfKgneSiAX9Bwby8PDIxb722pkA5x7mvuOztv1xroKEw620yonOPBuTJnGLaWIw2wU552PIF6KyX9baDJSMf9oorugUc0dE">
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary text-[10px] text-white flex items-center justify-center font-bold">
+                                +3
+                            </div>
+</div>
+<span class="text-label-sm font-label-sm text-secondary">Hiring team is active</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-inverse-surface border-t border-outline-variant/30 w-full pt-12 pb-8">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="col-span-1 md:col-span-1">
+<span class="font-display text-headline-sm font-semibold text-on-surface">NextHire</span>
+<p class="mt-4 font-body-sm text-body-sm text-on-surface-variant max-w-xs">Global talent solutions powered by artificial intelligence. Bridging the gap between ambition and opportunity.</p>
+</div>
+<div>
+<h5 class="font-label-md text-label-md text-on-surface mb-4">Platform</h5>
+<ul class="space-y-2">
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Job Search</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Career Advice</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">AI Matching</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-md text-label-md text-on-surface mb-4">Support</h5>
+<ul class="space-y-2">
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Help Center</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Privacy Policy</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary" href="#">Terms of Service</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-md text-label-md text-on-surface mb-4">Newsletter</h5>
+<div class="flex gap-2">
+<input class="bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2 text-body-sm w-full focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Email" type="email">
+<button class="bg-primary text-white p-2 rounded-lg hover:scale-105 transition-transform"><span class="material-symbols-outlined" data-icon="send">send</span></button>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mt-12 pt-8 border-t border-outline-variant/10 text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">© 2024 NextHire AI. Global Talent Solutions.</p>
+</div>
+</footer>
+<!-- Mobile Bottom Nav -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 md:hidden bg-surface/90 backdrop-blur-lg border-t border-outline-variant/20 z-50 rounded-t-xl shadow-[0px_-10px_15px_-3px_rgba(15,23,42,0.05)]">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span class="font-label-sm text-label-sm">Apps</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-sm text-label-sm">Messages</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<script>
+        // Smooth scroll highlighting for nav tabs
+        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 120,
+                        behavior: 'smooth'
+                    });
+
+                    // Update active state
+                    document.querySelectorAll('nav a').forEach(a => {
+                        a.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+                        a.classList.add('text-on-surface-variant');
+                    });
+                    this.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+                    this.classList.remove('text-on-surface-variant');
+                }
+            });
+        });
+
+        // Simple scroll spy behavior
+        window.addEventListener('scroll', () => {
+            const sections = ['description', 'responsibilities', 'benefits', 'company'];
+            let current = '';
+
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                const sectionTop = section.offsetTop - 150;
+                if (pageYOffset >= sectionTop) {
+                    current = id;
+                }
+            });
+
+            document.querySelectorAll('nav a').forEach(a => {
+                a.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+                a.classList.add('text-on-surface-variant');
+                if (a.getAttribute('href') === `#${current}`) {
+                    a.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+                    a.classList.remove('text-on-surface-variant');
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

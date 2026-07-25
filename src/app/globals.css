@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Color System Tokens */
+    --primary: #004ac6;
+    --surface: #f7f9fb;
+    --surface-container: #eaeef4;
+    --surface-container-high: #e2e8f0;
+    --surface-container-low: #f1f5f9;
+    --surface-container-lowest: #ffffff;
+    --on-surface: #191c20;
+    --on-surface-variant: #43474e;
+    --outline: #737686;
+    --outline-variant: #c3c6cf;
+    --tertiary: #006242;
+    --tertiary-container: #96f7c4;
+
+    /* Fluid Typography Clamps */
+    --text-hero: clamp(2.25rem, 4vw + 1rem, 4.75rem);
+    --text-headline-lg: clamp(1.75rem, 3vw + 0.5rem, 3.25rem);
+    --text-headline-md: clamp(1.35rem, 2vw + 0.5rem, 2.25rem);
+    --text-body-lg: clamp(0.95rem, 1vw + 0.5rem, 1.25rem);
+  }
+
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Fluid Typography Utilities */
+.font-display-hero {
+  font-size: var(--text-hero);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.font-headline-fluid-lg {
+  font-size: var(--text-headline-lg);
+  line-height: 1.2;
+}
+
+.font-headline-fluid-md {
+  font-size: var(--text-headline-md);
+  line-height: 1.25;
+}
+
+.font-body-fluid-lg {
+  font-size: var(--text-body-lg);
+  line-height: 1.5;
+}
+
+/* Glassmorphism Surface Components */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-card {
+  background: rgba(25, 28, 32, 0.85);
+}
+
+/* Mesh Background Gradient */
+.bg-mesh {
+  background-color: #f7f9fb;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(0, 74, 198, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(0, 98, 66, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(226, 232, 240, 0.4) 0px, transparent 50%);
+}
+
+/* Touch Target Safety */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}

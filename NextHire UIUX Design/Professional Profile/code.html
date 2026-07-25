@@ -1,0 +1,459 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>NextHire | Professional Profile</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#2d3133",
+                        "secondary": "#565e74",
+                        "surface": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary": "#006242",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#0053db",
+                        "surface-container": "#eceef0",
+                        "on-background": "#191c1e",
+                        "background": "#f7f9fb",
+                        "on-secondary-fixed": "#131b2e",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "outline": "#737686",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "primary-container": "#2563eb",
+                        "secondary-container": "#dae2fd",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-tertiary-container": "#bdffdb",
+                        "on-primary-fixed": "#00174b",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-low": "#f2f4f6",
+                        "primary": "#004ac6",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#dae2fd",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-primary-container": "#eeefff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-dim": "#d8dadc",
+                        "outline-variant": "#c3c6d7",
+                        "on-surface-variant": "#434655",
+                        "surface-variant": "#e0e3e5",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-bright": "#f7f9fb",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#5c647a",
+                        "tertiary-container": "#007d55",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "unit": "8px",
+                        "stack-sm": "8px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Poppins"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Poppins"],
+                        "headline-lg": ["Poppins"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Poppins"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "display": ["Poppins"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-scale:active { transform: scale(0.98); }
+        .hover-card:hover { 
+            box-shadow: 0px 10px 15px -3px rgba(15, 23, 42, 0.05);
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-between items-center h-16">
+<div class="flex items-center gap-3"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt2V5nXpb5KnptP4zhHTR84czevD11kd4UdB_tgO3f8XHMFTlMq6lro7rmumog_Q2AHlQyaTCOCpbTL7tQzFYANa2Lksb3RO8GjsRr8uh5Fw8dx5WhUOd-PyAgN64wa584Pe1To-_5U2FMgDQh4qtOvEw_WKTqgnPtB4XZxmYwN9ZlLb3FsO2oKUEWdN9s6HdDnBz-QG7FWtNRCOIj3spIoBWw_89MAQJJapt1qlcXgVEcijtw6POmaLP_R" alt="NextHire Logo" class="h-8 w-auto object-contain"></div>
+<nav class="hidden md:flex items-center space-x-8 h-full">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md py-5 border-b-2 border-transparent" href="#">Search</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md py-5 border-b-2 border-transparent" href="#">Applications</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md py-5 border-b-2 border-transparent" href="#">Messages</a>
+<a aria-current="page" class="text-primary font-semibold border-b-2 border-primary transition-colors font-label-md text-label-md py-5" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-primary/5 rounded-full transition-colors" data-icon="notifications">notifications</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant cursor-pointer active-scale">
+<img class="w-full h-full object-cover" data-alt="A professional studio headshot of a senior tech professional in their mid-30s, featuring clean lighting and a neutral blurred corporate background. The person has a friendly but confident expression, reflecting a premium career-focused aesthetic with a palette of soft greys and blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3ra3cY6IDYiA1GDcZkGdmYdn4kuEguz8nJPGQUWw_GI6Sgq8-jCfmQSw4SlGBZQVH_gXndpT4IjqrBtWD37OyQPY5HwqGis5ggORfzQ9eD2KffhB8iCSQEC7l0qvaUNKiSY0l5Jp6hOdjX2d3BA4yB7XAANLn4PWP5gGcEBiVxAmE6Z4c3XZUl_TK2gCUmdlqjvQn4PML2pumd72cc6IHM8kRrMIz0ZnJN2R-hqypQXGYXmjU_zOW7cpGhBG59KNLhg-5Ebj81Y1N">
+</div>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer (Desktop Only) -->
+<aside class="hidden lg:flex flex-col h-screen fixed left-0 top-0 border-r border-outline-variant/20 py-8 bg-surface w-72 pt-24">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden bg-primary-fixed flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Close up of a professional user headshot, smiling warmly, studio lighting, soft color grading, matching the corporate modernism style with a clean white and blue color scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPyvpWfRpRHUKzo_UG02rTd67jvH9hp4ljykusfxRPIp7MpslNsiZd3EWkWKIp-Vltc6Ql_QA62h9prS7BmpgmLraSVm_0vGEbCx_mXz3Q1hh2ZHIWcexZEChQvZusOf6sjU-f8nyHzmXf7eNBYap0BMlnlGEXiXaXK7Cj6ca7PoL5eX1HQ7Gh6msiVr44b39zCjQ4SiE1TF1m9DYN3KY2YBoYYYx1jf7wLGLB8-ZW576BkSjPZ30fbRY7K_ZekHhahP1fiHyNrke2">
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Alex Rivers</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Senior Product Designer</p>
+</div>
+</div>
+<div class="bg-secondary-container/30 px-3 py-1 rounded-full inline-block">
+<span class="font-label-sm text-label-sm text-on-secondary-container">Premium Member</span>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="work_outline">work_outline</span>
+<span class="font-label-md text-label-md">Job Search</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="fact_check">fact_check</span>
+<span class="font-label-md text-label-md">Applications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container font-bold rounded-full transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-72 pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Profile Header / Hero Section -->
+<section class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="flex flex-col md:flex-row gap-8 items-center md:items-end">
+<div class="relative group">
+<div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden border-4 border-surface-container-lowest shadow-lg">
+<img class="w-full h-full object-cover" data-alt="High-resolution professional portrait of Alex Rivers, a senior product designer, against a soft-focus studio background. The style is modern corporate with clean lines, soft bright lighting, and a feeling of approachable expertise. Primary colors used are white, slate, and royal blue." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBS8qGTu3I5HHNF0bzsP1vs-w0noYRY8jJDvuX5_udPCLxiQAnmJj6giOer40bBPQU0qf-lVVqbc5-_x8vJoFU15VGQwoHw781RUWoQQC6FjICSA73moPtZVaNppaW6UkNkYoTcwidPgOjbT5cnAFu0hldAqsR0oSqA8ZZ13hTZH1fJgEwFqFt19ko1IaW2wl5g6HeoDo3CGJXsm-p3hd6WVVP5_rHiB6ZvyYCH_mn-C1dq7KjXNiGL4CoAuKChgJYEERMwqQx-2rdQ">
+</div>
+<button class="absolute -bottom-2 -right-2 bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center shadow-lg active-scale border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="text-center md:text-left">
+<h1 class="font-display text-headline-lg text-on-surface mb-1">Alex Rivers</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-4">Senior Product Designer &amp; UX Strategist at Google</p>
+<div class="flex flex-wrap justify-center md:justify-start gap-4">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+<span class="font-label-md text-label-md">San Francisco, CA</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-label-md text-label-md">Available for Remote</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none px-6 py-3 border border-outline text-on-surface font-label-md text-label-md rounded-full hover:bg-surface-container transition-colors active-scale">Download Resume</button>
+<button class="flex-1 md:flex-none px-6 py-3 bg-primary text-on-primary font-label-md text-label-md rounded-full hover:bg-primary-container transition-colors active-scale shadow-sm">Edit Profile</button>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-start">
+<!-- Left Column: Primary Info -->
+<div class="lg:col-span-2 space-y-gutter">
+<!-- Profile Completion -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 hover-card transition-all">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Profile Completion</h3>
+<span class="font-label-md text-label-md text-primary">85% Complete</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden mb-6">
+<div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: 85%"></div>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-2">
+<div class="min-w-[200px] flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg" data-icon="add_a_photo">add_a_photo</span>
+<div>
+<p class="font-label-md text-label-md">Add Portfolio</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">+10% Score</p>
+</div>
+</div>
+<div class="min-w-[200px] flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 opacity-50">
+<span class="material-symbols-outlined text-tertiary bg-tertiary/10 p-2 rounded-lg" data-icon="check_circle">check_circle</span>
+<div>
+<p class="font-label-md text-label-md line-through">Verified Email</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Completed</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Experience -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30 hover-card transition-all">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Experience</h3>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="add_circle">add_circle</button>
+</div>
+<div class="space-y-12 relative before:absolute before:left-[19px] before:top-2 before:bottom-0 before:w-px before:bg-outline-variant/30">
+<!-- Experience Item 1 -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-1 w-10 h-10 bg-surface-container-lowest border border-outline-variant rounded-lg flex items-center justify-center z-10 overflow-hidden shadow-sm">
+<img class="w-6 h-6 object-contain" data-alt="Google company logo, clean minimalist vector art in primary corporate colors, representing a professional job history on a designer's portfolio page. White background, geometric and centered." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1TRXJCeSuc4WFh8kbwC0OTK3cDyc-4IkxzP07J-WI5a-EfoGYhQanVYckXRngAL1sYxEyb9Wl--H_bcPfyjJ30x61k0wex4W-UDIx6Y9qXd0lpXJJ_0DIv7qbljuChtQe-pP0nCrq44YRVkte1KGB4uddLRWugegShIO1-idElvksQ5-TfwnMl72iLCIw3SABnbsovY4ilQj9_p55EoKxId_BCVDOdrftBTS0QVzBNK0hkptemYtG_y4cwjL4fE3G09iER0XOdOpU">
+</div>
+<div class="flex flex-col md:flex-row justify-between md:items-start mb-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Senior Product Designer</h4>
+<p class="font-label-md text-label-md text-primary">Google • Full-time</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Aug 2021 — Present (2 yrs 8 mos)</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">Leading the UX strategy for the Google Cloud console. Collaborating with cross-functional teams to simplify complex data workflows and improve infrastructure management efficiency for over 1M daily users.</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-low rounded-full font-label-sm text-label-sm text-on-surface-variant border border-outline-variant/20">Design Systems</span>
+<span class="px-3 py-1 bg-surface-container-low rounded-full font-label-sm text-label-sm text-on-surface-variant border border-outline-variant/20">SaaS</span>
+</div>
+</div>
+<!-- Experience Item 2 -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-1 w-10 h-10 bg-surface-container-lowest border border-outline-variant rounded-lg flex items-center justify-center z-10 overflow-hidden shadow-sm">
+<img class="w-6 h-6 object-contain" data-alt="Airbnb company logo in a clean, modern, flat vector style, placed on a crisp white background. Minimalist aesthetic to represent professional work experience in a high-tech corporate UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqb8Dq_SMdlJeZWiqyGnD4ibqD1CzNiEk2w2dIbDXH8iNf5BTKoXIcgaWJUQzpcj62ISTZ_06CDjnlIZstkrudidaq4lj_NlP7eGcdKWNT7Drax3wkhWSgdj3PMBy5rMHUlpPeuLOQtfQBUrt2HkqfGLz8oMAmuzoJZtnH_SNAWWmCUt1MAJiQBQ0KrVgmwPyfylHqwj6XuizImd1D7-Fz4WSU5YXgh9Is9MqstVxZnlKcDO2SLzqWGls9V9eMbxdhPNd24eSP0lXH">
+</div>
+<div class="flex flex-col md:flex-row justify-between md:items-start mb-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Product Designer II</h4>
+<p class="font-label-md text-label-md text-primary">Airbnb • Full-time</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Jan 2019 — Jul 2021 (2 yrs 7 mos)</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Owned the end-to-end redesign of the Host dashboard, resulting in a 15% increase in hosting activity. Conducted extensive user research across 12 countries to identify pain points in the onboarding flow.</p>
+</div>
+</div>
+</div>
+<!-- Skills -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30 hover-card transition-all">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Expertise &amp; Skills</h3>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="edit">edit</button>
+</div>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl font-label-md text-label-md flex items-center gap-2">
+                            Product Strategy <span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+</span>
+<span class="px-4 py-2 bg-tertiary/10 text-tertiary border border-tertiary/20 rounded-xl font-label-md text-label-md flex items-center gap-2">
+                            UX Research <span class="w-1.5 h-1.5 bg-tertiary rounded-full"></span>
+</span>
+<span class="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl font-label-md text-label-md">Interaction Design</span>
+<span class="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl font-label-md text-label-md">Prototyping</span>
+<span class="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl font-label-md text-label-md">Design Systems</span>
+<span class="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl font-label-md text-label-md">Accessibility</span>
+<span class="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl font-label-md text-label-md">Figma</span>
+<span class="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl font-label-md text-label-md">User Flow</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Sidebar & Meta Info -->
+<div class="space-y-gutter">
+<!-- AI Insights Sidebar -->
+<div class="bg-primary-fixed/30 p-6 rounded-xl border border-primary/10">
+<div class="flex items-center gap-2 mb-4 text-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<h4 class="font-headline-sm text-headline-sm">AI NextSteps</h4>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Based on your experience, you're a high-match (94%) for 12 open roles at top companies this week.</p>
+<ul class="space-y-4">
+<li class="flex items-start gap-3 group cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg mt-0.5 group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+<span class="font-label-md text-label-md">Update your Figma portfolio to match "Staff Designer" requirements.</span>
+</li>
+<li class="flex items-start gap-3 group cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg mt-0.5 group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+<span class="font-label-md text-label-md">Complete the "Enterprise SaaS Strategy" certification.</span>
+</li>
+</ul>
+<button class="w-full mt-6 py-3 bg-primary text-on-primary rounded-xl font-label-md text-label-md shadow-sm active-scale">Optimize Profile</button>
+</div>
+<!-- Education -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 hover-card transition-all">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-6">Education</h3>
+<div class="space-y-6">
+<div>
+<h4 class="font-label-md text-label-md text-on-surface">Stanford University</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">M.S. in Human-Computer Interaction</p>
+<p class="font-label-sm text-label-sm text-outline mt-1">2016 — 2018</p>
+</div>
+<div class="pt-4 border-t border-outline-variant/20">
+<h4 class="font-label-md text-label-md text-on-surface">RISD</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">B.F.A. in Graphic Design</p>
+<p class="font-label-sm text-label-sm text-outline mt-1">2012 — 2016</p>
+</div>
+</div>
+</div>
+<!-- Certifications -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 hover-card transition-all">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-6">Certifications</h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface leading-tight">Google UX Design Professional Certificate</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Issued March 2023</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="shield">shield</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface leading-tight">AWS Certified Cloud Practitioner</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Issued Jan 2024</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Resume Upload -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border-2 border-dashed border-outline-variant/50 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-4xl text-outline mb-3" data-icon="upload_file">upload_file</span>
+<h4 class="font-label-md text-label-md text-on-surface mb-1">Update Master Resume</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">PDF, DOCX up to 10MB</p>
+<button class="px-6 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded-full font-label-sm text-label-sm transition-all active-scale">Select File</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 md:hidden bg-surface/90 backdrop-blur-lg border-t border-outline-variant/20 z-50 rounded-t-xl shadow-[0px_-10px_15px_-3px_rgba(15,23,42,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span class="font-label-sm text-label-sm mt-1">Apps</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-sm text-label-sm mt-1">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active-scale" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+<!-- Footer -->
+<footer class="w-full pt-12 pb-24 md:pb-8 bg-surface-container border-t border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="col-span-1 md:col-span-1">
+<span class="font-display text-headline-sm font-semibold text-on-surface block mb-4">NextHire</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Empowering global talent with AI-driven career growth and precision matching.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 NextHire AI. Global Talent Solutions.</p>
+</div>
+<div class="hidden md:block">
+<h5 class="font-label-md text-label-md text-on-surface mb-4">Platform</h5>
+<ul class="space-y-3">
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-all" href="#">Job Search</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-all" href="#">Career Coaching</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-all" href="#">Analytics</a></li>
+</ul>
+</div>
+<div class="hidden md:block">
+<h5 class="font-label-md text-label-md text-on-surface mb-4">Support</h5>
+<ul class="space-y-3">
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-all" href="#">Help Center</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-all" href="#">Terms of Service</a></li>
+<li class=""><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-all" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div class="hidden md:block">
+<h5 class="font-label-md text-label-md text-on-surface mb-4">Connect</h5>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors" data-icon="language">language</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors" data-icon="alternate_email">alternate_email</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors" data-icon="share">share</span>
+</div>
+</div>
+</div>
+</footer>
+<script>
+        // Simple scroll effect for TopAppBar
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-sm');
+            } else {
+                header.classList.add('shadow-sm');
+                header.classList.remove('shadow-md');
+            }
+        });
+
+        // Skill tag hover animation logic
+        document.querySelectorAll('.hover-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+
+
+</body></html>

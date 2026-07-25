@@ -1,0 +1,451 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>NextHire Messaging Center</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "inverse-surface": "#2d3133",
+                    "secondary": "#565e74",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary": "#006242",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#0053db",
+                    "surface-container": "#eceef0",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-secondary-fixed": "#131b2e",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "outline": "#737686",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "primary-container": "#2563eb",
+                    "secondary-container": "#dae2fd",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-tertiary-container": "#bdffdb",
+                    "on-primary-fixed": "#00174b",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-low": "#f2f4f6",
+                    "primary": "#004ac6",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#dae2fd",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-primary-container": "#eeefff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-dim": "#d8dadc",
+                    "outline-variant": "#c3c6d7",
+                    "on-surface-variant": "#434655",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-bright": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#5c647a",
+                    "tertiary-container": "#007d55",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "margin-desktop": "40px",
+                    "margin-mobile": "16px",
+                    "unit": "8px",
+                    "stack-sm": "8px",
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Poppins"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Poppins"],
+                    "headline-lg": ["Poppins"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-sm": ["Poppins"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "display": ["Poppins"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f7f9fb;
+            font-family: 'Hanken Grotesk', sans-serif;
+            color: #191c1e;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-bubble-recruiter {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .glass-bubble-candidate {
+            background: rgba(37, 99, 235, 0.85); /* Primary Container with opacity */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .message-shadow {
+            box-shadow: 0px 4px 6px -1px rgba(15, 23, 42, 0.05);
+        }
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e0e3e5; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm border-b border-outline-variant/30 h-16">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-between items-center h-full">
+<div class="flex items-center gap-3">
+<button class="md:hidden p-2 hover:bg-primary/5 rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex items-center h-8">
+  <img src="https://lh3.googleusercontent.com/aida/AP1WRLt2V5nXpb5KnptP4zhHTR84czevD11kd4UdB_tgO3f8XHMFTlMq6lro7rmumog_Q2AHlQyaTCOCpbTL7tQzFYANa2Lksb3RO8GjsRr8uh5Fw8dx5WhUOd-PyAgN64wa584Pe1To-_5U2FMgDQh4qtOvEw_WKTqgnPtB4XZxmYwN9ZlLb3FsO2oKUEWdN9s6HdDnBz-QG7FWtNRCOIj3spIoBWw_89MAQJJapt1qlcXgVEcijtw6POmaLP_R" alt="NextHire Logo" class="h-full w-auto object-contain">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center gap-6 mr-8">
+<a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">Search</a>
+<a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">Apps</a>
+<a class="text-primary font-semibold border-b-2 border-primary font-label-md text-label-md py-5" href="#">Messages</a>
+</div>
+<div class="relative">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a friendly corporate recruiter in her early 30s, wearing a modern charcoal blazer. She is set against a brightly lit, minimalist office background with soft bokeh. The overall lighting is warm and welcoming, adhering to a premium corporate modernism aesthetic with high-key whites and clean lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6GHaGz4lyqHEouFx9BtVkW4ip4NuhvfqcHrDSTZqeA9uHINjrkhQiRdQwfsrrKUhI9QvnEI5aY57nPBD0oFIk2rHTIV-xtQFajAhH5ee5Y-iSoMDCusOvvAzgvPhXZJEDbW2TXzmvExmnt4r6sRdgCdGCsDhktY2V3Ws8fMvRrWZkKOp3oS6jNMHiEKCNx11yR6kKVL51co9wGWbW-VpMFsAOVVkDol2_LYg6d77SmJuYkB-Ld4aQlmm9FP-Rq-hnB-v86iWyVOOH">
+</div>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-tertiary-fixed-dim border-2 border-surface rounded-full"></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Shell -->
+<main class="flex-1 flex flex-col md:flex-row mt-16 pb-16 md:pb-0 h-[calc(100vh-64px)]">
+<!-- NavigationDrawer (Desktop Sidebar) -->
+<aside class="hidden lg:flex flex-col h-full w-72 bg-surface-container-low border-r border-outline-variant/20 py-8 px-4 flex-shrink-0">
+<div class="px-4 mb-8">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A professional user headshot for a senior product designer named Alex Rivers. He is looking confidently at the camera, wearing a high-quality light grey linen shirt. The background is a clean, neutral gradient of soft blues and whites. The image is crisp, with sharp focus and professional studio lighting following the brand's premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdr0FtEnYF1kZpzsaln4DsNl-k9VoPMuZ47mUZOpmMG5EnSCQzFZKe_JQeTPaQr19wEJztmfRR3t4SBDtc9NBM8kBytXWH1ImpO0l3b54C_z1vXIcm9EhgsCdrZoeeVyS4RY1wByTuPS2lgor7pp7S0ZIDB6xOyQnrLyYyfJOfd22UhXzGF6SKEjdN6b-mfq9Ya7mBznFddXl1l7SouUYacTIh4PdTEkHgb_z_myRdQQQrbzapxez7CZv1LOGDWGXVVxgVM5rKUmFN">
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface leading-tight">Alex Rivers</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Senior Product Designer</p>
+</div>
+</div>
+<div class="bg-primary/5 rounded-lg px-3 py-1 inline-block">
+<span class="text-[10px] font-bold text-primary tracking-wider uppercase">Premium Member</span>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-transform hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-transform hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">work_outline</span>
+<span class="font-label-md text-label-md">Job Search</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 bg-secondary-container text-on-secondary-container font-bold rounded-full transition-transform hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-label-md text-label-md">Messages</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-transform hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-transform hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Message Center Content -->
+<div class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-container-max mx-auto w-full">
+<!-- Conversations List (Mobile: Collapsible/Desktop: Visible) -->
+<div class="hidden md:flex flex-col w-full md:w-80 border-r border-outline-variant/20 bg-surface">
+<div class="p-6 border-b border-outline-variant/10">
+<h2 class="font-headline-sm text-headline-sm mb-4">Messages</h2>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
+<input class="w-full h-10 pl-10 pr-4 bg-surface-container rounded-full border-none focus:ring-2 focus:ring-primary/20 text-body-sm font-body-sm transition-all" placeholder="Search contacts..." type="text">
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<!-- Contact Item Active -->
+<div class="p-4 bg-primary/5 border-l-4 border-primary flex items-center gap-3 cursor-pointer">
+<div class="relative w-12 h-12 flex-shrink-0">
+<img class="w-full h-full rounded-full object-cover" data-alt="Close-up profile photo of Sarah Jenkins, a Lead Tech Recruiter. She has an approachable expression and is wearing stylish glasses. The background is a blurred office environment with a palette of soft whites and royal blue accents, emphasizing the premium NextHire branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCveo-qF1EE2hDKufbW9zizc8CD9oNmulVwPMseUczszRyLO8VCeSKzFM-94dPK2BnqXep9pZHoBoZiLKVYLGI7CTjQrA-CPgyTW7EEzbklwLJDUlpuEGQ_NAXU40djYFVKI_l_drsqWiKrJZfcMPYs2R2l8dKCh_EIw-bwZPdww_ctE0S2cngzVeDxy27gOaGMARqBOn9vXWlcUypmfprda9OUwcgOEiTPRTzH1ZkYQIKV1O2-AM_qbvlOVvpZTvBvs5dkOLOvQ8t">
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-tertiary-fixed-dim border-2 border-surface rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="font-label-md text-label-md truncate">Sarah Jenkins</p>
+<span class="text-[10px] text-primary font-semibold">2m ago</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface truncate">That sounds perfect for the Lead Designer role...</p>
+</div>
+</div>
+<!-- Contact Item -->
+<div class="p-4 hover:bg-surface-container-low flex items-center gap-3 cursor-pointer transition-colors">
+<div class="relative w-12 h-12 flex-shrink-0">
+<img class="w-full h-full rounded-full object-cover" data-alt="Portrait of Marcus Thorne, a hiring manager in the fintech industry. He is wearing a minimalist navy blue sweater and has a calm, professional demeanor. The lighting is sophisticated, creating subtle shadows and highlights that suggest a high-end corporate environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVcoC3vMib_maNFOOx8jVd5RdSsdFWPP7-5Jyedl6xiVnt70WTg3bL5mtok2nMY6j5y1dv6-OBMNmmhBNUoCYSW6PIKL_8sWy081jstr4fkgztNSrqPYn7AT6CIOAn5x2c_q23Nc84gRVpJ6_yp4zLC01gsOvlpAOV6EiILt2E12dwQGKAoxhws4FWCj9trcGM5lfUA6vhjytH5ACKrKbQPYH7qO-z3kkMI87jx9doP2wfwrQnUWIfbD--cd7CwPMj0SxSYzSFDuQN">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="font-label-md text-label-md truncate">Marcus Thorne</p>
+<span class="text-[10px] text-outline">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Attached the updated benefit package for you.</p>
+</div>
+</div>
+<!-- Contact Item -->
+<div class="p-4 hover:bg-surface-container-low flex items-center gap-3 cursor-pointer transition-colors">
+<div class="relative w-12 h-12 flex-shrink-0">
+<img class="w-full h-full rounded-full object-cover" data-alt="A portrait of Elena Rodriguez, Talent Acquisition specialist. She has a bright smile and is set against a clean, geometric background with soft pastel tones. The aesthetic is modern and corporate, highlighting transparency and accessibility in the recruitment process." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7GCfRpKdor7H-K31WketqkF2L-Qe1VZJxW33zn4ggDKMAnvwsSVawVf4gdPiL6Mk_H44LSihR46v_wdOjoI_eFuwuW8YWP6N_WDo11dxR51V7415R2iGsFfyAmcwY84kgCzRc1J_qielU8uiH9jD2_doMUDtPRGx5RT4emt2UTPFBAo6AsimfFUPjhNNEHJQKoxSaHOdONykLtPbT_8S-6s2AJ5rfUDEarJ6nhSfmt_peDnnfOw1mDshHHExv4LiV38ONm2XTxAhc">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="font-label-md text-label-md truncate">Elena Rodriguez</p>
+<span class="text-[10px] text-outline">Oct 24</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Thanks for following up on the portfolio.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat View -->
+<div class="flex-1 flex flex-col bg-surface-container-lowest h-full relative">
+<!-- Chat Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/20 bg-surface/50 backdrop-blur-sm sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up of Sarah Jenkins, the lead tech recruiter, for the chat header. She is looking directly at the camera with a confident, supportive smile. The lighting is bright and professionally adjusted for a light-mode UI interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCI71waOM_5fEhMJ2XkjmfI2mmd9SAkHBlKwwTJ9fh1CkVqt-zwRf_n1mKyAOItqI1zPSWp_lmLWaVtoYCKUVKC-be_NS94ppm5_qZdrDeAKAmIaGCQ2yCy-jgcJsesT1F--_gQPyY_qafPSM2XP_CXczHIcG0SJBvZ8LbHYBI41Xp3uVLB78z6WnQ6uRF5SiE7qeQ9C5Ubb6RPdWcqzc8_taYeYlU-aGtK2a5Jda__4Vqwl3rfXrY9uYhe0mUZPp518hOld1Wrkbbd">
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm leading-none">Sarah Jenkins</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="w-2 h-2 bg-tertiary-fixed-dim rounded-full"></span>
+<p class="font-label-sm text-label-sm text-tertiary-container">Active now</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">call</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">videocam</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Messages Thread -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<div class="flex justify-center my-4">
+<span class="px-4 py-1 bg-surface-container rounded-full text-label-sm text-on-surface-variant font-medium">Today</span>
+</div>
+<!-- Received Message -->
+<div class="flex items-end gap-3 max-w-[85%] md:max-w-[70%]">
+<div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Small avatar of Sarah Jenkins for message thread. High key, minimalist professional lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDW00uN3oet--ttoanrwP0koA8Xb5aZlJXL7rMNGMj3bOLxMcG5yM39ctlUJbenN8uVIX1ia0XXQU5POYvhjfyA_-IzAcUi2wsX6I4xV4h-wZ3daZetq3Ye00JgKMrH5w4u29bMUmMNCW0ZIbH9xILXB5yydC0Hfa1dH4515gwuTROIKbEJLHOQAr2W_gNrdvFSmd0uf8MgpsWshqLEWW5gvdYpb1uMDfhAIb4aMfw37-nNmDjBidmgnV51z9B42SyB3V4l0Gx55Sks">
+</div>
+<div class="glass-bubble-recruiter rounded-2xl rounded-bl-none p-4 message-shadow">
+<p class="font-body-md text-body-md text-on-surface">Hi Alex! I just reviewed your portfolio. The work you did for the Stripe redesign is truly impressive. We'd love to discuss the Senior Product Designer opening with you.</p>
+<p class="text-[10px] text-on-surface-variant mt-2 text-right">10:42 AM</p>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex flex-row-reverse items-end gap-3 max-w-[85%] md:max-w-[70%] ml-auto">
+<div class="glass-bubble-candidate rounded-2xl rounded-br-none p-4 message-shadow">
+<p class="font-body-md text-body-md">Thank you so much, Sarah! I'm definitely interested. I've been following NextHire's AI implementation for a while. When would be a good time to chat?</p>
+<div class="flex items-center justify-end gap-1 mt-2">
+<p class="text-[10px] text-primary-fixed/80">10:45 AM</p>
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</div>
+</div>
+</div>
+<!-- Received Message with Attachment -->
+<div class="flex items-end gap-3 max-w-[85%] md:max-w-[70%]">
+<div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Small avatar of Sarah Jenkins for message thread." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBczLc5aLOgwzoKIsUeW8FZE20XiK6CCxuBg2lL2PGHNgjiRLl2_gaD9S7ysbpoI-xZFwsNlkz0YY1Ra8WFcVwxiT8Od_HHpNVNmFuzlV5VaLBxyGj3OFn3tg13wPJJFSVe84i3liaMzUToJyB2glNJIE-OiD33RLTjrYZewSDbr0cGGmFYct0A79xdtSHBFCMU3mHf9y-mzeHCp4PPM_Htm34WcBUWtuu8CkDuvhGg8drOnMpQ6uZpZo5-ghcmsp58iHrKaHYQOWjv">
+</div>
+<div class="space-y-2">
+<div class="glass-bubble-recruiter rounded-2xl rounded-bl-none p-4 message-shadow">
+<p class="font-body-md text-body-md text-on-surface">How about tomorrow at 2 PM PST? I'm sending over the detailed job description and our benefit summary for you to review beforehand.</p>
+</div>
+<div class="glass-bubble-recruiter rounded-xl p-3 flex items-center gap-3 border border-outline-variant/30 message-shadow group cursor-pointer hover:bg-white transition-colors">
+<div class="w-10 h-10 bg-error/10 text-error rounded flex items-center justify-center">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-md text-label-md text-on-surface truncate">Senior_PD_Role.pdf</p>
+<p class="text-[10px] text-on-surface-variant">2.4 MB</p>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:translate-y-0.5 transition-transform">download</span>
+</div>
+</div>
+</div>
+<!-- Typing Indicator -->
+<div class="flex items-center gap-2 px-11 opacity-70">
+<div class="flex gap-1 py-2 px-3 bg-surface-container rounded-full items-center">
+<div class="w-1.5 h-1.5 bg-outline rounded-full typing-dot"></div>
+<div class="w-1.5 h-1.5 bg-outline rounded-full typing-dot"></div>
+<div class="w-1.5 h-1.5 bg-outline rounded-full typing-dot"></div>
+</div>
+<span class="text-[11px] text-on-surface-variant font-medium">Sarah is typing...</span>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-4 md:p-6 bg-surface-container-lowest border-t border-outline-variant/20 sticky bottom-0">
+<div class="flex items-end gap-3 bg-surface-container-low rounded-2xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all border border-outline-variant/30">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 py-2 font-body-md text-body-md resize-none max-h-32 min-h-[40px] placeholder:text-outline" placeholder="Type your message..." rows="1"></textarea>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">mood</span>
+</button>
+<button class="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-primary-fixed-variant transition-all active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+<p class="text-center text-[10px] text-on-surface-variant mt-2">Press Enter to send, Shift + Enter for new line.</p>
+</div>
+</div>
+<!-- AI Insights Sidebar (Desktop Only) -->
+<aside class="hidden xl:flex flex-col w-80 bg-[#EFF6FF] border-l border-outline-variant/20 p-6 overflow-y-auto">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary text-xl">auto_awesome</span>
+<h3 class="font-headline-sm text-headline-sm text-primary">AI NextSteps</h3>
+</div>
+<div class="space-y-6">
+<div class="bg-white/60 rounded-xl p-4 border border-primary/10">
+<p class="font-label-md text-label-md text-primary mb-2">Interview Prep</p>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">Based on Sarah's mention of the Stripe redesign, prepare to discuss your decision-making process for complex payment flows.</p>
+</div>
+<div class="bg-white/60 rounded-xl p-4 border border-primary/10">
+<p class="font-label-md text-label-md text-primary mb-2">Match Score</p>
+<div class="flex items-center gap-3">
+<div class="relative w-12 h-12 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-primary/10" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-tertiary" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="12.5" stroke-width="4"></circle>
+</svg>
+<span class="absolute text-[12px] font-bold text-on-surface">94%</span>
+</div>
+<p class="text-body-sm text-on-surface-variant font-medium">Exceptional fit for current role requirements.</p>
+</div>
+</div>
+<div class="bg-white/60 rounded-xl p-4 border border-primary/10">
+<p class="font-label-md text-label-md text-primary mb-2">Suggested Reply</p>
+<div class="space-y-2">
+<button class="w-full text-left p-2 rounded bg-primary/5 hover:bg-primary/10 text-body-sm text-on-surface transition-colors border border-primary/5">
+                                "Tomorrow at 2 PM works perfectly. Looking forward to it!"
+                            </button>
+<button class="w-full text-left p-2 rounded bg-primary/5 hover:bg-primary/10 text-body-sm text-on-surface transition-colors border border-primary/5">
+                                "Can we move it to 3 PM? I have a brief overlap."
+                            </button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 z-50 bg-surface/90 backdrop-blur-lg border-t border-outline-variant/20 rounded-t-xl shadow-[0px_-10px_15px_-3px_rgba(15,23,42,0.05)]">
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+<span class="font-label-sm text-label-sm">Apps</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-all">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-label-sm text-label-sm">Messages</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-label-sm text-label-sm">Alerts</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for input expansion
+        const textarea = document.querySelector('textarea');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Simple send animation trigger
+        const sendBtn = document.querySelector('button .material-symbols-outlined[style*="FILL: 1"]');
+        sendBtn?.parentElement?.addEventListener('click', () => {
+            sendBtn.classList.add('translate-x-1', '-translate-y-1');
+            setTimeout(() => {
+                sendBtn.classList.remove('translate-x-1', '-translate-y-1');
+            }, 200);
+        });
+    </script>
+
+
+</body></html>

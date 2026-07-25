@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NextHire - Executive Presentation & Visual UI Pitch Deck</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Hanken Grotesk', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      overflow: hidden;
+    }
+    h1, h2, h3, .font-display {
+      font-family: 'Poppins', sans-serif;
+    }
+    .slide {
+      display: none;
+      height: 100vh;
+      width: 100vw;
+      padding: 3rem 5rem;
+      box-sizing: border-box;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .ui-mockup-frame {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SLIDE 1: Title Slide -->
+  <section className="slide active" id="slide-1">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>NEXTHIRE PLATFORM DECK</span>
+      <span>COMMERCIAL DEMO & ARCHITECTURE</span>
+    </div>
+
+    <div className="max-w-4xl space-y-6">
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
+        <span className="material-symbols-outlined text-base">bolt</span>
+        Full Application Presentation
+      </div>
+      <h1 className="text-6xl sm:text-7xl font-extrabold tracking-tight leading-none">
+        Next<span className="gradient-text">Hire</span>
+      </h1>
+      <p className="text-2xl text-slate-300 font-light leading-relaxed max-w-3xl">
+        The Next-Generation AI Recruitment & Global Talent Matching SaaS Platform.
+      </p>
+      <div className="flex items-center gap-4 text-sm text-slate-400 pt-4 font-mono">
+        <span>✓ 24 Verified Routes</span> • <span>✓ RBAC Security</span> • <span>✓ 320px to 4K Fluid Responsive</span>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate Slides</span>
+      <span>Slide 1 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Landing Page UI Screenshot Preview -->
+  <section className="slide" id="slide-2">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>PUBLIC PORTAL</span>
+      <span>LANDING PAGE & HERO SECTION (http://localhost:3000)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-mono font-bold">PAGE 1: LANDING HERO</span>
+        <h2 className="text-3xl font-bold">AI Skill-First Search & Curated Bento Grid</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Centered hero header with fluid clamp typography, quick tag pills, dual search inputs (Title/Location), and curated bento grid jobs.
+        </p>
+        <ul className="text-xs text-slate-400 space-y-1.5 font-mono">
+          <li>✓ Fluid `clamp()` typography</li>
+          <li>✓ Responsive multi-input search bar</li>
+          <li>✓ Bento grid with equal height cards</li>
+        </ul>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-4">
+          <div className="text-center space-y-2">
+            <span className="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-full">⚡ AI-Powered Skill Matching</span>
+            <h3 className="text-xl font-bold text-white">Find Your Next <span className="text-blue-500">Opportunity</span></h3>
+            <p className="text-[11px] text-slate-400 max-w-sm mx-auto">Connecting exceptional talent with world-class tech companies.</p>
+          </div>
+          <div className="p-2 bg-slate-900 rounded-xl flex gap-2 border border-slate-800 text-[11px]">
+            <input placeholder="Title, Skills, or Company" className="bg-transparent px-2 flex-1 text-slate-200 outline-none" readonly />
+            <input placeholder="Location" className="bg-transparent px-2 flex-1 text-slate-200 outline-none" readonly />
+            <button className="bg-blue-600 px-3 py-1 rounded-lg text-white font-bold">Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 2 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Sign In & Development Auth Banner -->
+  <section className="slide" id="slide-3">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>AUTHENTICATION & SECURITY</span>
+      <span>SIGN IN PAGE & DEV MODE BANNER (http://localhost:3000/login)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full text-xs font-mono font-bold">PAGE 2: SIGN IN FLOW</span>
+        <h2 className="text-3xl font-bold">Role Selector & Dev Mode Notice</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Features top Development Notice banner, 1-click test role selectors (Job Seeker, Recruiter, Owner), show/hide password, and social OAuth options.
+        </p>
+        <div className="p-3 bg-slate-900 rounded-xl font-mono text-[11px] space-y-1 border border-slate-800">
+          <div className="text-purple-400">Owner: owner@nexthire.com / Owner@123</div>
+          <div className="text-emerald-400">Recruiter: recruiter@nexthire.com / Recruiter@123</div>
+          <div className="text-blue-400">Seeker: jobseeker@nexthire.com / JobSeeker@123</div>
+        </div>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/login</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-3">
+          <div className="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10px] text-amber-300 font-mono">
+            ⚡ Development Mode: Temporary mock auth active. Firebase Auth ready.
+          </div>
+          <div className="flex bg-slate-900 p-1 rounded-full text-[11px] text-center font-bold">
+            <div className="flex-1 bg-blue-600 py-1 rounded-full text-white">Job Seeker</div>
+            <div className="flex-1 py-1 text-slate-400">Recruiter</div>
+            <div className="flex-1 py-1 text-slate-400">Owner</div>
+          </div>
+          <div className="space-y-2 text-[11px]">
+            <div className="p-2 bg-slate-900 rounded-lg text-slate-300 border border-slate-800">jobseeker@nexthire.com</div>
+            <div className="p-2 bg-slate-900 rounded-lg text-slate-300 border border-slate-800">••••••••••••</div>
+            <button className="w-full py-2 bg-blue-600 text-white rounded-full font-bold">Sign In as JOB SEEKER</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 3 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Job Seeker Dashboard -->
+  <section className="slide" id="slide-4">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>SEEKER SUITE</span>
+      <span>JOB SEEKER DASHBOARD (http://localhost:3000/dashboard)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-mono font-bold">PAGE 3: SEEKER DASHBOARD</span>
+        <h2 className="text-3xl font-bold">AI Skill Match Radar & Applications</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Displays candidate greeting, application stats, 96% AI skill match metrics, active application statuses, and Google Meet interview launcher.
+        </p>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/dashboard</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-4">
+          <div className="p-4 bg-slate-900 rounded-2xl flex justify-between items-center border border-slate-800">
+            <div>
+              <div className="text-xs font-bold text-white">Welcome back, Alex!</div>
+              <div className="text-[10px] text-slate-400">2 upcoming interview rounds scheduled.</div>
+            </div>
+            <div className="px-3 py-1 bg-blue-600 text-[10px] font-bold rounded-full text-white">Update Resume</div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+            <div className="p-2 bg-slate-900 rounded-xl border border-slate-800"><div className="text-lg font-bold text-white">4</div>Applications</div>
+            <div className="p-2 bg-slate-900 rounded-xl border border-slate-800"><div className="text-lg font-bold text-emerald-400">96%</div>AI Match Score</div>
+            <div className="p-2 bg-slate-900 rounded-xl border border-slate-800"><div className="text-lg font-bold text-blue-400">128</div>Profile Views</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 4 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: Recruiter Suite & Applicant Pipeline -->
+  <section className="slide" id="slide-5">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>EMPLOYER PORTAL</span>
+      <span>RECRUITER SUITE & KANBAN PIPELINE (http://localhost:3000/recruiter)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-mono font-bold">PAGE 4: RECRUITER SUITE</span>
+        <h2 className="text-3xl font-bold">Open Positions & Candidate Pipeline</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Allows recruiters to post open positions via 12-column grid forms, review active candidate applications, manage company brand, and track pipeline metrics.
+        </p>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/recruiter</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-3 text-[11px]">
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-white">Stellar Systems • Talent Suite</span>
+            <span className="px-3 py-1 bg-emerald-600 text-white font-bold rounded-full text-[10px]">+ Post Job</span>
+          </div>
+          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div>
+              <div className="font-bold text-white">Senior Product Designer</div>
+              <div className="text-[10px] text-slate-400">San Francisco, CA • $140k - $180k</div>
+            </div>
+            <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-bold">28 Applicants</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 5 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Admin User Management -->
+  <section className="slide" id="slide-6">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>ADMIN CONSOLE</span>
+      <span>USER MANAGEMENT & CSV EXPORT (http://localhost:3000/admin/users)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-mono font-bold">PAGE 5: USER MANAGEMENT</span>
+        <h2 className="text-3xl font-bold">Global User Directory & Controls</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Features live search, role/status dropdown filters, data table with avatars and role badges, edit user modal, block/verify toggle, and bulk CSV export.
+        </p>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/admin/users</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-3 text-[11px]">
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-white">Registered Users (254,800)</span>
+            <span className="px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded-full text-[10px]">Export CSV</span>
+          </div>
+          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-blue-500 rounded-full"></div>
+              <div><div className="font-bold text-white">Alex Rivers</div><div className="text-[10px] text-slate-400">alex.rivers@gmail.com</div></div>
+            </div>
+            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-[10px] font-bold">JOB SEEKER</span>
+            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-bold">VERIFIED</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 6 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Company Moderation Audit -->
+  <section className="slide" id="slide-7">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>ADMIN CONSOLE</span>
+      <span>COMPANY MODERATION QUEUE (http://localhost:3000/admin/companies)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-mono font-bold">PAGE 6: COMPANY MODERATION</span>
+        <h2 className="text-3xl font-bold">Tax ID & Document Inspector</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Queue tabs (Pending, Approved, Rejected) for auditing employer business licenses, tax IDs, and recruiter contact emails with approve/reject actions.
+        </p>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/admin/companies</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-3 text-[11px]">
+          <div className="flex gap-2">
+            <span className="px-3 py-1 bg-purple-600 text-white rounded-full font-bold">Pending Review (3)</span>
+            <span className="px-3 py-1 bg-slate-800 text-slate-400 rounded-full">Approved</span>
+          </div>
+          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+            <div className="flex justify-between font-bold text-white"><span>Stellar Systems</span><span className="text-amber-400">PENDING</span></div>
+            <div className="text-[10px] text-slate-400">Tax ID: US-948201948 • License #: BL-884019</div>
+            <div className="flex gap-2 pt-1"><button className="px-3 py-1 bg-emerald-600 text-white rounded-full text-[10px] font-bold">Approve</button><button className="px-3 py-1 bg-red-600 text-white rounded-full text-[10px] font-bold">Reject</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 7 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: SaaS Subscription Billing -->
+  <section className="slide" id="slide-8">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>ADMIN CONSOLE</span>
+      <span>SAAS BILLING & MRR ANALYTICS (http://localhost:3000/admin/subscriptions)</span>
+    </div>
+
+    <div className="grid grid-cols-12 gap-6 my-auto items-center">
+      <div className="col-span-5 space-y-4">
+        <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-mono font-bold">PAGE 7: SAAS BILLING</span>
+        <h2 className="text-3xl font-bold">Recurring Revenue & Tier Manager</h2>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Financial dashboard featuring MRR ($482k), ARR ($5.78M), plan tier creator, and transaction logs.
+        </p>
+      </div>
+
+      <!-- UI Mockup Window -->
+      <div className="col-span-7 ui-mockup-frame">
+        <div className="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+          <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span></div>
+          <span className="ml-2">http://localhost:3000/admin/subscriptions</span>
+        </div>
+        <div className="p-6 bg-slate-950 space-y-3 text-[11px]">
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="text-xs text-slate-400">MRR</div><div className="text-xl font-bold text-emerald-400">$482,000</div></div>
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="text-xs text-slate-400">ARR</div><div className="text-xl font-bold text-blue-400">$5,784,000</div></div>
+          </div>
+          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div><div className="font-bold text-white">Enterprise Tier</div><div className="text-[10px] text-slate-400">$999/month • 124 subscribers</div></div>
+            <span className="px-3 py-1 bg-purple-600 text-white rounded-full font-bold text-[10px]">Edit Tier</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 8 of 9</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: Conclusion & Live Demo -->
+  <section className="slide" id="slide-9">
+    <div className="flex justify-between items-center text-xs text-slate-400 font-mono tracking-widest uppercase">
+      <span>VERIFICATION COMPLETE</span>
+      <span>READY FOR COMMERCIAL DEPLOYMENT</span>
+    </div>
+
+    <div className="max-w-3xl space-y-6 my-auto">
+      <h1 className="text-5xl font-extrabold text-white">NextHire Presentation Complete 🚀</h1>
+      <p className="text-lg text-slate-300">
+        All 24 pages and routes are active, fully responsive, and protected by Role-Based Access Control on <a href="http://localhost:3000" className="text-blue-400 underline font-mono">http://localhost:3000</a>.
+      </p>
+      <div className="pt-4 flex gap-4">
+        <a href="http://localhost:3000/" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm transition-all shadow-lg">
+          Launch Live Platform Demo →
+        </a>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center text-xs text-slate-500 border-t border-slate-800 pt-4">
+      <span>Use ← → Arrow Keys to Navigate</span>
+      <span>Slide 9 of 9</span>
+    </div>
+  </section>
+
+  <!-- Controller Script -->
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 9;
+
+    function showSlide(index) {
+      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+      const active = document.getElementById(`slide-${index}`);
+      if (active) active.classList.add('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        if (currentSlide < totalSlides) {
+          currentSlide++;
+          showSlide(currentSlide);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (currentSlide > 1) {
+          currentSlide--;
+          showSlide(currentSlide);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

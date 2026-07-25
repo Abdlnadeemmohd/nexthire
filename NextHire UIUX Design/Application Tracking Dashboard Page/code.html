@@ -1,0 +1,514 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>NextHire | Application Tracking Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "inverse-surface": "#2d3133",
+                    "secondary": "#565e74",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary": "#006242",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#0053db",
+                    "surface-container": "#eceef0",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-secondary-fixed": "#131b2e",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "outline": "#737686",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "primary-container": "#2563eb",
+                    "secondary-container": "#dae2fd",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-tertiary-container": "#bdffdb",
+                    "on-primary-fixed": "#00174b",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-low": "#f2f4f6",
+                    "primary": "#004ac6",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#dae2fd",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-primary-container": "#eeefff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-dim": "#d8dadc",
+                    "outline-variant": "#c3c6d7",
+                    "on-surface-variant": "#434655",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-bright": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#5c647a",
+                    "tertiary-container": "#007d55",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "margin-desktop": "40px",
+                    "margin-mobile": "16px",
+                    "unit": "8px",
+                    "stack-sm": "8px",
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Poppins"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-md": ["Poppins"],
+                    "headline-lg": ["Poppins"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-sm": ["Poppins"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "display": ["Poppins"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        body {
+            background-color: #f7f9fb;
+            font-family: 'Hanken Grotesk', sans-serif;
+            color: #191c1e;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        .timeline-track::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm dark:shadow-none border-b border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-between items-center h-16">
+<div class="flex items-center gap-3"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt2V5nXpb5KnptP4zhHTR84czevD11kd4UdB_tgO3f8XHMFTlMq6lro7rmumog_Q2AHlQyaTCOCpbTL7tQzFYANa2Lksb3RO8GjsRr8uh5Fw8dx5WhUOd-PyAgN64wa584Pe1To-_5U2FMgDQh4qtOvEw_WKTqgnPtB4XZxmYwN9ZlLb3FsO2oKUEWdN9s6HdDnBz-QG7FWtNRCOIj3spIoBWw_89MAQJJapt1qlcXgVEcijtw6POmaLP_R" alt="NextHire Logo" class="h-8 w-auto object-contain"></div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-primary dark:text-primary-fixed font-semibold border-b-2 border-primary py-1" href="#">Applications</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors duration-200" href="#">Job Search</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors duration-200" href="#">Messages</a>
+</nav>
+<div class="flex items-center gap-4 border-l border-outline-variant/30 pl-8">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<img class="w-8 h-8 rounded-full border border-outline-variant" data-alt="Close-up professional portrait of Alex Rivers, a senior product designer with a friendly expression, soft studio lighting, high-end corporate photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0S_lDB5Ylah9ypqLvmRSG3PyKYt0yjwCpWrq9TWuvpR741Rv89xbJ9nywYUPIHlBTHsUmY7xQ9uZVuEgoxjCd2Lad1YpJWv85qNtFOkn-NGUFKTanQm18VmEdAJKSbHc5FpOtaGG7bURZavoQnyAoFu28iWxYVd8d9mBSB-0M8GtJBJcQLl9KFhl6QKVinq0800Ryu-dvQwvsZXKDBNto_eOOYrpG7Zw00JUsoFj5ObtmIk98SmZh5eC3CwsqHNCzhuiYrIA5c6w2">
+</div>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer (Desktop Only) -->
+<aside class="hidden lg:flex flex-col h-screen fixed left-0 top-0 border-r border-outline-variant/20 py-8 bg-surface-container-low dark:bg-surface-container-lowest w-72 z-40">
+<div class="px-6 mb-10 mt-12">
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container-highest/30">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A clean, minimalist profile photo of a professional man in his 30s, neutral background, sharp focus, professional attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaQr7KqhMtLxA5HHQWgA7bHaUKGp9nFJTMRRMA-5twMz8BpVv81BOfkSaTyWYDrSCm3_I0bPIRexIo8ao1bNJCPcPNlz9MUKuJM2GvBXYvWCFv4ClRBaxrk5t5acJ9dhDAnmV5lrcocyegWAlSmc_wVyCPlL0SDOB-14zcYFLQ6mpa6XYZviGa01tLze_fxm_iIQOujvbyvkHf6MDFPuxXo8Qxzp-Vu1tbgxSvxyMHjkwc_wtVVyZCWHHHaNeTQwI1YIQyM3ltr5Qe">
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface">Alex Rivers</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Senior Designer</p>
+<span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-0.5 rounded-full mt-1 inline-block">PREMIUM</span>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-1 px-4">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="work_outline">work_outline</span>
+<span class="font-label-md text-label-md">Job Search</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 bg-secondary-container text-on-secondary-container font-bold rounded-full mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="font-label-md text-label-md">Applications</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span class="font-label-md text-label-md">Messages</span>
+<span class="ml-auto bg-primary text-on-primary text-[10px] w-5 h-5 flex items-center justify-center rounded-full">3</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:pl-72 pt-24 pb-24 md:pb-12 px-margin-mobile md:px-margin-desktop min-h-screen">
+<div class="max-w-container-max mx-auto space-y-stack-lg">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Application Tracking</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Manage your active pursuits and interview pipeline.</p>
+</div>
+<div class="flex gap-3">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-surface" data-alt="Recruiter headshot, professional female, friendly, corporate style, blurred office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBim5n54XPlkGizgvEGTpRPVv7dysRtGkv85m3ZYPzJMXuHD8p79gt6NOW0eUfqw07nLWWEUmfqEYBW7ngbK9As_0112k4UOugLuXVbTIy5DrOKb3BySuMIwtfFFGvVuazSF9_WvqmtBFVYJbQiyKir6UUX7zMF_q4YEH3Vp6p1R73APMj-RlhZklIQW23Ro-ZxfIRfSjqK1UZV0MY81RWCUdgVPfbbb-kSeTr4Rrci9vPJnNlVKCXa2pdCBwe1XBxaWNyqPA_JxPc4">
+<img class="w-8 h-8 rounded-full border-2 border-surface" data-alt="Recruiter headshot, professional male, friendly, corporate style, blurred office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-5V-uoxMVStzBiM72-iOJltUOHnSJzXZcZhPDk3AHZXL6LPxgnbyH3JlRH5CSViltchCwOT07DcN0WnmFT6tvGAPFw6GTy1y0I3sCDQLWLk9vXLvtIQD_36gT9bO7f8aSZ28xcbBYLN3w-HNjBiMQ3CWawGj4MD_fT3cBpr8hkwELWqOIzRSwjc_CVGlaSvPYYj1-3-On5RX6I-puRhIVr8B2d0fnhuLkeHQnn06TcOWQki-IrxOAKHrjOw6up979hiIJiUDHR3LE">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border-2 border-surface flex items-center justify-center text-[10px] font-bold text-on-surface-variant">+12</div>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-md text-label-md flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-md">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        New Application
+                    </button>
+</div>
+</div>
+<!-- Visual Timeline (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+<div class="md:col-span-6 glass-card p-6 rounded-2xl relative overflow-hidden">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="auto_graph">auto_graph</span>
+                            Pipeline Journey
+                        </h3>
+<div class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container-high px-3 py-1 rounded-full">
+                            Active Applications: 14
+                        </div>
+</div>
+<div class="relative flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4 px-4 py-8 timeline-track">
+<!-- Step 1 -->
+<div class="relative z-10 flex flex-col items-center gap-2 text-center group">
+<div class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</div>
+<span class="font-label-md text-label-md">Applied</span>
+<span class="text-[10px] text-on-surface-variant bg-primary/10 px-2 py-0.5 rounded-full">4 active</span>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center gap-2 text-center group">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</div>
+<span class="font-label-md text-label-md">Under Review</span>
+<span class="text-[10px] text-on-surface-variant bg-primary-container/20 px-2 py-0.5 rounded-full">3 active</span>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center gap-2 text-center group">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform border border-primary/20">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+</div>
+<span class="font-label-md text-label-md">Shortlisted</span>
+<span class="text-[10px] text-on-surface-variant bg-secondary-container/50 px-2 py-0.5 rounded-full">2 active</span>
+</div>
+<!-- Step 4 -->
+<div class="relative z-10 flex flex-col items-center gap-2 text-center group">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shadow-md group-hover:scale-110 transition-transform animate-pulse">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary">Interview</span>
+<span class="text-[10px] text-on-tertiary bg-tertiary px-2 py-0.5 rounded-full">3 upcoming</span>
+</div>
+<!-- Step 5 -->
+<div class="relative z-10 flex flex-col items-center gap-2 text-center group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="stars">stars</span>
+</div>
+<span class="font-label-md text-label-md">Offer</span>
+<span class="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">0 pending</span>
+</div>
+<!-- Step 6 -->
+<div class="relative z-10 flex flex-col items-center gap-2 text-center group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+</div>
+<span class="font-label-md text-label-md">Hired</span>
+<span class="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">--</span>
+</div>
+</div>
+</div>
+<!-- Column 1: Messages & Schedule (2 spans) -->
+<div class="md:col-span-2 space-y-4">
+<!-- Schedule Widget -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-headline-sm text-headline-sm">Interview Schedule</h4>
+<span class="material-symbols-outlined text-primary" data-icon="calendar_month">calendar_month</span>
+</div>
+<div class="space-y-3">
+<div class="p-3 rounded-xl bg-primary/5 border-l-4 border-primary">
+<p class="font-label-md text-label-md text-primary">Today, 2:30 PM</p>
+<p class="font-body-sm font-semibold mt-1">UX Audit Session</p>
+<p class="text-[12px] text-on-surface-variant">Stripe • Google Meet</p>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low border-l-4 border-outline-variant">
+<p class="font-label-md text-label-md text-on-surface-variant">Tomorrow, 10:00 AM</p>
+<p class="font-body-sm font-semibold mt-1">Culture Fit Round</p>
+<p class="text-[12px] text-on-surface-variant">Linear • Office (SF)</p>
+</div>
+</div>
+</div>
+<!-- Recruiter Messages -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+<h4 class="font-headline-sm text-headline-sm mb-4">Recent Messages</h4>
+<div class="space-y-4">
+<div class="flex gap-3">
+<img class="w-10 h-10 rounded-full border border-outline-variant/50" data-alt="Headshot of a modern corporate recruiter, professional attire, soft lighting, tech office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbksIdHZ0yhOxnB1Ncivx5ttNdms7uY7HV00njnz3lmRlFNUA3A__kQ3iIw-jTdZEbfQKAzKOcV9mOmdlMOe6folm0ovdpf7OMQbiu27k0qCxKRwJ_y2OaPOK5iQcS7AY1Mur6i4BTgdZs3RgcLcTY8Da6E1RWmzpABkmTkpp8-7TdHHtr-EfPEbfMTUCL9Z_NjHgpPgIMmuMjAZJYlkahijv4qudhfc5Xm-9VVxnKIVBkJM9NDFYaRzQ-0MBPOQmbTfS8faSQP4yH">
+<div class="flex-1">
+<div class="flex justify-between">
+<span class="font-label-md text-label-md">Sarah Chen (Stripe)</span>
+<span class="text-[10px] text-on-surface-variant">2m ago</span>
+</div>
+<p class="text-[12px] text-on-surface-variant line-clamp-1">Alex, loved the portfolio! When are you free...</p>
+</div>
+</div>
+<div class="flex gap-3 opacity-70">
+<img class="w-10 h-10 rounded-full border border-outline-variant/50" data-alt="Headshot of a senior HR manager, professional male, friendly expression, bokeh background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrvuBr1a44mftLwQj9UYGoIIZxwkyztGHw-ihZ6XAL9nzgBvGD305Ov-r2Xur6Arjkua0W_ZHbkv1Vfxa13OQW-jyF6nimjZXzS6C5N8P27UJniPFnsIaXA2QJQaHmy3kcLfsQUDrZJNUJ76999cyGYzfrjcwOKwd_QYcqQ6H23e0QUA06A5C_olLVrYx9Q_Z4VW-IhD0dTvWUqqpRbrYakRu1lrWBmJYn2XEOb0cBEj7eGoOAvHfcSP6llJsFaYHDzJANW_D3AvH2">
+<div class="flex-1">
+<div class="flex justify-between">
+<span class="font-label-md text-label-md">Marc Davis (Vercel)</span>
+<span class="text-[10px] text-on-surface-variant">1h ago</span>
+</div>
+<p class="text-[12px] text-on-surface-variant line-clamp-1">The team was impressed by your case study on...</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 py-2 border border-primary text-primary rounded-xl font-label-md text-label-md hover:bg-primary/5 transition-colors">View All Messages</button>
+</div>
+</div>
+<!-- Column 2: Status Cards (4 spans) -->
+<div class="md:col-span-4 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm">Active Opportunities</h3>
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-bold">All</span>
+<span class="px-3 py-1 rounded-full bg-primary text-on-primary text-[11px] font-bold">Interviews</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-bold">Pending</span>
+</div>
+</div>
+<!-- Application Card 1 -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant/30 hover:shadow-md transition-shadow group">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant/20">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant" data-icon="payments">payments</span>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-sm text-headline-sm group-hover:text-primary transition-colors">Senior Product Designer</h4>
+<p class="font-body-md text-on-surface-variant">Stripe • Remote • $180k - $220k</p>
+</div>
+<div class="bg-tertiary/10 text-tertiary px-3 py-1 rounded-full flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-[11px] font-bold">INTERVIEW STAGE 3</span>
+</div>
+</div>
+<div class="flex gap-4 mt-4">
+<div class="flex items-center gap-1 text-[12px] text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+                                        Applied 12 days ago
+                                    </div>
+<div class="flex items-center gap-1 text-[12px] text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="groups">groups</span>
+                                        420 Applicants
+                                    </div>
+<div class="flex items-center gap-1 text-[12px] text-tertiary font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="target">target</span>
+                                        98% Match Score
+                                    </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Application Card 2 -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant/30 hover:shadow-md transition-shadow group">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant/20">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant" data-icon="terminal">terminal</span>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-sm text-headline-sm group-hover:text-primary transition-colors">UX Systems Designer</h4>
+<p class="font-body-md text-on-surface-variant">Linear • Hybrid • $165k - $190k</p>
+</div>
+<div class="bg-primary/10 text-primary px-3 py-1 rounded-full flex items-center gap-1">
+<span class="text-[11px] font-bold">SHORTLISTED</span>
+</div>
+</div>
+<div class="flex gap-4 mt-4">
+<div class="flex items-center gap-1 text-[12px] text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+                                        Applied 5 days ago
+                                    </div>
+<div class="flex items-center gap-1 text-[12px] text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="groups">groups</span>
+                                        156 Applicants
+                                    </div>
+<div class="flex items-center gap-1 text-[12px] text-tertiary font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="target">target</span>
+                                        92% Match Score
+                                    </div>
+</div>
+</div>
+</div>
+</div>
+<!-- NextSteps AI Sidebar Integration (Bento Style Item) -->
+<div class="bg-[#EFF6FF] p-6 rounded-2xl border border-primary/10 flex flex-col md:flex-row items-center gap-6">
+<div class="flex-1">
+<h4 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+                                AI Recommended Next Steps
+                            </h4>
+<p class="font-body-sm text-on-surface-variant mt-2">Based on your Stripe interview coming up in 2 hours, we recommend reviewing their 2024 Design Language system docs and preparing your "Impact over Interface" case study response.</p>
+<div class="flex gap-3 mt-4">
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg text-label-sm font-label-sm">Prep Interview</button>
+<button class="bg-white border border-outline-variant px-4 py-2 rounded-lg text-label-sm font-label-sm">View Insights</button>
+</div>
+</div>
+<div class="hidden md:block w-32 h-32 relative">
+<div class="absolute inset-0 bg-primary/10 rounded-full animate-ping"></div>
+<div class="relative z-10 w-full h-full bg-primary/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="psychology">psychology</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-lg border-t border-outline-variant/20 flex justify-around items-center px-4 py-3 z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span class="font-label-sm text-label-sm">Apps</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-sm text-label-sm">Chat</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-label-sm text-label-sm">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-inverse-surface w-full pt-12 pb-8 border-t border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="md:col-span-1">
+<h3 class="font-display text-headline-sm font-semibold text-on-surface mb-4">NextHire</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Accelerating careers through AI-driven recruitment and seamless talent discovery.</p>
+</div>
+<div class="md:col-span-1">
+<h4 class="font-label-md text-label-md text-on-surface mb-4">Product</h4>
+<ul class="space-y-2">
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Job Search</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Tracking</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Insights</a></li>
+</ul>
+</div>
+<div class="md:col-span-1">
+<h4 class="font-label-md text-label-md text-on-surface mb-4">Resources</h4>
+<ul class="space-y-2">
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Help Center</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">API</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Careers</a></li>
+</ul>
+</div>
+<div class="md:col-span-1">
+<h4 class="font-label-md text-label-md text-on-surface mb-4">Legal</h4>
+<ul class="space-y-2">
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Privacy Policy</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-primary text-label-sm transition-all" href="#">Terms of Service</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mt-12 pt-8 border-t border-outline-variant/10 text-center md:text-left">
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 NextHire AI. Global Talent Solutions.</p>
+</div>
+</footer>
+<script>
+        // Micro-interaction for dashboard cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+
+
+</body></html>
