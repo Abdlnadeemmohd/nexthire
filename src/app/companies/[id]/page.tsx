@@ -9,6 +9,7 @@ import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { JobAuthModal } from "@/components/jobs/JobAuthModal";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 export default function PublicCompanyDetailPage({ params }: { params: { id: string } }) {
   const { isAuthenticated } = useAuth();
@@ -81,9 +82,7 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="font-display text-2xl sm:text-3xl font-bold">{company.name}</h1>
-                  <span className="px-2.5 py-0.5 bg-tertiary text-on-tertiary text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">verified</span> Verified Employer
-                  </span>
+                  <VerifiedBadge role="RECRUITER" customLabel="Verified Employer" size="md" />
                 </div>
                 <p className="text-xs sm:text-sm text-slate-200">{company.tagline}</p>
                 <p className="text-xs text-slate-300 flex items-center gap-3 pt-1">
@@ -166,7 +165,19 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
               </h2>
               <div className="space-y-4">
                 {openJobs.map((job) => (
-                  <JobCard key={job.id} job={job} onApplyClick={handleApplyClick} />
+                  <JobCard
+                    key={job.id}
+                    id={job.id}
+                    title={job.title}
+                    company={job.companyName}
+                    companyId={params.id || "c-1"}
+                    logo={job.companyLogo}
+                    location={job.location}
+                    salary={`$${(job.salaryMin / 1000).toFixed(0)}k–$${(job.salaryMax / 1000).toFixed(0)}k/yr`}
+                    type={job.employmentType.replace("_", " ")}
+                    tags={job.tags || []}
+                    description={job.description || ""}
+                  />
                 ))}
               </div>
             </div>
@@ -235,17 +246,17 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
       <Footer />
 
       <JobApplyModal
-        job={selectedJobToApply}
+        jobId={selectedJobToApply?.id || ""}
+        jobTitle={selectedJobToApply?.title || ""}
+        companyName={selectedJobToApply?.companyName || company.name}
         isOpen={!!selectedJobToApply}
         onClose={() => setSelectedJobToApply(null)}
-        onSuccess={(j) => console.log("Applied to", j.title)}
       />
 
       <JobAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        targetJobId={targetJobForAuth.id}
-        targetJobTitle={targetJobForAuth.title}
+        jobTitle={targetJobForAuth?.title || "this role"}
       />
     </>
   );

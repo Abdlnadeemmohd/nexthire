@@ -190,12 +190,20 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
             {featuredJobs.map((job) => (
               <JobCard
                 key={job.id}
-                job={job}
-                onApplyClick={handleApplyClick}
+                id={job.id}
+                title={job.title}
+                company={job.companyName}
+                companyId="c-1"
+                logo={job.companyLogo}
+                location={job.location}
+                salary={`$${(job.salaryMin / 1000).toFixed(0)}k–$${(job.salaryMax / 1000).toFixed(0)}k/yr`}
+                type={job.employmentType.replace("_", " ")}
+                tags={job.tags || []}
+                description={job.description || ""}
               />
             ))}
           </div>
@@ -362,17 +370,17 @@ export default function LandingPage() {
       <Footer />
 
       <JobApplyModal
-        job={selectedJobToApply}
+        jobId={selectedJobToApply?.id || ""}
+        jobTitle={selectedJobToApply?.title || ""}
+        companyName={selectedJobToApply?.companyName || ""}
         isOpen={!!selectedJobToApply}
         onClose={() => setSelectedJobToApply(null)}
-        onSuccess={(j) => console.log("Applied to", j.title)}
       />
 
       <JobAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        targetJobId={targetJobForAuth.id}
-        targetJobTitle={targetJobForAuth.title}
+        jobTitle={targetJobForAuth?.title || "this role"}
       />
     </>
   );

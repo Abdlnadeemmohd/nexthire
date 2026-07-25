@@ -252,12 +252,11 @@ export default function JobDetailPage() {
       <Footer />
 
       <JobApplyModal
-        job={job}
+        jobId={job.id}
+        jobTitle={job.title}
+        companyName={job.companyName}
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
-        onSuccess={() => {
-          router.push("/applications");
-        }}
       />
     </>
   );

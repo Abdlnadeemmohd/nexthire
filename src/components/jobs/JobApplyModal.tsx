@@ -1,120 +1,102 @@
 "use client";
 
 import React, { useState } from "react";
-import { Modal } from "@/components/ui/Modal";
-import { Job } from "@/lib/mockData";
-import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
 interface JobApplyModalProps {
-  job: Job | null;
+  jobId: string;
+  jobTitle: string;
+  companyName: string;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (job: Job) => void;
 }
 
-export function JobApplyModal({ job, isOpen, onClose, onSuccess }: JobApplyModalProps) {
-  const { user } = useAuth();
+export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }: JobApplyModalProps) {
   const { showToast } = useToast();
+  const [coverNote, setCoverNote] = useState("");
+  const [useDefaultResume, setUseDefaultResume] = useState(true);
 
-  const [coverLetter, setCoverLetter] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  if (!isOpen) return null;
 
-  if (!job) return null;
-
-  const handleSubmitApplication = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-
-    await new Promise((res) => setTimeout(res, 800));
-
-    setSubmitting(false);
-    setSubmitted(true);
-
-    showToast(`Successfully submitted application for ${job.title}!`, "success");
-
-    if (onSuccess) onSuccess(job);
-
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 1500);
+    showToast(`Application submitted for ${jobTitle} at ${companyName}!`, "success");
+    onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Apply for ${job.title}`}>
-      {submitted ? (
-        <div className="p-8 text-center space-y-3">
-          <div className="w-16 h-16 bg-tertiary-container/30 text-tertiary rounded-full flex items-center justify-center mx-auto text-3xl">
-            <span className="material-symbols-outlined text-4xl">check_circle</span>
-          </div>
-          <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-            Application Submitted!
-          </h3>
-          <p className="text-xs text-on-surface-variant font-body-md max-w-sm mx-auto">
-            Your profile and resume have been delivered directly to <span className="font-bold text-on-surface">{job.companyName}</span>'s hiring pipeline.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmitApplication} className="space-y-4 text-xs font-body-sm">
-          {/* Candidate Profile Fast Summary */}
-          <div className="p-4 bg-surface rounded-xl border border-outline-variant/20 space-y-2">
-            <span className="text-[10px] font-label-sm font-bold uppercase tracking-wider text-primary">
-              ⚡ 1-Click Profile Attachment
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/30 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-6 animate-scale-in">
+        <div className="flex items-center justify-between border-b border-outline-variant/20 dark:border-slate-800 pb-4">
+          <div>
+            <span className="text-[10px] font-label-sm font-bold text-outline dark:text-slate-400 uppercase tracking-wider block">
+              Quick Application
             </span>
-            <div className="flex items-center gap-3">
-              <img
-                src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
-                alt={user?.name || "Candidate"}
-                className="w-10 h-10 rounded-full object-cover border border-outline-variant/30"
-              />
-              <div>
-                <h4 className="font-bold text-sm text-on-surface">{user?.name || "Alex Rivers"}</h4>
-                <p className="text-[11px] text-on-surface-variant">{user?.email || "alex.rivers@gmail.com"} • Resume attached (Alex_Rivers_Resume.pdf)</p>
-              </div>
-            </div>
+            <h2 className="font-display text-xl font-bold text-on-surface dark:text-slate-100">
+              Apply to {companyName}
+            </h2>
+            <p className="text-xs text-on-surface-variant dark:text-slate-400">{jobTitle}</p>
           </div>
 
-          {/* Optional Cover Letter */}
-          <div className="space-y-1">
-            <label className="block text-outline font-label-md font-semibold">
-              Cover Letter / Note to Recruiter (Optional)
-            </label>
-            <textarea
-              rows={4}
-              placeholder="Introduce yourself or highlight specific achievements..."
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-xs"
+          <button
+            onClick={onClose}
+            className="p-2 text-on-surface-variant dark:text-slate-400 hover:text-on-surface dark:hover:text-white hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Default Resume Option */}
+          <div className="p-4 bg-surface-container-low dark:bg-slate-800/60 rounded-2xl border border-outline-variant/20 dark:border-slate-700 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary text-2xl">description</span>
+              <div>
+                <h4 className="text-xs font-bold text-on-surface dark:text-slate-100">Primary Resume Attached</h4>
+                <p className="text-[11px] text-on-surface-variant dark:text-slate-400">Alex_Rivers_Senior_Engineer_2026.pdf</p>
+              </div>
+            </div>
+
+            <input
+              type="checkbox"
+              checked={useDefaultResume}
+              onChange={(e) => setUseDefaultResume(e.target.checked)}
+              className="w-4 h-4 text-primary rounded border-outline-variant/40 dark:border-slate-700"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/10">
+          {/* Cover Note */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-label-md font-bold text-on-surface dark:text-slate-200 block">
+              Cover Note (Optional)
+            </label>
+            <textarea
+              rows={3}
+              value={coverNote}
+              onChange={(e) => setCoverNote(e.target.value)}
+              placeholder="Highlight key engineering achievements or why you are a strong fit..."
+              className="w-full px-4 py-3 bg-surface-container dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-2xl text-xs text-on-surface dark:text-slate-100 placeholder-outline dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-full"
+              className="px-5 py-2.5 text-xs font-label-md font-bold text-on-surface-variant dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={submitting}
-              className="px-6 py-2 bg-primary text-on-primary font-label-md font-bold rounded-full hover:bg-primary-container shadow-md flex items-center gap-2"
+              className="px-6 py-2.5 text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-all shadow-sm"
             >
-              {submitting ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  Submitting Application...
-                </>
-              ) : (
-                "Submit 1-Click Application"
-              )}
+              Submit Application
             </button>
           </div>
         </form>
-      )}
-    </Modal>
+      </div>
+    </div>
   );
 }

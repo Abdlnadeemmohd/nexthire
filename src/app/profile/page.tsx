@@ -7,6 +7,7 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { PROFILE_DATA } from "@/lib/mockData";
 import { useToast } from "@/components/ui/Toast";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 export default function ProfilePage() {
   const { showToast } = useToast();
@@ -43,9 +44,7 @@ export default function ProfilePage() {
                     <h1 className="font-display text-2xl md:text-3xl font-bold text-on-surface">
                       {profile.name}
                     </h1>
-                    <span className="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm rounded-full text-xs font-bold">
-                      VERIFIED CANDIDATE
-                    </span>
+                    <VerifiedBadge role="JOB_SEEKER" size="md" />
                   </div>
                   <p className="text-on-surface-variant font-label-md text-sm font-semibold">
                     {profile.headline}

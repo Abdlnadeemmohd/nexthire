@@ -253,13 +253,23 @@ export default function JobSearchPage() {
                 </p>
               </div>
             ) : (
-              filteredJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onApplyClick={handleApplyClick}
-                />
-              ))
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+                {filteredJobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    id={job.id}
+                    title={job.title}
+                    company={job.companyName}
+                    companyId="c-1"
+                    logo={job.companyLogo}
+                    location={job.location}
+                    salary={`$${(job.salaryMin / 1000).toFixed(0)}k–$${(job.salaryMax / 1000).toFixed(0)}k/yr`}
+                    type={job.employmentType.replace("_", " ")}
+                    tags={job.tags || []}
+                    description={job.description || ""}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -268,10 +278,11 @@ export default function JobSearchPage() {
       <Footer />
 
       <JobApplyModal
-        job={selectedJobToApply}
+        jobId={selectedJobToApply?.id || ""}
+        jobTitle={selectedJobToApply?.title || ""}
+        companyName={selectedJobToApply?.companyName || ""}
         isOpen={!!selectedJobToApply}
         onClose={() => setSelectedJobToApply(null)}
-        onSuccess={(job) => console.log("Applied for", job.title)}
       />
     </>
   );

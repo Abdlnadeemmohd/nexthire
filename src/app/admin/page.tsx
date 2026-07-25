@@ -6,6 +6,7 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 export default function PlatformAdminPage() {
   const { user } = useAuth();
@@ -45,9 +46,7 @@ export default function PlatformAdminPage() {
                 NextHire Operations, Security & Monetization Dashboard
               </p>
             </div>
-            <span className="px-4 py-1.5 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm font-bold text-xs rounded-full">
-              SUPER ADMIN: {user?.email || "admin@nexthire.ai"}
-            </span>
+            <VerifiedBadge role="PLATFORM_ADMIN" size="md" />
           </div>
 
           {/* Metric Cards */}

@@ -66,9 +66,25 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('nexthire_theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                } else {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body
-        className={`${poppins.variable} ${hanken.variable} antialiased min-h-screen flex flex-col bg-surface text-on-surface`}
+        className={`${poppins.variable} ${hanken.variable} antialiased min-h-screen flex flex-col bg-surface text-on-surface dark:bg-[#0b0f17] dark:text-slate-100 transition-colors duration-200`}
       >
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>

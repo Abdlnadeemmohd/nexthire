@@ -174,10 +174,11 @@ export default function SeekerDashboardPage() {
       </div>
 
       <JobApplyModal
-        job={selectedJobToApply}
+        jobId={selectedJobToApply?.id || ""}
+        jobTitle={selectedJobToApply?.title || ""}
+        companyName={selectedJobToApply?.companyName || ""}
         isOpen={!!selectedJobToApply}
         onClose={() => setSelectedJobToApply(null)}
-        onSuccess={(j) => console.log("Applied", j.title)}
       />
     </ProtectedRoute>
   );

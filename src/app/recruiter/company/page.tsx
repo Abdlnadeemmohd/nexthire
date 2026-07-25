@@ -7,6 +7,7 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 export default function RecruiterCompanyProfilePage() {
   const { showToast } = useToast();
@@ -120,9 +121,7 @@ export default function RecruiterCompanyProfilePage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h1 className="font-display text-2xl sm:text-3xl font-bold">{companyInfo.name}</h1>
-                      <span className="px-2.5 py-0.5 bg-tertiary text-on-tertiary text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">verified</span> Verified Employer
-                      </span>
+                      <VerifiedBadge role="RECRUITER" customLabel="Verified Employer" size="md" />
                     </div>
                     <p className="text-xs sm:text-sm text-slate-200">{companyInfo.tagline}</p>
                     <p className="text-xs text-slate-300 flex items-center gap-3 pt-1">

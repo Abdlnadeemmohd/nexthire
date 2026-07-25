@@ -2,70 +2,56 @@
 
 import React from "react";
 import Link from "next/link";
-import { Modal } from "@/components/ui/Modal";
 
 interface JobAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  targetJobId?: string;
-  targetJobTitle?: string;
+  jobTitle?: string;
 }
 
-export function JobAuthModal({ isOpen, onClose, targetJobId = "", targetJobTitle = "" }: JobAuthModalProps) {
-  const redirectUrl = targetJobId ? `/jobs/${targetJobId}` : "/jobs";
+export function JobAuthModal({ isOpen, onClose, jobTitle = "this role" }: JobAuthModalProps) {
+  if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Sign In to Apply">
-      <div className="space-y-6 text-xs font-body-sm">
-        <div className="p-4 bg-primary-container/20 border border-primary/30 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
-            <span className="material-symbols-outlined">lock</span>
-            <span>Authentication Required</span>
-          </div>
-          <p className="text-on-surface-variant text-xs leading-relaxed">
-            To submit your application for <span className="font-bold text-on-surface">{targetJobTitle || "this position"}</span> and communicate directly with recruiters, please sign in or create a free NextHire candidate account.
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/30 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in text-center">
+        <div className="w-14 h-14 bg-primary-container/30 dark:bg-slate-800 text-primary rounded-2xl flex items-center justify-center mx-auto">
+          <span className="material-symbols-outlined text-3xl">lock</span>
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="font-display text-xl font-bold text-on-surface dark:text-slate-100">
+            Sign in to Apply
+          </h2>
+          <p className="text-xs text-on-surface-variant dark:text-slate-400 leading-relaxed">
+            Please log in or create a NextHire account to submit your application for <span className="font-bold text-on-surface dark:text-slate-200">{jobTitle}</span>.
           </p>
         </div>
 
-        <div className="space-y-3">
-          <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider text-outline">
-            Creating an account allows you to:
-          </h4>
-          <ul className="space-y-2 text-on-surface-variant text-xs">
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-              <span><strong>1-Click Applications</strong> with your saved profile and resume.</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-              <span><strong>Real-time Status Updates</strong> from recruiters (Applied → Hired).</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-              <span><strong>Structured Recruiter Feedback</strong> and AI Career Recommendations.</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-              <span><strong>Direct Messaging & Interview Scheduling</strong> with hiring managers.</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-outline-variant/10">
+        <div className="flex flex-col gap-3 pt-2">
           <Link
-            href={`/login?redirect=${encodeURIComponent(redirectUrl)}&message=${encodeURIComponent("Please sign in or create an account to continue with your application.")}`}
-            className="flex-1 py-3 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full text-center hover:bg-primary-container transition-all shadow-md"
+            href="/login"
+            onClick={onClose}
+            className="w-full py-3 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs"
           >
-            Sign In to Account
+            Sign In
           </Link>
           <Link
-            href={`/register?redirect=${encodeURIComponent(redirectUrl)}`}
-            className="flex-1 py-3 bg-surface border border-outline-variant/30 text-on-surface font-label-md font-bold text-xs rounded-full text-center hover:bg-surface-container transition-all"
+            href="/register"
+            onClick={onClose}
+            className="w-full py-3 border border-outline-variant/40 dark:border-slate-700 font-label-md font-bold text-xs text-on-surface dark:text-slate-200 hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-all"
           >
             Create Free Account
           </Link>
         </div>
+
+        <button
+          onClick={onClose}
+          className="text-xs font-label-md font-bold text-outline dark:text-slate-400 hover:text-on-surface dark:hover:text-white"
+        >
+          Cancel
+        </button>
       </div>
-    </Modal>
+    </div>
   );
 }
