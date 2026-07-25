@@ -18,7 +18,13 @@ export function SidebarNav({ portal }: SidebarNavProps) {
   const isItemActive = (currentPath: string, targetHref: string): boolean => {
     if (currentPath === targetHref) return true;
 
-    if (targetHref === "/recruiter" || targetHref === "/admin" || targetHref === "/dashboard" || targetHref === "/profile") {
+    if (
+      targetHref === "/recruiter" ||
+      targetHref === "/admin" ||
+      targetHref === "/dashboard" ||
+      targetHref === "/profile" ||
+      targetHref === "/recruiter/billing"
+    ) {
       return currentPath === targetHref;
     }
 
@@ -82,9 +88,9 @@ export function SidebarNav({ portal }: SidebarNavProps) {
           ],
         },
         {
-          title: "Business & Subscription",
+          title: "Billing & Subscription",
           items: [
-            { label: "Subscription & Billing", href: "/admin/subscriptions", icon: "credit_card" },
+            { label: "Billing & Subscription", href: "/recruiter/billing", icon: "credit_card" },
           ],
         },
         {
@@ -108,7 +114,7 @@ export function SidebarNav({ portal }: SidebarNavProps) {
         ],
       },
       {
-        title: "Platform & Revenue",
+        title: "SaaS Business",
         items: [
           { label: "Subscriptions & Revenue", href: "/admin/subscriptions", icon: "payments" },
         ],
@@ -126,13 +132,13 @@ export function SidebarNav({ portal }: SidebarNavProps) {
   const menuGroups = getMenuGroups();
 
   return (
-    <aside className="w-72 bg-surface-container-lowest dark:bg-slate-900 border-r border-outline-variant/20 dark:border-slate-800 hidden lg:flex flex-col fixed left-0 top-16 bottom-0 z-30 transition-colors duration-200">
+    <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/20 hidden lg:flex flex-col fixed left-0 top-16 bottom-0 z-30 transition-colors duration-200">
       <div className="p-6 space-y-6 flex-1 overflow-y-auto">
         <div className="space-y-1">
-          <span className="text-[10px] font-label-sm font-bold text-outline dark:text-slate-400 uppercase tracking-wider">
+          <span className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider">
             Active Portal
           </span>
-          <h3 className="font-headline-sm text-sm font-bold text-on-surface dark:text-white capitalize flex items-center gap-2">
+          <h3 className="font-headline-sm text-sm font-bold text-on-surface capitalize flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
             {portal === "seeker" ? "Job Seeker Portal" : portal === "recruiter" ? "Recruiter Workspace" : "Admin Operations"}
           </h3>
@@ -141,8 +147,7 @@ export function SidebarNav({ portal }: SidebarNavProps) {
         <nav className="space-y-6">
           {menuGroups.map((group, idx) => (
             <div key={idx} className="space-y-2">
-              {/* Non-Clickable Category Section Heading */}
-              <h4 className="text-[10px] font-label-sm font-bold text-outline dark:text-slate-400 uppercase tracking-wider px-3 select-none">
+              <h4 className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider px-3 select-none">
                 {group.title}
               </h4>
               <div className="space-y-1">
@@ -155,7 +160,7 @@ export function SidebarNav({ portal }: SidebarNavProps) {
                       className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-label-md font-bold transition-all ${
                         isActive
                           ? "bg-primary text-on-primary shadow-xs"
-                          : "text-on-surface-variant dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white bg-transparent"
+                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface bg-transparent"
                       }`}
                     >
                       <span className="material-symbols-outlined text-lg flex-shrink-0">{item.icon}</span>
@@ -169,13 +174,12 @@ export function SidebarNav({ portal }: SidebarNavProps) {
         </nav>
       </div>
 
-      {/* User Footer Profile & Logout */}
-      <div className="p-4 border-t border-outline-variant/20 dark:border-slate-800 bg-surface-container-low dark:bg-slate-900/60 flex items-center justify-between flex-shrink-0">
+      <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
             alt={user?.name || "User Avatar"}
-            className="w-9 h-9 rounded-full object-cover border border-outline-variant/40 dark:border-slate-700 flex-shrink-0"
+            className="w-9 h-9 rounded-full object-cover border border-outline-variant/40 flex-shrink-0"
           />
           <div className="min-w-0">
             <VerifiedBadge role={user?.role} size="sm" />
@@ -184,7 +188,7 @@ export function SidebarNav({ portal }: SidebarNavProps) {
 
         <button
           onClick={logout}
-          className="p-2 text-outline dark:text-slate-400 hover:text-error hover:bg-error-container/20 rounded-xl transition-colors"
+          className="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-xl transition-colors"
           title="Sign Out"
         >
           <span className="material-symbols-outlined text-lg">logout</span>

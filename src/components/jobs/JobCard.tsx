@@ -50,7 +50,7 @@ export function JobCard({
 
   return (
     <>
-      <div className="glass-card bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/30 dark:border-slate-800 rounded-3xl p-6 hover:shadow-xl dark:hover:shadow-2xl/60 transition-all duration-300 flex flex-col justify-between h-full group">
+      <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group">
         <div className="space-y-4">
           {/* Card Top: Logo, Company Name, Title & AI Match Score Badge */}
           <div className="flex items-start justify-between gap-4">
@@ -59,18 +59,18 @@ export function JobCard({
                 <img
                   src={logo}
                   alt={company}
-                  className="w-12 h-12 rounded-2xl object-cover border border-outline-variant/30 dark:border-slate-700 bg-white p-1 shadow-xs group-hover:scale-105 transition-transform"
+                  className="w-12 h-12 rounded-2xl object-cover border border-outline-variant/30 bg-white p-1 shadow-xs group-hover:scale-105 transition-transform"
                 />
               </Link>
               <div className="min-w-0">
                 <Link
                   href={`/companies/${companyId}`}
-                  className="text-xs font-label-md font-bold text-outline dark:text-slate-400 hover:text-primary transition-colors block truncate"
+                  className="text-xs font-label-md font-bold text-outline hover:text-primary transition-colors block truncate"
                 >
                   {company}
                 </Link>
                 <Link href={`/jobs/${id}`}>
-                  <h3 className="font-headline-sm text-base font-bold text-on-surface dark:text-slate-100 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                  <h3 className="font-headline-sm text-base font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                     {title}
                   </h3>
                 </Link>
@@ -79,7 +79,7 @@ export function JobCard({
 
             {/* AI Match Radial / Badge */}
             <div
-              className="flex-shrink-0 px-2.5 py-1 bg-tertiary-container/30 dark:bg-emerald-950/60 border border-tertiary/20 dark:border-emerald-700/40 text-tertiary dark:text-emerald-400 rounded-full flex items-center gap-1.5 shadow-2xs"
+              className="flex-shrink-0 px-2.5 py-1 bg-tertiary-container/30 border border-tertiary/20 text-tertiary rounded-full flex items-center gap-1.5 shadow-2xs"
               title="AI Skill Match Score"
             >
               <span className="material-symbols-outlined text-xs">auto_awesome</span>
@@ -88,19 +88,19 @@ export function JobCard({
           </div>
 
           {/* Location & Job Type Badges */}
-          <div className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-slate-400 font-label-md flex-wrap">
-            <span className="flex items-center gap-1 bg-surface-container dark:bg-slate-800 px-2.5 py-1 rounded-xl">
+          <div className="flex items-center gap-2 text-xs text-on-surface-variant font-label-md flex-wrap">
+            <span className="flex items-center gap-1 bg-surface-container px-2.5 py-1 rounded-xl">
               <span className="material-symbols-outlined text-sm">location_on</span>
               {location}
             </span>
-            <span className="flex items-center gap-1 bg-surface-container dark:bg-slate-800 px-2.5 py-1 rounded-xl">
+            <span className="flex items-center gap-1 bg-surface-container px-2.5 py-1 rounded-xl">
               <span className="material-symbols-outlined text-sm">work</span>
               {type}
             </span>
           </div>
 
           {/* Description line clamped */}
-          <p className="text-xs text-on-surface-variant dark:text-slate-300 leading-relaxed line-clamp-2">
+          <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2">
             {description}
           </p>
 
@@ -109,13 +109,13 @@ export function JobCard({
             {visibleTags.map((tag, idx) => (
               <span
                 key={idx}
-                className="px-2.5 py-0.5 bg-surface-container-high dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 text-[11px] font-label-md font-bold rounded-lg"
+                className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[11px] font-label-md font-bold rounded-lg"
               >
                 {tag}
               </span>
             ))}
             {hiddenTagCount > 0 && (
-              <span className="px-2 py-0.5 bg-surface-container-low dark:bg-slate-800/60 text-outline dark:text-slate-400 text-[11px] font-label-md font-bold rounded-lg border border-outline-variant/30 dark:border-slate-700">
+              <span className="px-2 py-0.5 bg-surface-container-low text-outline text-[11px] font-label-md font-bold rounded-lg border border-outline-variant/30">
                 +{hiddenTagCount} More
               </span>
             )}
@@ -123,12 +123,12 @@ export function JobCard({
         </div>
 
         {/* Card Footer: Non-wrapping Salary + Anchored Action Buttons */}
-        <div className="mt-6 pt-4 border-t border-outline-variant/20 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="mt-6 pt-4 border-t border-outline-variant/20 flex items-center justify-between gap-3 flex-shrink-0">
           <div className="min-w-0">
-            <span className="text-[10px] text-outline dark:text-slate-400 font-label-md font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-outline font-label-md font-bold uppercase tracking-wider block">
               Salary Range
             </span>
-            <span className="font-headline-sm text-sm font-bold text-primary dark:text-emerald-400 whitespace-nowrap block truncate">
+            <span className="font-headline-sm text-sm font-bold text-primary whitespace-nowrap block truncate">
               {salary}
             </span>
           </div>
@@ -136,7 +136,7 @@ export function JobCard({
           <div className="flex items-center gap-2 flex-shrink-0">
             <Link
               href={`/jobs/${id}`}
-              className="px-3.5 py-2 border border-outline-variant/40 dark:border-slate-700 hover:border-primary text-on-surface dark:text-slate-200 hover:text-primary font-label-md font-bold text-xs rounded-xl transition-all whitespace-nowrap"
+              className="px-3.5 py-2 border border-outline-variant/40 hover:border-primary text-on-surface hover:text-primary font-label-md font-bold text-xs rounded-xl transition-all whitespace-nowrap"
             >
               View Details
             </Link>
