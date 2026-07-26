@@ -11,7 +11,7 @@ interface ProfileDropdownProps {
 }
 
 export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDropdownProps) {
-  const { user, logout, login } = useAuth();
+  const { user, logout } = useAuth();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
 
   const isControlled = typeof externalIsOpen !== "undefined";
@@ -21,8 +21,6 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
     if (onClose) onClose();
     else setInternalIsOpen(false);
   };
-
-  const isDev = process.env.NODE_ENV === "development";
 
   if (!isOpen) return null;
 
@@ -77,6 +75,14 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
                 <span>My Profile & Resume</span>
               </Link>
               <Link
+                href="/resume-studio"
+                onClick={handleClose}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">description</span>
+                <span>Resume Studio</span>
+              </Link>
+              <Link
                 href="/applications"
                 onClick={handleClose}
                 className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
@@ -113,6 +119,22 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
                 <span className="material-symbols-outlined text-base">view_kanban</span>
                 <span>Candidate Pipeline</span>
               </Link>
+              <Link
+                href="/recruiter/candidates"
+                onClick={handleClose}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">badge</span>
+                <span>Search Candidates</span>
+              </Link>
+              <Link
+                href="/recruiter/billing"
+                onClick={handleClose}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">credit_card</span>
+                <span>Billing & Subscription</span>
+              </Link>
             </>
           )}
 
@@ -124,7 +146,7 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
                 className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
               >
                 <span className="material-symbols-outlined text-base">admin_panel_settings</span>
-                <span>Admin Console</span>
+                <span>Admin Operations</span>
               </Link>
               <Link
                 href="/admin/users"
@@ -135,12 +157,20 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
                 <span>User Directory</span>
               </Link>
               <Link
+                href="/admin/companies"
+                onClick={handleClose}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">verified_user</span>
+                <span>Company Moderation</span>
+              </Link>
+              <Link
                 href="/admin/subscriptions"
                 onClick={handleClose}
                 className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
               >
                 <span className="material-symbols-outlined text-base">payments</span>
-                <span>Subscriptions & Revenue</span>
+                <span>SaaS Subscriptions</span>
               </Link>
             </>
           )}
@@ -155,36 +185,7 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
           </Link>
         </div>
 
-        {/* Group 2: Development Role Switcher (ONLY rendered in NODE_ENV === 'development') */}
-        {isDev && (
-          <div className="py-1 text-xs space-y-1">
-            <span className="px-3 text-[10px] font-bold text-outline uppercase tracking-wider block">
-              Dev Role Switcher
-            </span>
-            <div className="grid grid-cols-3 gap-1 px-1">
-              <button
-                onClick={() => { login("jobseeker@nexthire.com", "password123"); handleClose(); }}
-                className={`p-1.5 rounded-lg text-[10px] font-bold transition-all ${user?.role === "JOB_SEEKER" ? "bg-primary text-on-primary" : "bg-surface-container hover:bg-surface-container-high text-on-surface"}`}
-              >
-                Seeker
-              </button>
-              <button
-                onClick={() => { login("recruiter@nexthire.com", "password123"); handleClose(); }}
-                className={`p-1.5 rounded-lg text-[10px] font-bold transition-all ${user?.role === "RECRUITER" ? "bg-primary text-on-primary" : "bg-surface-container hover:bg-surface-container-high text-on-surface"}`}
-              >
-                Recruiter
-              </button>
-              <button
-                onClick={() => { login("owner@nexthire.com", "password123"); handleClose(); }}
-                className={`p-1.5 rounded-lg text-[10px] font-bold transition-all ${user?.role === "PLATFORM_ADMIN" ? "bg-primary text-on-primary" : "bg-surface-container hover:bg-surface-container-high text-on-surface"}`}
-              >
-                Admin
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Group 3: Support */}
+        {/* Group 2: Support */}
         <div className="py-1 text-xs space-y-0.5 text-on-surface">
           <Link
             href="/help"

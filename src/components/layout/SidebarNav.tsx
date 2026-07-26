@@ -31,9 +31,9 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
     if (portal === "seeker") {
       return [
         {
-          title: "Dashboard",
+          title: "Navigation",
           items: [
-            { label: "Dashboard", href: "/dashboard", icon: "grid_view" },
+            { label: "Home", href: "/dashboard", icon: "home" },
             { label: "Search Jobs", href: "/jobs", icon: "search" },
             { label: "Application Tracker", href: "/applications", icon: "assignment" },
           ],
@@ -42,7 +42,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           title: "Profile & Resume",
           items: [
             { label: "My Profile", href: "/profile", icon: "person" },
-            { label: "Resume Studio", href: "/profile#resume", icon: "description" },
+            { label: "Resume Studio", href: "/resume-studio", icon: "description" },
           ],
         },
         {
@@ -64,9 +64,9 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
     if (portal === "recruiter") {
       return [
         {
-          title: "Dashboard & Jobs",
+          title: "Navigation",
           items: [
-            { label: "Recruiter Suite", href: "/recruiter", icon: "dashboard" },
+            { label: "Home", href: "/recruiter", icon: "home" },
             { label: "Company Profile", href: "/recruiter/company", icon: "business" },
             { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },
             { label: "Candidate Pipeline", href: "/recruiter/applicants", icon: "view_kanban" },
@@ -76,7 +76,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           title: "Recruitment",
           items: [
             { label: "Messages", href: "/messages", icon: "chat" },
-            { label: "Search Candidates", href: "/jobs", icon: "badge" },
+            { label: "Search Candidates", href: "/recruiter/candidates", icon: "badge" },
           ],
         },
         {
@@ -98,9 +98,9 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
     // Admin Portal
     return [
       {
-        title: "Administration",
+        title: "Navigation",
         items: [
-          { label: "Admin Operations", href: "/admin", icon: "admin_panel_settings" },
+          { label: "Home", href: "/admin", icon: "home" },
           { label: "User Directory", href: "/admin/users", icon: "group" },
           { label: "Company Moderation", href: "/admin/companies", icon: "verified_user" },
         ],
@@ -115,7 +115,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
         title: "Account",
         items: [
           { label: "Settings", href: "/settings", icon: "settings" },
-          { label: "Help Centre", href: "/help", icon: "help" },
+          { label: "Support Operations", href: "/help", icon: "headset_mic" },
         ],
       },
     ];

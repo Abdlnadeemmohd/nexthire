@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 interface CandidateApplication {
   id: string;
@@ -118,9 +118,11 @@ export default function RecruiterApplicantsPage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
+            <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Candidate Pipeline" }]} />
+
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
             <div>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-2xl">view_kanban</span>

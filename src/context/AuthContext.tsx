@@ -17,14 +17,29 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(PRECONFIGURED_USERS[2]);
+  const [user, setUser] = useState<AuthUser | null>(() => authService.getCurrentSessionUser());
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const sessionUser = authService.getCurrentSessionUser();
-    if (sessionUser) {
-      setUser(sessionUser);
-    }
+    setUser(sessionUser);
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "nexthire_auth_user_session") {
+        if (e.newValue) {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const login = async (email: string, pass: string, role?: UserRole, remember: boolean = true) => {
@@ -76,6 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     authService.logout();
     setUser(null);
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   };
 
   return (

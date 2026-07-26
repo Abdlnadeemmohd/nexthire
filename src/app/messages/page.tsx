@@ -5,19 +5,49 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { INITIAL_MESSAGES, MessageItem } from "@/lib/mockData";
 
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
+
 export default function MessagingCentrePage() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<MessageItem[]>(INITIAL_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  const activeContact = {
-    name: "Sarah Jenkins",
-    company: "Stellar Systems",
-    role: "Lead Tech Recruiter",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC1D7dFdsnx2LAf_HxMUQf5KpCl5o2SHtRoQtxP7qjPB2D7KMODcDu0063TsqSLCewWg9M09otOoMbH-NfUzvBYL92WSEUJQDyw0W-Bmok-FvgZyL21HUitslBJkhfhVC2G8gAQ6LSZ_X8qMYN9F5R1R_kgZFA67hps92BfZKbel7Lmg6aApF7Nih5ph9jjS0S0rUr2W_p3a3L0hwTkNXDRL4DpAgeh-X1qCkE5OBpKsWx0JHS37gayqR4caP6y50K32RpNrJ5CHWlC",
-    online: true,
-  };
+  const portalType =
+    user?.role === "RECRUITER"
+      ? "recruiter"
+      : user?.role === "PLATFORM_ADMIN"
+      ? "admin"
+      : "seeker";
+
+  const activeContact =
+    user?.role === "RECRUITER"
+      ? {
+          name: "Alex Rivers",
+          company: "Job Candidate",
+          role: "Senior UX Specialist",
+          avatar:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuCohtV2Z0aDLDnAjCiN9bVGyy23UBK2eUaFPXAmILSLmTWMtP5mNAQBOGNOKEumuaKYIrTbgg8HxYkR0BkzjQKbnZY6AomJue9dlrGeS7LUmBLE19pwl7THpOA-Q9SNXeNmKxubmdGOHk_odhKF4Bc4kTPkMK7ZBHYi-0CUCyvPmvlq7U6ACptlDENQxAUgJI34gc6pdN1Dvu6jkM7Iuzox9T9iAtNf-1nCFP2PYJ0woS8ZXB1QnfmjuwJbhNJc53KKfsCErff_c5F8",
+          online: true,
+        }
+      : user?.role === "PLATFORM_ADMIN"
+      ? {
+          name: "System Support & Moderation Desk",
+          company: "NextHire Platform",
+          role: "Super Administrator",
+          avatar:
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+          online: true,
+        }
+      : {
+          name: "Sarah Jenkins",
+          company: "Stellar Systems",
+          role: "Lead Tech Recruiter",
+          avatar:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuC1D7dFdsnx2LAf_HxMUQf5KpCl5o2SHtRoQtxP7qjPB2D7KMODcDu0063TsqSLCewWg9M09otOoMbH-NfUzvBYL92WSEUJQDyw0W-Bmok-FvgZyL21HUitslBJkhfhVC2G8gAQ6LSZ_X8qMYN9F5R1R_kgZFA67hps92BfZKbel7Lmg6aApF7Nih5ph9jjS0S0rUr2W_p3a3L0hwTkNXDRL4DpAgeh-X1qCkE5OBpKsWx0JHS37gayqR4caP6y50K32RpNrJ5CHWlC",
+          online: true,
+        };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,21 +55,20 @@ export default function MessagingCentrePage() {
 
     const newMessage: MessageItem = {
       id: `msg-${Date.now()}`,
-      senderId: "seeker-1",
-      senderName: "Alex Rivers",
-      senderAvatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCohtV2Z0aDLDnAjCiN9bVGyy23UBK2eUaFPXAmILSLmTWMtP5mNAQBOGNOKEumuaKYIrTbgg8HxYkR0BkzjQKbnZY6AomJue9dlrGeS7LUmBLE19pwl7THpOA-Q9SNXeNmKxubmdGOHk_odhKF4Bc4kTPkMK7ZBHYi-0CUCyvPmvlq7U6ACptlDENQxAUgJI34gc6pdN1Dvu6jkM7Iuzox9T9iAtNf-1nCFP2PYJ0woS8ZXB1QnfmjuwJbhNJc53KKfsCErff_c5F8",
-      receiverId: "recruiter-1",
+      senderId: user?.id || "user-curr",
+      senderName: user?.name || "User",
+      senderAvatar: user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+      receiverId: "contact-1",
       content: inputMessage,
       timestamp: "Just now",
       read: true,
-      isRecruiter: false,
+      isRecruiter: user?.role === "RECRUITER",
     };
 
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage("");
 
-    // Simulate recruiter typing & reply
+    // Simulate reply
     setTimeout(() => {
       setIsTyping(true);
       setTimeout(() => {
@@ -48,28 +77,33 @@ export default function MessagingCentrePage() {
           ...prev,
           {
             id: `msg-reply-${Date.now()}`,
-            senderId: "recruiter-1",
+            senderId: "contact-1",
             senderName: activeContact.name,
             senderAvatar: activeContact.avatar,
-            receiverId: "seeker-1",
-            content: "Thanks Alex! Got your message. I'll pass this directly to our hiring team.",
+            receiverId: user?.id || "user-curr",
+            content:
+              user?.role === "RECRUITER"
+                ? "Thanks for reaching out! I'm very interested in learning more about the opportunity."
+                : user?.role === "PLATFORM_ADMIN"
+                ? "Your ticket has been logged and confirmed by Platform Operations."
+                : "Thanks! Got your message. I'll pass this directly to our hiring team.",
             timestamp: "Just now",
             read: true,
-            isRecruiter: true,
+            isRecruiter: user?.role !== "RECRUITER",
           },
         ]);
-      }, 2000);
-    }, 1000);
+      }, 1500);
+    }, 800);
   };
 
   return (
-    <>
+    <ProtectedRoute>
       <TopAppBar />
 
       <div className="flex bg-surface h-[calc(100vh-64px)] mt-16 overflow-hidden">
-        <SidebarNav portal="seeker" />
+        <SidebarNav portal={portalType} />
 
-        <main className="flex-1 lg:ml-72 flex flex-col md:flex-row h-full w-full">
+        <main className="flex-1 lg:pl-[270px] flex flex-col md:flex-row h-full w-full">
           {/* Conversation List Column */}
           <aside className="w-full md:w-80 lg:w-96 border-r border-outline-variant/20 bg-surface-container-lowest flex flex-col h-full">
             <div className="p-4 border-b border-outline-variant/20 space-y-3">
@@ -266,6 +300,6 @@ export default function MessagingCentrePage() {
           </section>
         </main>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

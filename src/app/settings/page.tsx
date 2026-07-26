@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
+import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
@@ -72,16 +73,20 @@ export default function AccountSettingsPage() {
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal={user?.role === "PLATFORM_ADMIN" ? "admin" : user?.role === "RECRUITER" ? "recruiter" : "seeker"} />
 
-        <main className="flex-1 lg:ml-72 p-6 md:p-10 space-y-8 max-w-7xl">
-          {/* Header */}
-          <div>
-            <h1 className="font-display text-3xl font-bold text-on-surface">
-              Account & Security Settings
-            </h1>
-            <p className="text-on-surface-variant text-sm font-body-md">
-              Manage authentication credentials, notification preferences, and privacy controls.
-            </p>
-          </div>
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-6 md:p-10 space-y-8 max-w-[1600px] w-full">
+            {/* Header */}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-2xl">settings</span>
+                <h1 className="font-display text-3xl font-bold text-on-surface">
+                  Account & System Settings
+                </h1>
+              </div>
+              <p className="text-on-surface-variant text-sm font-body-md mt-1">
+                Manage authentication credentials, role-specific notification preferences, and privacy controls.
+              </p>
+            </div>
 
           {/* Settings Tabs */}
           <div className="flex border-b border-outline-variant/20 gap-6 text-xs font-label-md font-bold">
@@ -270,6 +275,8 @@ export default function AccountSettingsPage() {
             </div>
           )}
         </main>
+          <Footer />
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}

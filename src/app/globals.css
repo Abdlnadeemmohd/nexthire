@@ -33,6 +33,16 @@
   }
 }
 
+/* WCAG 2.1 AA Accessible High-Contrast Buttons */
+.btn-accessible-success {
+  background-color: #15803d !important;
+  color: #ffffff !important;
+  border: 1px solid #166534 !important;
+}
+.btn-accessible-success:hover {
+  background-color: #166534 !important;
+}
+
 /* Fluid Typography Utilities */
 .font-display-hero {
   font-size: var(--text-hero);

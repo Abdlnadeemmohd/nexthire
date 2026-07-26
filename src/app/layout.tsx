@@ -54,6 +54,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { AICopilotModal } from "@/components/ai/AICopilotModal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -71,7 +73,10 @@ export default function RootLayout({
         className={`${poppins.variable} ${hanken.variable} antialiased min-h-screen flex flex-col bg-surface text-on-surface`}
       >
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            {children}
+            <AICopilotModal />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

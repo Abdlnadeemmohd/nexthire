@@ -32,6 +32,7 @@ class AuthService {
         if (remember) {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ownerUser));
         }
+        this.setCookieSession(ownerUser);
         return { success: true, user: ownerUser };
       } else if (normalizedEmail === "owner@nexthire.com") {
         return {
@@ -48,6 +49,7 @@ class AuthService {
         if (remember) {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(recruiterUser));
         }
+        this.setCookieSession(recruiterUser);
         return { success: true, user: recruiterUser };
       } else if (normalizedEmail === "recruiter@nexthire.com") {
         return {
@@ -64,6 +66,7 @@ class AuthService {
         if (remember) {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(seekerUser));
         }
+        this.setCookieSession(seekerUser);
         return { success: true, user: seekerUser };
       } else if (normalizedEmail === "jobseeker@nexthire.com") {
         return {
@@ -98,6 +101,7 @@ class AuthService {
     if (remember) {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dynamicUser));
     }
+    this.setCookieSession(dynamicUser);
     return { success: true, user: dynamicUser };
   }
 
@@ -122,6 +126,7 @@ class AuthService {
     };
 
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(newSeeker));
+    this.setCookieSession(newSeeker);
     return { success: true, user: newSeeker };
   }
 
@@ -150,7 +155,18 @@ class AuthService {
     };
 
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(newRecruiter));
+    this.setCookieSession(newRecruiter);
     return { success: true, user: newRecruiter };
+  }
+
+    private setCookieSession(user: AuthUser | null) {
+    if (typeof window === "undefined") return;
+    if (user) {
+      const value = encodeURIComponent(JSON.stringify(user));
+      document.cookie = `nexthire_auth_session=${value}; path=/; max-age=86400; SameSite=Lax`;
+    } else {
+      document.cookie = "nexthire_auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
   }
 
   public getCurrentSessionUser(): AuthUser | null {
@@ -158,15 +174,26 @@ class AuthService {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     if (!stored) return null;
     try {
-      return JSON.parse(stored);
+      const user = JSON.parse(stored);
+      // Ensure cookie is synced on page load
+      this.setCookieSession(user);
+      return user;
     } catch {
       return null;
+    }
+  }
+
+  public saveSessionUser(user: AuthUser): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+      this.setCookieSession(user);
     }
   }
 
   public logout(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem(this.STORAGE_KEY);
+      this.setCookieSession(null);
     }
   }
 

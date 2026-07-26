@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { hasRouteAccess } from "@/lib/auth";
@@ -14,9 +14,14 @@ export function ProtectedRoute({ children, requiredPortal }: ProtectedRouteProps
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || isLoading) return;
 
     if (!isAuthenticated || !user) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
@@ -28,9 +33,10 @@ export function ProtectedRoute({ children, requiredPortal }: ProtectedRouteProps
     if (!isAllowed) {
       router.push("/403");
     }
-  }, [user, isAuthenticated, isLoading, pathname, router]);
+  }, [user, isAuthenticated, isLoading, isMounted, pathname, router]);
 
-  if (isLoading) {
+  // Prevent SSR Hydration mismatch between server and client HTML
+  if (!isMounted || isLoading) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="flex items-center gap-3 text-primary font-label-md text-sm">

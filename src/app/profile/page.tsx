@@ -9,6 +9,8 @@ import { PROFILE_DATA } from "@/lib/mockData";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+
 export default function ProfilePage() {
   const { showToast } = useToast();
   const [profile, setProfile] = useState(PROFILE_DATA);
@@ -21,13 +23,14 @@ export default function ProfilePage() {
   };
 
   return (
-    <>
+    <ProtectedRoute requiredPortal="seeker">
       <TopAppBar />
 
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="seeker" />
 
-        <main className="flex-1 lg:ml-72 p-6 md:p-10 space-y-8 max-w-7xl">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
           {/* Clean Profile Header */}
           <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -239,10 +242,10 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </main>
+          </main>
+          <Footer />
+        </div>
       </div>
-
-      <Footer />
-    </>
+    </ProtectedRoute>
   );
 }

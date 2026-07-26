@@ -1,11 +1,32 @@
 import { NextResponse } from "next/server";
 import { INITIAL_APPLICATIONS } from "@/lib/mockData";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const match = cookieHeader.match(/nexthire_auth_session=([^;]+)/);
+  if (!match) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   return NextResponse.json({ success: true, data: INITIAL_APPLICATIONS });
 }
 
 export async function POST(request: Request) {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const match = cookieHeader.match(/nexthire_auth_session=([^;]+)/);
+  if (!match) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const user = JSON.parse(decodeURIComponent(match[1]));
+    if (user.role !== "JOB_SEEKER") {
+      return NextResponse.json({ success: false, error: "Forbidden: Only job seekers can submit applications" }, { status: 403 });
+    }
+  } catch {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const newApp = {
     id: `app-${Date.now()}`,

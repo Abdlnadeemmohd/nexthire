@@ -31,7 +31,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-1.5 text-xs text-on-surface-variant">
               <li><Link href="/jobs" className="hover:text-primary transition-colors">Browse Live Jobs</Link></li>
-              <li><Link href="/companies/c-1" className="hover:text-primary transition-colors">Employer Profiles</Link></li>
+              <li><Link href="/companies" className="hover:text-primary transition-colors">Employer Profiles</Link></li>
               <li><Link href="/about" className="hover:text-primary transition-colors">About NextHire</Link></li>
               <li><Link href="/recruiter/billing" className="hover:text-primary transition-colors">Pricing & Plans</Link></li>
             </ul>

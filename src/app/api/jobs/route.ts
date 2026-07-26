@@ -31,6 +31,22 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const match = cookieHeader.match(/nexthire_auth_session=([^;]+)/);
+  
+  if (!match) {
+    return NextResponse.json({ success: false, error: "Unauthorized: Missing session" }, { status: 401 });
+  }
+
+  try {
+    const user = JSON.parse(decodeURIComponent(match[1]));
+    if (user.role !== "RECRUITER" && user.role !== "PLATFORM_ADMIN") {
+      return NextResponse.json({ success: false, error: "Forbidden: Only recruiters and admins can post jobs" }, { status: 403 });
+    }
+  } catch {
+    return NextResponse.json({ success: false, error: "Unauthorized: Invalid session" }, { status: 401 });
+  }
+
   const body = await request.json();
   const newJob = {
     id: `job-${Date.now()}`,

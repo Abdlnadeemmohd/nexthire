@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { INITIAL_JOBS, INITIAL_APPLICATIONS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 
@@ -26,7 +27,41 @@ export default function SeekerDashboardPage() {
         <SidebarNav portal="seeker" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-6 md:p-10 space-y-8 max-w-[1600px] w-full">
+          <main className="flex-1 p-6 md:p-10 space-y-6 max-w-[1600px] w-full">
+            <Breadcrumbs items={[{ label: "Home", href: "/dashboard" }, { label: "Candidate Dashboard" }]} />
+
+            {/* Quick Actions Bar */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/resume-studio"
+                className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-2 shadow-xs"
+              >
+                <span className="material-symbols-outlined text-base">upload_file</span>
+                Upload & Optimize Resume
+              </Link>
+              <Link
+                href="/jobs"
+                className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">search</span>
+                Search Live Jobs
+              </Link>
+              <Link
+                href="/applications"
+                className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">assignment</span>
+                View Applications
+              </Link>
+              <Link
+                href="/messages"
+                className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">mail</span>
+                Recruiter Messages
+              </Link>
+            </div>
+
             {/* Header Greeting Banner */}
             <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-surface-container-lowest to-secondary-container/20">
               <div className="space-y-2">

@@ -3,7 +3,9 @@
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
+import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
@@ -65,27 +67,30 @@ export default function JobSearchPage() {
     }
   };
 
+  const { user } = useAuth();
+  const portalType = user?.role === "RECRUITER" ? "recruiter" : user?.role === "PLATFORM_ADMIN" ? "admin" : "seeker";
+
   return (
     <>
       <TopAppBar />
 
-      <main className="pt-20 pb-20 flex-1 bg-surface max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop w-full">
-        {/* Breadcrumbs & Header Title */}
-        <div className="py-6 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-label-md text-on-surface-variant">
-            <span>Home</span>
-            <span>/</span>
-            <span className="text-primary font-bold">Search Jobs</span>
-          </div>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="font-display text-3xl font-bold text-on-surface">
-                Global Job Search
-              </h1>
-              <p className="text-on-surface-variant font-body-sm text-sm">
-                Showing {filteredJobs.length} AI-matched roles
-              </p>
-            </div>
+      <div className="flex pt-16 min-h-screen bg-surface">
+        {isAuthenticated && <SidebarNav portal={portalType} />}
+
+        <div className={`flex-1 flex flex-col min-h-[calc(100vh-4rem)] ${isAuthenticated ? "lg:pl-[270px]" : ""}`}>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
+            <Breadcrumbs items={[{ label: "Home", href: portalType === "recruiter" ? "/recruiter" : portalType === "admin" ? "/admin" : "/dashboard" }, { label: "Search Jobs" }]} />
+
+            {/* Header Title & Controls */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-4">
+              <div>
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                  Global Job Search Engine
+                </h1>
+                <p className="text-on-surface-variant font-body-sm text-xs sm:text-sm">
+                  Showing {filteredJobs.length} AI-matched enterprise role postings
+                </p>
+              </div>
 
             <div className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/30 px-4 py-2 rounded-xl">
               <span className="text-xs font-label-md text-outline font-semibold">Sort by:</span>
@@ -96,7 +101,6 @@ export default function JobSearchPage() {
               </select>
             </div>
           </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-4">
           {/* Filters Sidebar */}
@@ -276,6 +280,8 @@ export default function JobSearchPage() {
       </main>
 
       <Footer />
+    </div>
+  </div>
 
       <JobApplyModal
         jobId={selectedJobToApply?.id || ""}

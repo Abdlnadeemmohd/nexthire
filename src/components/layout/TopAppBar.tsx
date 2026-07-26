@@ -5,13 +5,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationCenterPanel } from "./NotificationCenterPanel";
 import { ProfileDropdown } from "./ProfileDropdown";
+import { HeaderSearchDropdown } from "./HeaderSearchDropdown";
+import { AICopilotModal } from "@/components/ai/AICopilotModal";
 import { useAuth } from "@/context/AuthContext";
 
 export function TopAppBar() {
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Unread notification state for dynamic badge rendering
   const [unreadCount, setUnreadCount] = useState(0);
@@ -134,10 +142,10 @@ export function TopAppBar() {
 
   // Dynamic Role-Based Navigation Items
   const getNavItems = () => {
-    if (!isAuthenticated || !user) {
+    if (!isMounted || !isAuthenticated || !user) {
       return [
         { label: "Find Jobs", href: "/jobs" },
-        { label: "Companies", href: "/companies/c-1" },
+        { label: "Companies", href: "/companies" },
         { label: "About NextHire", href: "/about" },
         { label: "Help & Support", href: "/help" },
       ];
@@ -148,7 +156,7 @@ export function TopAppBar() {
         { label: "Find Jobs", href: "/jobs" },
         { label: "Dashboard", href: "/dashboard" },
         { label: "Applications", href: "/applications" },
-        { label: "Resume Studio", href: "/profile" },
+        { label: "Resume Studio", href: "/resume-studio" },
         { label: "Help & Support", href: "/help" },
       ];
     }
@@ -237,7 +245,7 @@ export function TopAppBar() {
 
           {/* Right: Actions, Notifications & Profile with Vertical Divider */}
           <div className="flex items-center gap-2 relative">
-            {!isAuthenticated ? (
+            {!isMounted || !isAuthenticated || !user ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
@@ -253,7 +261,36 @@ export function TopAppBar() {
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {/* Wide Global Search Input & Attached Dropdown Container */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    className="w-56 sm:w-72 md:w-80 lg:w-[420px] px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all hidden sm:flex items-center justify-between border border-outline-variant/30 group shadow-2xs"
+                    aria-label="Global search (Ctrl+K)"
+                    title="Global Context-Aware Search (Ctrl+K)"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">search</span>
+                      <span className="truncate text-outline text-xs">
+                        {user?.role === "RECRUITER"
+                          ? "Search candidates, jobs, companies..."
+                          : user?.role === "PLATFORM_ADMIN"
+                          ? "Search users, subscriptions, tickets..."
+                          : "Search jobs, companies, skills..."}
+                      </span>
+                    </div>
+                    <kbd className="px-2 py-0.5 bg-surface-container-lowest text-[10px] font-mono text-outline rounded-md border border-outline-variant/40 shadow-2xs flex-shrink-0">
+                      ⌘K
+                    </kbd>
+                  </button>
+
+                  <HeaderSearchDropdown
+                    isOpen={isSearchOpen}
+                    onClose={() => setIsSearchOpen(false)}
+                  />
+                </div>
+
                 {/* Notification Trigger Button with soft background hover */}
                 <button
                   onClick={toggleNotif}
@@ -271,7 +308,7 @@ export function TopAppBar() {
                 </button>
 
                 {/* Vertical Divider */}
-                <div className="h-6 w-px bg-outline-variant/30 hidden sm:block mx-1" />
+                <div className="h-6 w-px bg-outline-variant/30 hidden sm:block mx-0.5" />
 
                 {/* Profile Trigger Avatar with subtle border & active ring */}
                 <button

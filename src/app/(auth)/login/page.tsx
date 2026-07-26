@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
+import { hasRouteAccess } from "@/lib/auth";
+
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,16 +36,21 @@ function LoginFormContent() {
     if (result.success && result.user) {
       showToast(`Welcome back, ${result.user.name}!`, "success");
 
-      // Post-login redirection logic (Return URL or Role Default)
-      if (redirectUrl) {
-        router.push(redirectUrl);
+      // Role-safe redirection logic: ensure user role has access to redirectUrl
+      const isRedirectAllowed = redirectUrl && hasRouteAccess(result.user.role, redirectUrl);
+
+      let targetUrl = "/dashboard";
+      if (isRedirectAllowed) {
+        targetUrl = redirectUrl;
       } else if (result.user.role === "PLATFORM_ADMIN") {
-        router.push("/admin");
+        targetUrl = "/admin";
       } else if (result.user.role === "RECRUITER") {
-        router.push("/recruiter");
+        targetUrl = "/recruiter";
       } else {
-        router.push("/dashboard");
+        targetUrl = "/dashboard";
       }
+
+      window.location.href = targetUrl;
     } else {
       setErrorMsg(result.error || "Invalid authentication credentials.");
     }
