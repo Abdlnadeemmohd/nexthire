@@ -261,7 +261,7 @@ export function TopAppBar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target"
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target whitespace-nowrap flex-shrink-0"
                 >
                   Sign Up
                 </Link>
