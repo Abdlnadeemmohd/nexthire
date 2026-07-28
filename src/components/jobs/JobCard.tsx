@@ -37,6 +37,7 @@ export function JobCard({
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showAiBreakdown, setShowAiBreakdown] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleApplyClick = () => {
     if (isAuthenticated) {
@@ -168,19 +169,34 @@ export function JobCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              onClick={() => setIsSaved(!isSaved)}
+              className={`p-2 rounded-xl border transition-all touch-target ${
+                isSaved
+                  ? "bg-primary/10 border-primary text-primary"
+                  : "border-outline-variant/40 text-outline hover:text-on-surface hover:border-outline"
+              }`}
+              title={isSaved ? "Saved to your jobs" : "Save Job"}
+              aria-label="Save Job"
+            >
+              <span className="material-symbols-outlined text-base">
+                {isSaved ? "bookmark_added" : "bookmark"}
+              </span>
+            </button>
+
             <Link
               href={`/jobs/${id}`}
-              className="px-3.5 py-2 border border-outline-variant/40 hover:border-primary text-on-surface hover:text-primary font-label-md font-bold text-xs rounded-xl transition-all whitespace-nowrap touch-target"
+              className="px-3 py-2 border border-outline-variant/40 hover:border-primary text-on-surface hover:text-primary font-label-md font-bold text-xs rounded-xl transition-all whitespace-nowrap touch-target"
             >
               Details
             </Link>
 
             <button
               onClick={handleApplyClick}
-              className="px-4 py-2 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs whitespace-nowrap touch-target"
+              className="px-3.5 py-2 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs whitespace-nowrap touch-target"
             >
-              Apply Now
+              Apply
             </button>
           </div>
         </div>

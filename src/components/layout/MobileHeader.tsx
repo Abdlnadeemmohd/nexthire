@@ -38,7 +38,7 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
           </Link>
         </div>
 
-        {/* Right: Search Icon Trigger & Primary Action */}
+        {/* Right: Search Icon Trigger, Notification Bell & Primary Action */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setIsSearchScreenOpen(true)}
@@ -48,6 +48,17 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
           >
             <span className="material-symbols-outlined text-xl">search</span>
           </button>
+
+          {isAuthenticated && (
+            <Link
+              href="/messages"
+              className="p-2.5 bg-surface-container border border-outline-variant/30 text-on-surface-variant rounded-full hover:bg-surface-container-high transition-colors touch-target relative"
+              title="Notifications & Messages"
+            >
+              <span className="material-symbols-outlined text-xl">notifications</span>
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-error rounded-full ring-2 ring-surface animate-pulse" />
+            </Link>
+          )}
 
           {!isAuthenticated ? (
             <Link

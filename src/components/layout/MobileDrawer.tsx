@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { UserRole } from "@/context/AuthContext";
+import { UserRole, useAuth } from "@/context/AuthContext";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -12,6 +12,8 @@ interface MobileDrawerProps {
 }
 
 export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileDrawerProps) {
+  const { logout } = useAuth();
+
   if (!isOpen) return null;
 
   return (
@@ -70,7 +72,7 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
           {/* Account / Role Specific Links */}
           {isAuthenticated && (
             <div className="space-y-2">
-              <h4 className="text-[11px] font-bold text-outline uppercase tracking-wider">Workspace</h4>
+              <h4 className="text-[11px] font-bold text-outline uppercase tracking-wider">Workspace Actions</h4>
               <nav className="space-y-1">
                 {user?.role === "RECRUITER" ? (
                   <>
@@ -86,12 +88,24 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
                       <span className="material-symbols-outlined text-tertiary text-lg">corporate_fare</span>
                       Employer Branding
                     </Link>
+                    <Link href="/recruiter/jobs/new" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
+                      <span className="material-symbols-outlined text-tertiary text-lg">add_box</span>
+                      Post a New Job
+                    </Link>
                   </>
                 ) : user?.role === "PLATFORM_ADMIN" ? (
                   <>
                     <Link href="/admin" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
                       <span className="material-symbols-outlined text-error text-lg">admin_panel_settings</span>
-                      Platform Admin
+                      Platform Admin Overview
+                    </Link>
+                    <Link href="/admin/users" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
+                      <span className="material-symbols-outlined text-error text-lg">group</span>
+                      User Directory
+                    </Link>
+                    <Link href="/admin/subscriptions" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
+                      <span className="material-symbols-outlined text-error text-lg">analytics</span>
+                      SaaS Subscriptions
                     </Link>
                   </>
                 ) : (
@@ -110,7 +124,7 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
                     </Link>
                     <Link href="/applications" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
                       <span className="material-symbols-outlined text-primary text-lg">assignment_turned_in</span>
-                      Applications
+                      Applications Tracker
                     </Link>
                   </>
                 )}
@@ -138,7 +152,7 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
           </div>
         </div>
 
-        {/* Drawer Footer Auth Buttons */}
+        {/* Drawer Footer Auth Buttons & Logout */}
         <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low">
           {!isAuthenticated ? (
             <div className="flex flex-col gap-2">
@@ -165,18 +179,31 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
               </Link>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <img
-                  src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-                  alt={user?.name || "User Avatar"}
-                  className="w-9 h-9 rounded-full object-cover border border-outline-variant flex-shrink-0"
-                />
-                <div className="min-w-0">
-                  <h4 className="font-bold text-xs text-on-surface truncate">{user?.name}</h4>
-                  <p className="text-[10px] text-on-surface-variant truncate">{user?.email}</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                    alt={user?.name || "User Avatar"}
+                    className="w-9 h-9 rounded-full object-cover border border-outline-variant flex-shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-xs text-on-surface truncate">{user?.name}</h4>
+                    <p className="text-[10px] text-on-surface-variant truncate">{user?.email}</p>
+                  </div>
                 </div>
               </div>
+
+              <button
+                onClick={() => {
+                  onClose();
+                  logout();
+                }}
+                className="w-full py-2.5 text-center text-xs font-bold bg-error/10 text-error hover:bg-error/20 border border-error/30 rounded-xl transition-colors flex items-center justify-center gap-2 touch-target"
+              >
+                <span className="material-symbols-outlined text-base">logout</span>
+                Sign Out & Return Home
+              </button>
             </div>
           )}
         </div>
