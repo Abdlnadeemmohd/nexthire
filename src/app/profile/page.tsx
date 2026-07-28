@@ -1,26 +1,178 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { PROFILE_DATA } from "@/lib/mockData";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
-
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
+import { EmploymentStatus, UserExperience, UserEducation, UserCertification } from "@/lib/auth";
+
+import { CertificateUploadModal, CertificateRecord } from "@/components/profile/CertificateUploadModal";
+import { RecruitmentEngine } from "@/services/recruitmentEngine";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
   const { showToast } = useToast();
-  const [profile, setProfile] = useState(PROFILE_DATA);
+  const { user, updateUserProfile } = useAuth();
+
   const [isEditing, setIsEditing] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [certs, setCerts] = useState<CertificateRecord[]>(RecruitmentEngine.getCertificates());
+
+  useEffect(() => {
+    const unsub = RecruitmentEngine.subscribe(() => {
+      setCerts([...RecruitmentEngine.getCertificates()]);
+    });
+    return unsub;
+  }, []);
+
+  // Editable Profile Form State initialized from Auth Context or fallback mock
+  const [formData, setFormData] = useState({
+    name: user?.name || PROFILE_DATA.name,
+    headline: user?.headline || PROFILE_DATA.headline,
+    phone: user?.phone || "+1 (555) 890-1234",
+    address: user?.address || "742 Market Street",
+    city: user?.city || "San Francisco",
+    country: user?.country || "United States",
+    bio: user?.bio || PROFILE_DATA.bio,
+    employmentStatus: (user?.employmentStatus || "ON_NOTICE_PERIOD") as EmploymentStatus,
+    portfolioLinks: {
+      linkedin: user?.portfolioLinks?.linkedin || "https://linkedin.com/in/alexrivers",
+      github: user?.portfolioLinks?.github || "https://github.com/alexrivers",
+      website: user?.portfolioLinks?.website || "https://alexrivers.dev",
+      behance: user?.portfolioLinks?.behance || "",
+      dribbble: user?.portfolioLinks?.dribbble || "",
+    },
+  });
+
+  // Experience, Education & Certification Items State
+  const [experiences, setExperiences] = useState<UserExperience[]>(
+    user?.experience || [
+      {
+        id: "exp-1",
+        company: "Vortex Labs",
+        role: "Senior Systems Architect",
+        startDate: "2022-03",
+        endDate: "Present",
+        description: "Led migration of microservices architecture to Kubernetes, improving uptime to 99.99%.",
+      },
+    ]
+  );
+
+  const [educations, setEducations] = useState<UserEducation[]>(
+    user?.education || [
+      {
+        id: "edu-1",
+        institution: "Stanford University",
+        degree: "B.S.",
+        fieldOfStudy: "Computer Science",
+        graduationYear: "2020",
+      },
+    ]
+  );
+
+  const [certifications, setCertifications] = useState<UserCertification[]>(
+    user?.certifications || [
+      {
+        id: "cert-1",
+        name: "AWS Certified Solutions Architect",
+        issuer: "Amazon Web Services",
+        issueDate: "2024-01-15",
+        expiryDate: "2027-01-15",
+        verificationLink: "https://aws.amazon.com/verify/CERT-9902",
+        certificateFileUrl: "/certs/aws_solutions_architect.pdf",
+      },
+    ]
+  );
+
+  // Resume State
+  const [resumeName, setResumeName] = useState(user?.resumeFileName || "Alex_Rivers_Resume_2026.pdf");
+
+  const handleSaveProfile = () => {
+    updateUserProfile({
+      name: formData.name,
+      headline: formData.headline,
+      phone: formData.phone,
+      address: formData.address,
+      city: formData.city,
+      country: formData.country,
+      bio: formData.bio,
+      employmentStatus: formData.employmentStatus,
+      experience: experiences,
+      education: educations,
+      certifications: certifications,
+      portfolioLinks: formData.portfolioLinks,
+      resumeFileName: resumeName,
+    });
+    setIsEditing(false);
+    showToast("Profile and Employment Status saved successfully!", "success");
+  };
+
+  const handleAddExperience = () => {
+    const newExp: UserExperience = {
+      id: `exp-${Date.now()}`,
+      company: "New Company",
+      role: "Software Engineer",
+      startDate: "2024-01",
+      endDate: "Present",
+      description: "Described core technical responsibilities.",
+    };
+    setExperiences([...experiences, newExp]);
+    showToast("Added new experience record", "info");
+  };
+
+  const handleRemoveExperience = (id: string) => {
+    setExperiences(experiences.filter((e) => e.id !== id));
+    showToast("Removed experience entry", "info");
+  };
+
+  const handleAddCertification = () => {
+    const newCert: UserCertification = {
+      id: `cert-${Date.now()}`,
+      name: "Professional Cloud Developer",
+      issuer: "Google Cloud",
+      issueDate: "2025-05-10",
+      verificationLink: "https://cloud.google.com/certification",
+      certificateFileUrl: "/certs/gcp_developer.pdf",
+    };
+    setCertifications([...certifications, newCert]);
+    showToast("Added new professional certification", "info");
+  };
+
+  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setResumeName(file.name);
+      updateUserProfile({ resumeFileName: file.name });
+      setShowResumeModal(false);
+      showToast(`Uploaded resume: ${file.name}`, "success");
+    }
+  };
 
   const handleAction = (actionName: string) => {
     setShowMoreActions(false);
     showToast(`Triggered: ${actionName}`, "info");
   };
+
+  // Profile Completion Percentage Calculation
+  const calculateProfileCompletion = () => {
+    let score = 0;
+    if (formData.name) score += 15;
+    if (formData.headline) score += 15;
+    if (formData.bio) score += 15;
+    if (experiences.length > 0) score += 20;
+    if (educations.length > 0) score += 15;
+    if (certs.length > 0) score += 20;
+    return Math.min(100, score);
+  };
+
+  const completionPercentage = calculateProfileCompletion();
 
   return (
     <ProtectedRoute requiredPortal="seeker">
@@ -31,221 +183,422 @@ export default function ProfilePage() {
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
-          {/* Clean Profile Header */}
-          <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6 relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="flex items-center gap-6">
-                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md">
-                  <img
-                    src={profile.avatar}
-                    alt={profile.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-on-surface">
-                      {profile.name}
-                    </h1>
-                    <VerifiedBadge role="JOB_SEEKER" size="md" />
-                  </div>
-                  <p className="text-on-surface-variant font-label-md text-sm font-semibold">
-                    {profile.headline}
-                  </p>
-                  <p className="text-outline text-xs flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">location_on</span>
-                    {profile.location}
+            {/* Profile Completion Score Gauge */}
+            <div className="glass-card bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-display text-lg font-bold text-on-surface">
+                    Profile Completeness Score ({completionPercentage}%)
+                  </h3>
+                  <p className="text-xs text-on-surface-variant">
+                    Complete your profile details to rank higher in recruiter AI sourcing searches.
                   </p>
                 </div>
-              </div>
-
-              {/* Action Buttons: Clean Edit Profile + More Actions Dropdown */}
-              <div className="flex items-center gap-3 relative">
-                <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base">
-                    {isEditing ? "check" : "edit"}
-                  </span>
-                  {isEditing ? "Save Profile" : "Edit Profile"}
-                </button>
-
-                {/* More Actions Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowMoreActions(!showMoreActions)}
-                    className="p-2.5 bg-surface-container-high text-on-surface hover:text-primary rounded-full transition-colors border border-outline-variant/30 flex items-center justify-center"
-                    aria-label="More Profile Actions"
-                  >
-                    <span className="material-symbols-outlined text-lg">more_vert</span>
-                  </button>
-
-                  {showMoreActions && (
-                    <div className="absolute right-0 mt-2 w-52 bg-surface border border-outline-variant/20 rounded-2xl shadow-xl p-2 z-30 space-y-1 text-xs font-label-md">
-                      <button
-                        onClick={() => handleAction("Download Resume PDF")}
-                        className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
-                      >
-                        <span className="material-symbols-outlined text-base">download</span>
-                        Download Resume
-                      </button>
-                      <button
-                        onClick={() => handleAction("Upload New Resume")}
-                        className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
-                      >
-                        <span className="material-symbols-outlined text-base">upload_file</span>
-                        Upload New Resume
-                      </button>
-                      <button
-                        onClick={() => handleAction("AI Skill Gap Analysis")}
-                        className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
-                      >
-                        <span className="material-symbols-outlined text-base">analytics</span>
-                        Resume AI Analysis
-                      </button>
-                      <button
-                        onClick={() => handleAction("Delete Current Resume")}
-                        className="w-full text-left px-3 py-2 text-error hover:bg-error-container/20 rounded-xl flex items-center gap-2"
-                      >
-                        <span className="material-symbols-outlined text-base">delete</span>
-                        Delete Resume
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <p className="text-on-surface-variant text-sm leading-relaxed border-t border-outline-variant/10 pt-4">
-              {profile.bio}
-            </p>
-          </div>
-
-          {/* AI Score & Profile Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Resume Match Score Radial Widget */}
-            <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4 text-center flex flex-col items-center justify-center">
-              <span className="text-xs font-label-md font-bold uppercase tracking-wider text-outline">
-                AI Resume Match Score
-              </span>
-              <div className="relative w-28 h-28 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle
-                    cx="56"
-                    cy="56"
-                    r="45"
-                    stroke="#e6e8ea"
-                    strokeWidth="8"
-                    fill="transparent"
-                  />
-                  <circle
-                    cx="56"
-                    cy="56"
-                    r="45"
-                    stroke="#006242"
-                    strokeWidth="8"
-                    strokeDasharray={283}
-                    strokeDashoffset={283 - (283 * profile.resumeScore) / 100}
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                </svg>
-                <span className="absolute font-display font-bold text-2xl text-on-surface">
-                  {profile.resumeScore}%
+                <span className="px-3.5 py-1.5 bg-primary/10 text-primary font-bold text-xs rounded-full self-start sm:self-auto">
+                  {completionPercentage === 100 ? "Verified All-Star Profile" : "Optimizing Profile"}
                 </span>
               </div>
-              <span className="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm font-bold text-xs rounded-full">
-                ATS Optimized
-              </span>
-            </div>
 
-            {/* Profile Completion Card */}
-            <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4 md:col-span-2 flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">
-                    Profile Strength
-                  </h3>
-                  <span className="text-primary font-bold text-sm">92% Complete</span>
-                </div>
-                <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full rounded-full w-[92%]" />
-                </div>
+              <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-primary h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${completionPercentage}%` }}
+                ></div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-body-sm pt-2">
-                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
-                  <span className="text-outline font-label-md">Skill Tags</span>
-                  <p className="font-bold text-on-surface text-sm">14 Added</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-bold">
+                <div className={`p-2 rounded-xl border ${formData.name ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
+                  ✓ Personal Info
                 </div>
-                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
-                  <span className="text-outline font-label-md font-bold">Experience</span>
-                  <p className="font-bold text-on-surface text-sm">6+ Years</p>
+                <div className={`p-2 rounded-xl border ${experiences.length > 0 ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
+                  ✓ Work Experience
                 </div>
-                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
-                  <span className="text-outline font-label-md font-bold">Education</span>
-                  <p className="font-bold text-on-surface text-sm">B.S. CompSci</p>
+                <div className={`p-2 rounded-xl border ${educations.length > 0 ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
+                  ✓ Education & Degree
                 </div>
-                <div className="p-3 bg-surface rounded-xl border border-outline-variant/20">
-                  <span className="text-outline font-label-md font-bold">Certifications</span>
-                  <p className="font-bold text-on-surface text-sm">AWS Dev</p>
+                <div className={`p-2 rounded-xl border ${certs.length > 0 ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
+                  {certs.length > 0 ? "✓ Certifications Verified" : "+ Add Certification"}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Experience & Skills Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              {/* Experience */}
-              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
-                <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-                  Work Experience
-                </h3>
-                <div className="space-y-6">
-                  {profile.experience.map((exp, i) => (
-                    <div key={i} className="flex items-start gap-4 pb-6 border-b border-outline-variant/10 last:border-0 last:pb-0">
-                      <div className="w-10 h-10 bg-primary-fixed text-on-primary-fixed rounded-xl flex items-center justify-center font-bold">
-                        <span className="material-symbols-outlined">work</span>
-                      </div>
-                      <div className="space-y-1 flex-1">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-bold text-on-surface text-base">{exp.title}</h4>
-                          <span className="text-outline text-xs font-label-md">{exp.period}</span>
-                        </div>
-                        <p className="text-primary font-label-md text-xs font-semibold">{exp.company}</p>
-                        <p className="text-on-surface-variant text-xs leading-relaxed pt-1">{exp.description}</p>
-                      </div>
+            {/* Profile Header */}
+            <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6 relative">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md">
+                    <img
+                      src={user?.avatar || PROFILE_DATA.avatar}
+                      alt={formData.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="font-display text-2xl font-bold text-on-surface bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none"
+                        />
+                      ) : (
+                        <h1 className="font-display text-2xl md:text-3xl font-bold text-on-surface truncate">
+                          {formData.name}
+                        </h1>
+                      )}
+                      <VerifiedBadge role="JOB_SEEKER" size="md" />
                     </div>
-                  ))}
+
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.headline}
+                        onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
+                        className="text-on-surface-variant text-sm font-semibold w-full bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none"
+                      />
+                    ) : (
+                      <p className="text-on-surface-variant font-label-md text-sm font-semibold">
+                        {formData.headline}
+                      </p>
+                    )}
+
+                    <p className="text-outline text-xs flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">location_on</span>
+                      {formData.city}, {formData.country}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Edit & Action Controls */}
+                <div className="flex items-center gap-3 relative">
+                  <button
+                    onClick={() => {
+                      if (isEditing) handleSaveProfile();
+                      else setIsEditing(true);
+                    }}
+                    className="px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-base">
+                      {isEditing ? "save" : "edit"}
+                    </span>
+                    {isEditing ? "Save Profile" : "Edit Profile"}
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMoreActions(!showMoreActions)}
+                      className="p-2.5 bg-surface-container-high text-on-surface hover:text-primary rounded-full transition-colors border border-outline-variant/30 flex items-center justify-center"
+                      aria-label="More Profile Actions"
+                    >
+                      <span className="material-symbols-outlined text-lg">more_vert</span>
+                    </button>
+
+                    {showMoreActions && (
+                      <div className="absolute right-0 mt-2 w-56 bg-surface border border-outline-variant/20 rounded-2xl shadow-xl p-2 z-30 space-y-1 text-xs font-label-md">
+                        <button
+                          onClick={() => {
+                            setShowMoreActions(false);
+                            setShowResumeModal(true);
+                          }}
+                          className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-base">upload_file</span>
+                          Manage Resume
+                        </button>
+                        <button
+                          onClick={() => handleAction("Download Resume PDF")}
+                          className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-base">download</span>
+                          Download Resume PDF
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Employment Status Selector */}
+              <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-outline uppercase tracking-wider">
+                    Professional Employment Status
+                  </span>
+                  <p className="text-xs text-on-surface-variant">
+                    Used by NextHire AI to prioritize recruiter search matches and interview availability.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={formData.employmentStatus}
+                    onChange={(e) =>
+                      setFormData({ ...formData, employmentStatus: e.target.value as EmploymentStatus })
+                    }
+                    className="px-4 py-2 bg-surface text-on-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="UNEMPLOYED">Unemployed (Available Immediately)</option>
+                    <option value="ON_NOTICE_PERIOD">On Notice Period (1-2 Weeks)</option>
+                    <option value="SEARCHING_EMPLOYED">Searching but Currently Employed</option>
+                    <option value="OPEN_TO_OPPORTUNITIES">Open to Opportunities</option>
+                    <option value="EMPLOYED">Employed (Not Actively Looking)</option>
+                  </select>
+
+                  <span className="px-3 py-1.5 bg-primary/10 text-primary font-bold text-xs rounded-lg flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">bolt</span>
+                    Priority Boosted
+                  </span>
+                </div>
+              </div>
+
+              {/* Bio & Contact Details */}
+              <div className="space-y-3 pt-2">
+                {isEditing ? (
+                  <textarea
+                    rows={3}
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    className="w-full p-3 bg-surface-container text-xs text-on-surface rounded-xl border border-outline-variant/30 focus:outline-none"
+                    placeholder="Write a concise professional bio..."
+                  />
+                ) : (
+                  <p className="text-on-surface-variant text-sm leading-relaxed">{formData.bio}</p>
+                )}
               </div>
             </div>
 
-            {/* Skills Sidebar */}
-            <div className="space-y-6">
-              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4">
-                <h3 className="font-headline-sm text-lg font-bold text-on-surface">
-                  Verified Skills
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {profile.skills.map((skill, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-surface-container-high text-on-surface font-label-sm font-bold text-xs rounded-full border border-outline-variant/30"
+            {/* Resume Management Banner */}
+            <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary-container/20 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-2xl">description</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-on-surface">Primary Resume File</h3>
+                  <p className="text-xs text-outline font-mono">{resumeName}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowResumeModal(true)}
+                  className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded-xl border border-outline-variant/30 transition-colors flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">swap_horiz</span>
+                  Replace / Upload
+                </button>
+                <a
+                  href={`/resumes/${resumeName}`}
+                  download
+                  className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  Download PDF
+                </a>
+              </div>
+            </div>
+
+            {/* Experience & Certifications */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                {/* Experience CRUD */}
+                <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-headline-sm text-xl font-bold text-on-surface">Work Experience</h3>
+                    <button
+                      onClick={handleAddExperience}
+                      className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
                     >
-                      {skill}
-                    </span>
-                  ))}
+                      <span className="material-symbols-outlined text-sm">add</span>
+                      Add Position
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {experiences.map((exp) => (
+                      <div
+                        key={exp.id}
+                        className="flex items-start gap-4 pb-6 border-b border-outline-variant/10 last:border-0 last:pb-0"
+                      >
+                        <div className="w-10 h-10 bg-primary-fixed text-on-primary-fixed rounded-xl flex items-center justify-center font-bold">
+                          <span className="material-symbols-outlined">work</span>
+                        </div>
+                        <div className="space-y-1 flex-1">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-bold text-on-surface text-base">{exp.role}</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-outline text-xs font-label-md">
+                                {exp.startDate} - {exp.endDate}
+                              </span>
+                              <button
+                                onClick={() => handleRemoveExperience(exp.id)}
+                                className="text-outline hover:text-error transition-colors p-1"
+                              >
+                                <span className="material-symbols-outlined text-sm">delete</span>
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-primary font-label-md text-xs font-semibold">{exp.company}</p>
+                          <p className="text-on-surface-variant text-xs leading-relaxed pt-1">
+                            {exp.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Certifications with Uploaded Certificate & Document Verification */}
+                <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-headline-sm text-xl font-bold text-on-surface">
+                        Certifications & Document Verification
+                      </h3>
+                      <p className="text-xs text-on-surface-variant font-label-md">
+                        Upload certificates for admin verification & recruiter trust badges.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowCertModal(true)}
+                      className="px-3.5 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-sm">upload_file</span>
+                      Upload Certificate
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {certs.map((cert) => (
+                      <div
+                        key={cert.id}
+                        className="p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-xs text-on-surface">{cert.name}</h4>
+                            <span
+                              className={`px-2 py-0.5 font-bold text-[10px] rounded-md ${
+                                cert.status === "VERIFIED"
+                                  ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
+                                  : cert.status === "PENDING"
+                                  ? "bg-amber-500/15 text-amber-700 border border-amber-500/30"
+                                  : "bg-error/15 text-error"
+                              }`}
+                            >
+                              {cert.status === "VERIFIED" ? "✓ VERIFIED CREDENTIAL" : "PENDING VERIFICATION"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-on-surface-variant">
+                            Category: <strong>{cert.category}</strong> • Authority: <strong>{cert.issuingAuthority}</strong>
+                          </p>
+                          <p className="text-[11px] text-outline font-mono">
+                            Issued: {cert.issueDate} {cert.noExpiryDate ? "• No Expiry" : `• Expires: ${cert.expiryDate}`}
+                          </p>
+                        </div>
+
+                        {cert.credentialUrl && (
+                          <a
+                            href={cert.credentialUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
+                          >
+                            Credential Link
+                            <span className="material-symbols-outlined text-sm">open_in_new</span>
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Portfolio & Skills */}
+              <div className="space-y-6">
+                <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4">
+                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">Portfolio & Links</h3>
+                  <div className="space-y-2 text-xs">
+                    <a
+                      href={formData.portfolioLinks.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl flex items-center justify-between text-on-surface font-medium transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-base">link</span>
+                        LinkedIn Profile
+                      </span>
+                      <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
+                    </a>
+                    <a
+                      href={formData.portfolioLinks.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl flex items-center justify-between text-on-surface font-medium transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-base">code</span>
+                        GitHub Repositories
+                      </span>
+                      <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
+                    </a>
+                    <a
+                      href={formData.portfolioLinks.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl flex items-center justify-between text-on-surface font-medium transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-base">language</span>
+                        Personal Portfolio Site
+                      </span>
+                      <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           </main>
           <Footer />
         </div>
       </div>
+
+      {/* Resume Upload Modal */}
+      {showResumeModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl max-w-md w-full p-6 border border-outline-variant/30 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg text-on-surface">Upload Resume File</h3>
+              <button onClick={() => setShowResumeModal(false)} className="text-outline hover:text-on-surface">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <p className="text-xs text-on-surface-variant">
+              Supported formats: PDF, DOC, DOCX (Max size 10MB).
+            </p>
+
+            <div className="border-2 border-dashed border-outline-variant/40 rounded-2xl p-8 text-center space-y-3">
+              <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+              <p className="text-xs font-bold text-on-surface">Drag & drop your resume file here</p>
+              <label className="inline-block px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl cursor-pointer hover:bg-primary-container transition-colors">
+                Browse Files
+                <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} className="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <CertificateUploadModal
+        isOpen={showCertModal}
+        onClose={() => setShowCertModal(false)}
+        onCertificateUploaded={(cert) => {
+          RecruitmentEngine.addCertificate(cert);
+        }}
+      />
     </ProtectedRoute>
   );
 }

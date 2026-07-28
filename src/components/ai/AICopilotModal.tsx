@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export function AICopilotModal() {
@@ -8,9 +8,27 @@ export function AICopilotModal() {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Auto-hide Copilot button on downward scroll, reveal on upward scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current + 10 && currentScrollY > 100) {
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY.current - 10) {
+        setIsVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const [messages, setMessages] = useState<Array<{ sender: "user" | "copilot"; text: string }>>([
@@ -62,19 +80,21 @@ export function AICopilotModal() {
       {/* Floating Copilot Launcher Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-primary text-on-primary font-bold text-xs rounded-full shadow-2xl hover:bg-primary-container transition-all flex items-center gap-2.5 border border-white/20 touch-target"
+        className={`fixed bottom-6 right-4 sm:right-6 z-40 px-4 py-3 bg-primary text-on-primary font-bold text-xs rounded-full shadow-2xl hover:bg-primary-container transition-all duration-300 flex items-center gap-2.5 border border-white/20 touch-target pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
+          isVisible || isOpen ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
+        }`}
         aria-label="Open NextHire AI Copilot"
         title="Open NextHire AI Copilot"
       >
-        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
           <span className="material-symbols-outlined text-sm text-white">auto_awesome</span>
         </div>
-        <span className="font-display font-bold">NextHire Copilot</span>
+        <span className="font-display font-bold whitespace-nowrap">NextHire Copilot</span>
       </button>
 
       {/* Floating Chat Drawer */}
       {isOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[480px] animate-scale-in">
+        <div className="fixed bottom-20 right-4 sm:right-6 z-50 w-96 max-w-[calc(100vw-2rem)] bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[480px] animate-scale-in">
           {/* Header */}
           <div className="p-4 bg-primary text-on-primary flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -84,7 +104,7 @@ export function AICopilotModal() {
                 <p className="text-[10px] opacity-80">Enterprise Intelligence Assistant</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full">
+            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full touch-target">
               <span className="material-symbols-outlined text-base">close</span>
             </button>
           </div>
@@ -116,11 +136,12 @@ export function AICopilotModal() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ask Copilot for tips, descriptions..."
-              className="flex-1 px-3.5 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 px-3.5 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
             />
             <button
               type="submit"
-              className="p-2 bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-colors"
+              className="p-2.5 bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-colors touch-target flex-shrink-0"
+              aria-label="Send message"
             >
               <span className="material-symbols-outlined text-base">send</span>
             </button>

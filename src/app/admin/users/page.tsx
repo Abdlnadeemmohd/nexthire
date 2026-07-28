@@ -8,6 +8,9 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
+
+import { RecruitmentEngine } from "@/services/recruitmentEngine";
 
 interface UserRecord {
   id: string;
@@ -19,8 +22,8 @@ interface UserRecord {
 }
 
 const INITIAL_USERS: UserRecord[] = [
-  { id: "u-101", name: "Alex Rivers", email: "alex.rivers@gmail.com", role: "JOB_SEEKER", status: "ACTIVE", joinedDate: "2026-01-15" },
-  { id: "u-102", name: "Sarah Jenkins", email: "sarah.jenkins@techcorp.io", role: "RECRUITER", status: "ACTIVE", joinedDate: "2026-02-10" },
+  { id: "seeker-1", name: "Alex Rivers", email: "alex.rivers@gmail.com", role: "JOB_SEEKER", status: "ACTIVE", joinedDate: "2026-01-15" },
+  { id: "recruiter-1", name: "Sarah Jenkins", email: "sarah.jenkins@techcorp.io", role: "RECRUITER", status: "ACTIVE", joinedDate: "2026-02-10" },
   { id: "u-103", name: "David Chen", email: "david.chen@cybershield.sec", role: "RECRUITER", status: "PENDING", joinedDate: "2026-03-04" },
   { id: "u-104", name: "System Admin", email: "owner@nexthire.com", role: "PLATFORM_ADMIN", status: "ACTIVE", joinedDate: "2025-11-01" },
 ];
@@ -124,23 +127,21 @@ export default function AdminUsersPage() {
               </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-2 border-b border-outline-variant/20 pb-1 text-xs font-label-md overflow-x-auto">
-              {["ALL", "JOB_SEEKER", "RECRUITER", "PLATFORM_ADMIN"].map((role) => (
-                <button
-                  key={role}
-                  onClick={() => setRoleFilter(role)}
-                  className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-                    roleFilter === role ? "bg-primary text-on-primary shadow-xs" : "text-on-surface-variant hover:bg-surface-container"
-                  }`}
-                >
-                  {role === "ALL" ? "All Accounts" : role.replace("_", " ")}
-                </button>
-              ))}
-            </div>
+            {/* Horizontally Scrollable Filter Chips for Mobile Accessibility */}
+            <MobileScrollableChips
+              items={[
+                { id: "ALL", label: "All Accounts", count: totalCount, icon: "group" },
+                { id: "JOB_SEEKER", label: "Job Seekers", count: seekersCount, icon: "person" },
+                { id: "RECRUITER", label: "Recruiters", count: recruitersCount, icon: "business" },
+                { id: "PLATFORM_ADMIN", label: "Platform Owners", count: adminCount, icon: "admin_panel_settings" },
+              ]}
+              activeId={roleFilter}
+              onChange={(id) => setRoleFilter(id)}
+              ariaLabel="Filter users by role"
+            />
 
-            {/* User Directory Table */}
-            <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 overflow-x-auto">
+            {/* Desktop User Directory Table (MD+ screens) */}
+            <div className="hidden md:block glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px]">
@@ -148,6 +149,7 @@ export default function AdminUsersPage() {
                     <th className="py-3 px-4">Role & Badge</th>
                     <th className="py-3 px-4">Account Status</th>
                     <th className="py-3 px-4">Joined Date</th>
+                    <th className="py-3 px-4 text-right">Verification Control</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/15 text-on-surface">
@@ -174,32 +176,151 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-on-surface-variant font-mono">{u.joinedDate}</td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => {
+                            RecruitmentEngine.verifyUser(u.id);
+                            setModalInfo({
+                              title: "Account Verified",
+                              message: `${u.name} (${u.role}) profile has been verified! Badge updated across all portals.`,
+                            });
+                          }}
+                          className="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold text-[11px] rounded-lg transition-colors"
+                        >
+                          Verify Profile Badge
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile User Directory Stacked Cards (<MD screens) */}
+            <div className="md:hidden space-y-3">
+              {filteredUsers.map((u) => (
+                <div
+                  key={u.id}
+                  className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-3 shadow-xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-sm text-on-surface truncate">{u.name}</h4>
+                      <p className="text-on-surface-variant text-xs font-mono truncate">{u.email}</p>
+                    </div>
+                    <span
+                      className={`px-2.5 py-0.5 font-bold rounded-full text-[10px] flex-shrink-0 ${
+                        u.status === "ACTIVE"
+                          ? "bg-emerald-500/15 text-emerald-700"
+                          : u.status === "PENDING"
+                          ? "bg-amber-500/15 text-amber-700"
+                          : "bg-error/15 text-error"
+                      }`}
+                    >
+                      {u.status}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs text-on-surface-variant">
+                    <VerifiedBadge role={u.role} size="sm" />
+                    <span className="font-mono text-[11px]">Joined: {u.joinedDate}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Submitted Professional Certificates Audit & Verification */}
+            <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                <div>
+                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+                    Pending Professional Certificate Verification Audit
+                  </h3>
+                  <p className="text-xs text-on-surface-variant">
+                    Verify candidate diplomas, cloud certifications, and industry credentials to grant Verified Credential badges.
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-amber-500/10 text-amber-700 font-bold text-xs rounded-full">
+                  {RecruitmentEngine.getCertificates().filter((c) => c.status === "PENDING").length} Pending Verifications
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3">Certificate Name</th>
+                      <th className="py-2.5 px-3">Issuing Authority</th>
+                      <th className="py-2.5 px-3">Issue Date</th>
+                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3 text-right">Admin Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/15 text-on-surface">
+                    {RecruitmentEngine.getCertificates().map((cert) => (
+                      <tr key={cert.id} className="hover:bg-surface-container-low/50">
+                        <td className="py-3 px-3">
+                          <div className="font-bold text-on-surface">{cert.name}</div>
+                          <div className="text-[11px] text-outline">{cert.category}</div>
+                        </td>
+                        <td className="py-3 px-3 text-on-surface-variant font-medium">{cert.issuingAuthority}</td>
+                        <td className="py-3 px-3 text-on-surface-variant font-mono">{cert.issueDate}</td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`px-2.5 py-0.5 font-bold rounded-full text-[10px] ${
+                              cert.status === "VERIFIED"
+                                ? "bg-emerald-500/15 text-emerald-700"
+                                : "bg-amber-500/15 text-amber-700"
+                            }`}
+                          >
+                            {cert.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          {cert.status === "PENDING" ? (
+                            <button
+                              onClick={() => {
+                                RecruitmentEngine.verifyCertificate(cert.id, "Platform Owner Admin");
+                                setModalInfo({
+                                  title: "Certificate Verified!",
+                                  message: `Successfully verified '${cert.name}'. Verified Credential badge granted to candidate.`,
+                                });
+                              }}
+                              className="px-3 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 transition-colors shadow-xs"
+                            >
+                              Verify Badge
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-emerald-700 font-bold">Verified by {cert.verifiedBy}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </main>
 
           <Footer />
         </div>
-      </div>
 
-      {modalInfo && (
-        <Modal isOpen={!!modalInfo} onClose={() => setModalInfo(null)} title={modalInfo.title}>
-          <div className="space-y-4">
-            <p className="text-xs text-on-surface-variant leading-relaxed">{modalInfo.message}</p>
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setModalInfo(null)}
-                className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all"
-              >
-                Acknowledge
-              </button>
+        {modalInfo && (
+          <Modal isOpen={!!modalInfo} onClose={() => setModalInfo(null)} title={modalInfo.title}>
+            <div className="space-y-4">
+              <p className="text-xs text-on-surface-variant leading-relaxed">{modalInfo.message}</p>
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setModalInfo(null)}
+                  className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all"
+                >
+                  Acknowledge
+                </button>
+              </div>
             </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        )}
+      </div>
     </ProtectedRoute>
   );
 }

@@ -7,7 +7,7 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
-import { JobAuthModal } from "@/components/jobs/JobAuthModal";
+import { AuthDrawer } from "@/components/auth/AuthDrawer";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 
@@ -377,10 +377,17 @@ export default function LandingPage() {
         onClose={() => setSelectedJobToApply(null)}
       />
 
-      <JobAuthModal
+      <AuthDrawer
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        jobTitle={targetJobForAuth?.title || "this role"}
+        targetJobId={targetJobForAuth.id}
+        targetJobTitle={targetJobForAuth.title}
+        onSuccess={() => {
+          if (targetJobForAuth.id) {
+            const foundJob = INITIAL_JOBS.find((j) => j.id === targetJobForAuth.id);
+            if (foundJob) setSelectedJobToApply(foundJob);
+          }
+        }}
       />
     </>
   );

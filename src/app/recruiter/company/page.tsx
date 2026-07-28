@@ -8,11 +8,12 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 
 export default function RecruiterCompanyProfilePage() {
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"about" | "roles" | "culture" | "analytics">("about");
+  const [activeTab, setActiveTab] = useState<"about" | "recruiter" | "assets" | "culture">("about");
 
   const [companyInfo, setCompanyInfo] = useState({
     name: "Stellar Systems Inc.",
@@ -180,26 +181,17 @@ export default function RecruiterCompanyProfilePage() {
             {/* Main Content Column (70%) */}
             <div className="lg:col-span-2 space-y-8">
               {/* Tab Selector */}
-              <div className="flex gap-2 border-b border-outline-variant/20 pb-2">
-                {[
-                  { key: "about", label: "About & Culture" },
-                  { key: "roles", label: "Active Roles (12)" },
-                  { key: "culture", label: "Workplace Photos" },
-                  { key: "analytics", label: "Recruiter Analytics" },
-                ].map((t) => (
-                  <button
-                    key={t.key}
-                    onClick={() => setActiveTab(t.key as any)}
-                    className={`px-4 py-2 rounded-full font-label-md text-xs font-bold transition-all ${
-                      activeTab === t.key
-                        ? "bg-primary text-on-primary shadow-xs"
-                        : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+              <MobileScrollableChips
+                items={[
+                  { id: "about", label: "Company Overview", icon: "domain" },
+                  { id: "recruiter", label: "Hiring Recruiter Profile", icon: "badge" },
+                  { id: "assets", label: "Branding Assets Gallery", icon: "photo_library" },
+                  { id: "culture", label: "Culture & Benefits", icon: "groups" },
+                ]}
+                activeId={activeTab}
+                onChange={(id) => setActiveTab(id as any)}
+                ariaLabel="Company profile tabs"
+              />
 
               {/* Tab 1: About & Culture */}
               {activeTab === "about" && (
@@ -287,91 +279,126 @@ export default function RecruiterCompanyProfilePage() {
                 </div>
               )}
 
-              {/* Tab 2: Active Roles */}
-              {activeTab === "roles" && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center pb-2">
-                    <h3 className="font-bold text-lg text-on-surface">Live Job Openings</h3>
-                    <Link href="/recruiter/jobs/new" className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container">
-                      + Post New Job
-                    </Link>
-                  </div>
+              {/* Tab 2: Dedicated Hiring Recruiter Personal Profile */}
+              {activeTab === "recruiter" && (
+                <div className="space-y-6">
+                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant/20 pb-4">
+                      <div>
+                        <h3 className="font-headline-sm text-xl font-bold text-on-surface">
+                          Hiring Recruiter Identity
+                        </h3>
+                        <p className="text-xs text-on-surface-variant font-body-md">
+                          Personal recruiter identity displayed on job postings to build candidate trust.
+                        </p>
+                      </div>
+                      <VerifiedBadge role="RECRUITER" size="md" />
+                    </div>
 
-                  {[
-                    { id: "job-1", title: "Senior Full Stack Engineer", salary: "$160,000 - $190,000", type: "Full-time", location: "San Francisco / Remote", applicants: 42, status: "Active" },
-                    { id: "job-2", title: "Staff AI Infrastructure Architect", salary: "$210,000 - $260,000", type: "Full-time", location: "Remote", applicants: 28, status: "Active" },
-                    { id: "job-3", title: "Lead Product Designer (UI/UX)", salary: "$145,000 - $175,000", type: "Full-time", location: "Hybrid", applicants: 19, status: "Active" },
-                  ].map((role) => (
-                    <div key={role.id} className="glass-card rounded-2xl p-6 border border-outline-variant/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-base text-on-surface">{role.title}</h4>
-                          <span className="px-2.5 py-0.5 bg-tertiary-container/30 text-tertiary text-[10px] font-bold rounded-full">
-                            {role.status}
-                          </span>
+                    <div className="flex flex-col md:flex-row items-start gap-6">
+                      <img
+                        src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80"
+                        alt="Sarah Jenkins"
+                        className="w-24 h-24 rounded-3xl object-cover border-4 border-primary/30 shadow-md flex-shrink-0"
+                      />
+
+                      <div className="space-y-3 flex-1 min-w-0">
+                        <div>
+                          <h4 className="font-display text-xl font-bold text-on-surface">Sarah Jenkins</h4>
+                          <p className="text-xs font-bold text-primary">Lead Technical Recruiter & Engineering Partner</p>
+                          <p className="text-xs text-on-surface-variant">Stellar Systems Inc. • Global Tech Talent Acquisition</p>
                         </div>
-                        <p className="text-xs text-on-surface-variant font-semibold">
-                          {role.salary} • {role.type} • 📍 {role.location}
-                        </p>
-                        <p className="text-[11px] text-outline pt-0.5">
-                          👥 {role.applicants} Candidates Applied
-                        </p>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        <Link href="/recruiter/applicants" className="px-4 py-2 bg-surface-container-high hover:bg-primary-container/20 text-primary font-bold text-xs rounded-full">
-                          View Applicants ({role.applicants})
-                        </Link>
-                        <button onClick={() => showToast("Role management menu opened", "info")} className="p-2 text-outline hover:text-on-surface rounded-lg">
-                          <span className="material-symbols-outlined text-lg">more_vert</span>
-                        </button>
+                        <p className="text-xs text-on-surface-variant leading-relaxed bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/20 italic">
+                          "10+ years connecting elite Staff Full-Stack, AI/ML, and DevOps Engineers with high-growth enterprise SaaS teams."
+                        </p>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
+                            <span className="text-[10px] font-bold text-outline uppercase block">Active Jobs</span>
+                            <span className="font-bold text-on-surface font-mono">4 Open Roles</span>
+                          </div>
+                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
+                            <span className="text-[10px] font-bold text-outline uppercase block">Candidates Hired</span>
+                            <span className="font-bold text-primary font-mono">148 Hired</span>
+                          </div>
+                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
+                            <span className="text-[10px] font-bold text-outline uppercase block">Response SLA</span>
+                            <span className="font-bold text-emerald-700 font-mono">&lt; 2 Hours</span>
+                          </div>
+                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
+                            <span className="text-[10px] font-bold text-outline uppercase block">Candidate Rating</span>
+                            <span className="font-bold text-amber-500 font-mono">★ 4.9 / 5.0</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Tab 3: Workplace Photo Gallery */}
-              {activeTab === "culture" && (
-                <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-headline-sm text-lg font-bold text-on-surface">Workplace & Office Culture Gallery</h3>
-                    <button onClick={() => showToast("Photo upload dialog opened", "info")} className="px-3 py-1.5 bg-surface-container-high text-xs font-bold rounded-xl text-on-surface">
-                      + Add Photos
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {companyInfo.gallery.map((img, idx) => (
-                      <div key={idx} className="h-44 rounded-2xl overflow-hidden border border-outline-variant/30 group relative">
-                        <img src={img} alt="Office Culture" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
 
-              {/* Tab 4: Recruiter Analytics */}
-              {activeTab === "analytics" && (
-                <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">Recruiter Analytics & Funnel Overview</h3>
-                  <div className="space-y-3 text-xs">
-                    <div className="space-y-1">
-                      <div className="flex justify-between font-bold">
-                        <span>Profile Views to Application Conversion</span>
-                        <span className="text-primary">34.8%</span>
+              {/* Tab 3: Branding Assets Manager */}
+              {activeTab === "assets" && (
+                <div className="space-y-6">
+                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-6">
+                    <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
+                      <div>
+                        <h3 className="font-headline-sm text-xl font-bold text-on-surface">
+                          Company Branding & Asset Manager
+                        </h3>
+                        <p className="text-xs text-on-surface-variant font-body-md">
+                          Manage official corporate logos, cover banners, office photos, and brand guidelines.
+                        </p>
                       </div>
-                      <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                        <div className="h-full bg-primary w-[35%] rounded-full"></div>
+                      <button
+                        onClick={() => showToast("Branding asset upload modal opened", "info")}
+                        className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container shadow-xs flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-sm">upload</span>
+                        Upload Brand Asset
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/30 space-y-2">
+                        <span className="font-bold text-outline uppercase text-[10px]">Official Company Logo</span>
+                        <div className="h-28 bg-surface rounded-xl p-4 flex items-center justify-center border border-outline-variant/20">
+                          <img src={companyInfo.logoUrl} alt="Logo" className="max-h-full object-contain" />
+                        </div>
+                        <div className="flex justify-end gap-2 pt-1">
+                          <button onClick={() => showToast("Logo upload opened", "info")} className="px-3 py-1 bg-surface-container-high font-bold text-[11px] rounded-lg">
+                            Replace Logo
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/30 space-y-2">
+                        <span className="font-bold text-outline uppercase text-[10px]">Careers Cover Banner</span>
+                        <div className="h-28 bg-surface rounded-xl overflow-hidden border border-outline-variant/20">
+                          <img src={companyInfo.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex justify-end gap-2 pt-1">
+                          <button onClick={() => showToast("Banner upload opened", "info")} className="px-3 py-1 bg-surface-container-high font-bold text-[11px] rounded-lg">
+                            Replace Banner
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1 pt-2">
-                      <div className="flex justify-between font-bold">
-                        <span>Candidate Shortlist Ratio</span>
-                        <span className="text-tertiary">68.2%</span>
-                      </div>
-                      <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                        <div className="h-full bg-tertiary w-[68%] rounded-full"></div>
+                    <div className="space-y-3 pt-2">
+                      <h4 className="font-bold text-sm text-on-surface">Workplace & Office Culture Gallery ({companyInfo.gallery.length})</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {companyInfo.gallery.map((img, idx) => (
+                          <div key={idx} className="h-36 rounded-2xl overflow-hidden border border-outline-variant/30 relative group">
+                            <img src={img} alt="Office Culture" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <button
+                              onClick={() => showToast("Removed image from gallery", "info")}
+                              className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

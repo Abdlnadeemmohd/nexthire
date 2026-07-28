@@ -6,6 +6,7 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Modal } from "@/components/ui/Modal";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 import { useAuth } from "@/context/AuthContext";
 import { exportToCSV } from "@/lib/utils";
 
@@ -89,38 +90,16 @@ export default function AccountSettingsPage() {
             </div>
 
           {/* Settings Tabs */}
-          <div className="flex border-b border-outline-variant/20 gap-6 text-xs font-label-md font-bold">
-            <button
-              onClick={() => setActiveTab("security")}
-              className={`pb-3 transition-all relative ${
-                activeTab === "security"
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              Password & Security
-            </button>
-            <button
-              onClick={() => setActiveTab("notifications")}
-              className={`pb-3 transition-all relative ${
-                activeTab === "notifications"
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              Notification Preferences
-            </button>
-            <button
-              onClick={() => setActiveTab("danger")}
-              className={`pb-3 transition-all relative ${
-                activeTab === "danger"
-                  ? "text-error border-b-2 border-error font-bold"
-                  : "text-on-surface-variant hover:text-error"
-              }`}
-            >
-              Data Privacy & Account Deletion
-            </button>
-          </div>
+          <MobileScrollableChips
+            items={[
+              { id: "security", label: "Password & Security", icon: "shield" },
+              { id: "notifications", label: "Notification Preferences", icon: "notifications" },
+              { id: "danger", label: "Data Privacy & Deletion", icon: "delete_forever" },
+            ]}
+            activeId={activeTab}
+            onChange={(id) => setActiveTab(id as any)}
+            ariaLabel="Settings category tabs"
+          />
 
           {/* Security Tab */}
           {activeTab === "security" && (

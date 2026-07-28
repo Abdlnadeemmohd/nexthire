@@ -30,10 +30,16 @@
     width: 100%;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
   }
 }
 
-/* WCAG 2.1 AA Accessible High-Contrast Buttons */
+/* WCAG 2.2 AA Accessible High-Contrast Focus Rings & Buttons */
+*:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
+
 .btn-accessible-success {
   background-color: #15803d !important;
   color: #ffffff !important;
@@ -41,6 +47,24 @@
 }
 .btn-accessible-success:hover {
   background-color: #166534 !important;
+}
+
+/* Scrollbar Utility for Horizontally Scrollable Tab Chips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Touch Target Safety (Minimum 48px x 48px) */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Fluid Typography Utilities */
@@ -85,8 +109,13 @@
     radial-gradient(at 50% 100%, rgba(226, 232, 240, 0.4) 0px, transparent 50%);
 }
 
-/* Touch Target Safety */
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
+/* WCAG Reduced Motion Preference Override */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
+

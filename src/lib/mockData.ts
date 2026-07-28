@@ -11,6 +11,8 @@ export interface Job {
   experienceLevel: string;
   category: string;
   isRemote: boolean;
+  isHighPriority?: boolean;
+  status?: "OPEN" | "HIGH_PRIORITY" | "INTERVIEWING" | "FILLED" | "CLOSED";
   matchScore: number;
   tags: string[];
   description: string;
@@ -23,6 +25,16 @@ export interface Job {
   companySize: string;
 }
 
+export interface CandidateFeedback {
+  reason: string;
+  improvementAdvice: string;
+  missingSkills: string[];
+  missingExperience?: string;
+  missingCertifications?: string[];
+  additionalNotes?: string;
+  createdAt: string;
+}
+
 export interface CandidateApplication {
   id: string;
   jobId: string;
@@ -33,14 +45,19 @@ export interface CandidateApplication {
   candidateAvatar: string;
   candidateTitle: string;
   matchScore: number;
+  employmentStatus?: "UNEMPLOYED" | "ON_NOTICE_PERIOD" | "SEARCHING_EMPLOYED" | "OPEN_TO_OPPORTUNITIES" | "EMPLOYED";
   status: "APPLIED" | "UNDER_REVIEW" | "SHORTLISTED" | "INTERVIEW" | "OFFER" | "HIRED" | "REJECTED";
   appliedAt: string;
+  appliedDateTimestamp?: number;
+  slaStatus?: "HEALTHY" | "NEAR_SLA" | "SLA_BREACHED";
+  daysAwaitingUpdate?: number;
   updatedAt: string;
   resumeUrl: string;
   location: string;
   skills: string[];
   notes?: string;
   interviewDate?: string;
+  feedback?: CandidateFeedback;
 }
 
 export interface MessageItem {
@@ -269,8 +286,11 @@ export const INITIAL_APPLICATIONS: CandidateApplication[] = [
     candidateAvatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuCohtV2Z0aDLDnAjCiN9bVGyy23UBK2eUaFPXAmILSLmTWMtP5mNAQBOGNOKEumuaKYIrTbgg8HxYkR0BkzjQKbnZY6AomJue9dlrGeS7LUmBLE19pwl7THpOA-Q9SNXeNmKxubmdGOHk_odhKF4Bc4kTPkMK7ZBHYi-0CUCyvPmvlq7U6ACptlDENQxAUgJI34gc6pdN1Dvu6jkM7Iuzox9T9iAtNf-1nCFP2PYJ0woS8ZXB1QnfmjuwJbhNJc53KKfsCErff_c5F8",
     candidateTitle: "Senior UX Specialist & Systems Architect",
     matchScore: 98,
+    employmentStatus: "ON_NOTICE_PERIOD",
     status: "INTERVIEW",
     appliedAt: "2026-07-20",
+    daysAwaitingUpdate: 2,
+    slaStatus: "HEALTHY",
     updatedAt: "2026-07-24",
     resumeUrl: "/resumes/Alex_Rivers_Resume_2026.pdf",
     location: "San Francisco, CA",
@@ -288,13 +308,16 @@ export const INITIAL_APPLICATIONS: CandidateApplication[] = [
     candidateAvatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuCohtV2Z0aDLDnAjCiN9bVGyy23UBK2eUaFPXAmILSLmTWMtP5mNAQBOGNOKEumuaKYIrTbgg8HxYkR0BkzjQKbnZY6AomJue9dlrGeS7LUmBLE19pwl7THpOA-Q9SNXeNmKxubmdGOHk_odhKF4Bc4kTPkMK7ZBHYi-0CUCyvPmvlq7U6ACptlDENQxAUgJI34gc6pdN1Dvu6jkM7Iuzox9T9iAtNf-1nCFP2PYJ0woS8ZXB1QnfmjuwJbhNJc53KKfsCErff_c5F8",
     candidateTitle: "Senior UX Specialist & Systems Architect",
     matchScore: 94,
+    employmentStatus: "ON_NOTICE_PERIOD",
     status: "SHORTLISTED",
-    appliedAt: "2026-07-21",
-    updatedAt: "2026-07-23",
+    appliedAt: "2026-07-17",
+    daysAwaitingUpdate: 9,
+    slaStatus: "SLA_BREACHED",
+    updatedAt: "2026-07-17",
     resumeUrl: "/resumes/Alex_Rivers_Resume_2026.pdf",
     location: "San Francisco, CA",
-    skills: ["PyTorch", "LLM fine-tuning", "UX Design"],
-    notes: "Passed recruiter screening. Hiring manager reviewing profile."
+    skills: ["PyTorch", "Distributed Systems", "CUDA", "FastAPI"],
+    notes: "Requires SLA response update immediately (exceeded 7-day policy)."
   },
   {
     id: "app-3",

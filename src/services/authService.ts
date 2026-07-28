@@ -105,6 +105,42 @@ class AuthService {
     return { success: true, user: dynamicUser };
   }
 
+  /**
+   * OAuth Single Sign-On simulation (Google, Microsoft, LinkedIn, GitHub)
+   */
+  public async loginWithOAuth(
+    provider: "GOOGLE" | "MICROSOFT" | "LINKEDIN" | "GITHUB",
+    role: UserRole = "JOB_SEEKER"
+  ): Promise<{ success: boolean; user: AuthUser }> {
+    await new Promise((res) => setTimeout(res, 500));
+    const oauthUser: AuthUser = {
+      id: `oauth-${provider.toLowerCase()}-${Date.now()}`,
+      name: `OAuth ${provider.charAt(0) + provider.slice(1).toLowerCase()} User`,
+      email: `user.${provider.toLowerCase()}@example.com`,
+      role: role,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      status: "VERIFIED",
+      country: "United States",
+      headline: `Verified via ${provider} OAuth SSO`,
+    };
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(oauthUser));
+    this.setCookieSession(oauthUser);
+    return { success: true, user: oauthUser };
+  }
+
+  /**
+   * GDPR Data Export simulation
+   */
+  public exportGDPRData(user: AuthUser): string {
+    const gdprPayload = {
+      exportDate: new Date().toISOString(),
+      userProfile: user,
+      activitySummary: "Account created via NextHire Enterprise SaaS Engine",
+      dataRetentionPolicy: "Standard 30-day deletion grace period",
+    };
+    return JSON.stringify(gdprPayload, null, 2);
+  }
+
   public async registerSeeker(data: {
     name: string;
     email: string;

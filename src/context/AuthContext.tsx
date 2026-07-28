@@ -12,6 +12,7 @@ interface AuthContextType {
   registerSeeker: (name: string, email: string, phone: string, country: string, pass: string) => Promise<{ success: boolean }>;
   registerRecruiter: (name: string, company: string, email: string, website: string, phone: string, location: string, designation: string, pass: string) => Promise<{ success: boolean }>;
   logout: () => void;
+  updateUserProfile: (partial: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -96,6 +97,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUserProfile = (partial: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...partial };
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("nexthire_auth_user_session", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -106,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         registerSeeker,
         registerRecruiter,
         logout,
+        updateUserProfile,
       }}
     >
       {children}

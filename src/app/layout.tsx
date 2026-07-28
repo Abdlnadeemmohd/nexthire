@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   },
 };
 
-import { AICopilotModal } from "@/components/ai/AICopilotModal";
+import { AICopilotDrawer } from "@/components/ui/AICopilotDrawer";
 
 export default function RootLayout({
   children,
@@ -75,7 +75,7 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             {children}
-            <AICopilotModal />
+            <AICopilotDrawer />
           </ToastProvider>
         </AuthProvider>
       </body>

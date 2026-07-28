@@ -68,6 +68,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           items: [
             { label: "Home", href: "/recruiter", icon: "home" },
             { label: "Company Profile", href: "/recruiter/company", icon: "business" },
+            { label: "My Recruiter Profile", href: "/recruiter/profile", icon: "badge" },
             { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },
             { label: "Candidate Pipeline", href: "/recruiter/applicants", icon: "view_kanban" },
           ],
@@ -76,7 +77,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           title: "Recruitment",
           items: [
             { label: "Messages", href: "/messages", icon: "chat" },
-            { label: "Search Candidates", href: "/recruiter/candidates", icon: "badge" },
+            { label: "Search Candidates", href: "/recruiter/candidates", icon: "search" },
           ],
         },
         {

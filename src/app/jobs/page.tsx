@@ -10,6 +10,7 @@ import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 
 export default function JobSearchPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function JobSearchPage() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [minSalary, setMinSalary] = useState(100000);
   const [selectedJobToApply, setSelectedJobToApply] = useState<Job | null>(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const filteredJobs = useMemo(() => {
     return INITIAL_JOBS.filter((job) => {
@@ -102,44 +104,85 @@ export default function JobSearchPage() {
             </div>
           </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-4">
-          {/* Filters Sidebar */}
-          <aside className="space-y-6 lg:col-span-1 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/20 h-fit shadow-xs">
-            <div className="flex justify-between items-center pb-4 border-b border-outline-variant/20">
-              <h3 className="font-headline-sm text-base font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-lg">
-                  filter_list
-                </span>
-                Search Filters
-              </h3>
-              <button
-                onClick={() => {
-                  setKeyword("");
-                  setLocation("");
-                  setSelectedCategory("ALL");
-                  setSelectedEmploymentType("ALL");
-                  setRemoteOnly(false);
-                  setMinSalary(100000);
-                }}
-                className="text-xs text-primary font-bold hover:underline"
-              >
-                Reset All
-              </button>
+            {/* Mobile Category Scrollable Chips */}
+            <div className="lg:hidden">
+              <MobileScrollableChips
+                items={[
+                  { id: "ALL", label: "All Categories", count: INITIAL_JOBS.length, icon: "work" },
+                  { id: "Software Engineering", label: "Engineering", count: INITIAL_JOBS.filter((j) => j.category === "Software Engineering").length, icon: "code" },
+                  { id: "Product Design", label: "Design", count: INITIAL_JOBS.filter((j) => j.category === "Product Design").length, icon: "palette" },
+                  { id: "Product Management", label: "Product", count: INITIAL_JOBS.filter((j) => j.category === "Product Management").length, icon: "inventory_2" },
+                  { id: "AI & Machine Learning", label: "AI & Data", count: INITIAL_JOBS.filter((j) => j.category === "AI & Machine Learning").length, icon: "psychology" },
+                ]}
+                activeId={selectedCategory}
+                onChange={(id) => setSelectedCategory(id)}
+                ariaLabel="Filter jobs by category"
+              />
             </div>
 
-            {/* Keyword Input */}
-            <div className="space-y-2">
-              <label className="block text-xs font-label-md font-bold text-outline uppercase">
-                Title, Skill, or Keyphrase
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="e.g. React, Next.js, Product Manager"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary text-on-surface"
-                />
+            {/* Sticky Search & Filter Header for Mobile */}
+            <div className="sticky top-16 z-20 bg-surface/95 backdrop-blur-md pt-2 pb-3 border-b border-outline-variant/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:static lg:bg-transparent lg:p-0 lg:border-0 lg:m-0">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-lg">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search jobs..."
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowMobileFilters(!showMobileFilters)}
+                  className={`lg:hidden px-3.5 py-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold transition-all flex items-center gap-1.5 touch-target ${
+                    showMobileFilters ? "bg-primary text-on-primary" : "bg-surface-container-lowest text-on-surface"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">filter_list</span>
+                  <span>Filters</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-2">
+              {/* Filters Sidebar (Collapsible on Mobile, Persistent on Desktop) */}
+              <aside className={`space-y-6 lg:col-span-1 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/20 h-fit shadow-xs ${showMobileFilters ? "block" : "hidden lg:block"}`}>
+                <div className="flex justify-between items-center pb-4 border-b border-outline-variant/20">
+                  <h3 className="font-headline-sm text-base font-bold text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-lg">
+                      filter_list
+                    </span>
+                    Search Filters
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setKeyword("");
+                      setLocation("");
+                      setSelectedCategory("ALL");
+                      setSelectedEmploymentType("ALL");
+                      setRemoteOnly(false);
+                      setMinSalary(100000);
+                    }}
+                    className="text-xs text-primary font-bold hover:underline"
+                  >
+                    Reset All
+                  </button>
+                </div>
+
+                {/* Keyword Input */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                    Title, Skill, or Keyphrase
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="e.g. React, Next.js, Product Manager"
+                      value={keyword}
+                      onChange={(e) => setKeyword(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary text-on-surface"
+                    />
                 <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-outline text-base">
                   search
                 </span>

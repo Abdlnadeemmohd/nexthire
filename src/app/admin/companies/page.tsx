@@ -7,6 +7,7 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 
 interface PendingCompany {
   id: string;
@@ -100,8 +101,18 @@ export default function AdminCompanyModerationPage() {
     setCompanies((prev) =>
       prev.map((c) => (c.id === id ? { ...c, status: "REJECTED" } : c))
     );
-    showToast(`Rejected verification for ${name}. Notification sent to recruiter.`, "info");
+    showToast(`Rejected verification application for ${name}. Notification sent.`, "info");
     if (selectedCompanyModal?.id === id) setSelectedCompanyModal(null);
+  };
+
+  const handleBadgeAction = (companyName: string, action: "SUSPEND" | "RENEW" | "REVOKE") => {
+    if (action === "SUSPEND") {
+      showToast(`Badge suspended for ${companyName}.`, "info");
+    } else if (action === "RENEW") {
+      showToast(`Badge renewed for ${companyName}. Valid until 2027.`, "success");
+    } else {
+      showToast(`Badge revoked for ${companyName}.`, "error");
+    }
   };
 
   const handleRequestChanges = (name: string) => {
@@ -140,42 +151,17 @@ export default function AdminCompanyModerationPage() {
             </div>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-2 border-b border-outline-variant/20 pb-1 font-label-md text-xs">
-            <button
-              onClick={() => setFilterTab("PENDING")}
-              className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                filterTab === "PENDING"
-                  ? "bg-primary text-on-primary shadow-xs"
-                  : "text-on-surface-variant hover:bg-surface-container"
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">hourglass_top</span>
-              Pending Approval ({companies.filter((c) => c.status === "PENDING").length})
-            </button>
-            <button
-              onClick={() => setFilterTab("APPROVED")}
-              className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                filterTab === "APPROVED"
-                  ? "bg-primary text-on-primary shadow-xs"
-                  : "text-on-surface-variant hover:bg-surface-container"
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">check_circle</span>
-              Approved Employers ({companies.filter((c) => c.status === "APPROVED").length})
-            </button>
-            <button
-              onClick={() => setFilterTab("REJECTED")}
-              className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                filterTab === "REJECTED"
-                  ? "bg-primary text-on-primary shadow-xs"
-                  : "text-on-surface-variant hover:bg-surface-container"
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">cancel</span>
-              Rejected ({companies.filter((c) => c.status === "REJECTED").length})
-            </button>
-          </div>
+          {/* Filter Chips Container */}
+          <MobileScrollableChips
+            items={[
+              { id: "PENDING", label: "Pending Approval", count: companies.filter((c) => c.status === "PENDING").length, icon: "hourglass_top" },
+              { id: "APPROVED", label: "Approved Employers", count: companies.filter((c) => c.status === "APPROVED").length, icon: "check_circle" },
+              { id: "REJECTED", label: "Rejected", count: companies.filter((c) => c.status === "REJECTED").length, icon: "cancel" },
+            ]}
+            activeId={filterTab}
+            onChange={(id) => setFilterTab(id as any)}
+            ariaLabel="Filter companies by moderation status"
+          />
 
           {/* Responsive 3-Column Card Grid Container */}
           {filteredCompanies.length === 0 ? (

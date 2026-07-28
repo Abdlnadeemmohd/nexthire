@@ -7,12 +7,19 @@ import { INITIAL_MESSAGES, MessageItem } from "@/lib/mockData";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/Toast";
+import { MessagingService } from "@/services/messagingService";
+import { Modal } from "@/components/ui/Modal";
 
 export default function MessagingCentrePage() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [messages, setMessages] = useState<MessageItem[]>(INITIAL_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const portalType =
     user?.role === "RECRUITER"
@@ -187,16 +194,35 @@ export default function MessagingCentrePage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <a
-                  href="https://meet.google.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 text-primary hover:bg-primary-container/20 rounded-full transition-colors"
-                  title="Start Instant Video Call"
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setIsPinned(!isPinned)}
+                  className={`p-2 rounded-full transition-colors ${
+                    isPinned ? "text-primary bg-primary/10" : "text-on-surface-variant hover:bg-surface-container"
+                  }`}
+                  title={isPinned ? "Unpin Conversation" : "Pin Conversation"}
                 >
-                  <span className="material-symbols-outlined text-xl">videocam</span>
-                </a>
+                  <span className="material-symbols-outlined text-lg">push_pin</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMuted(!isMuted);
+                    showToast(`Notifications ${!isMuted ? "muted" : "unmuted"} for this thread`, "info");
+                  }}
+                  className={`p-2 rounded-full transition-colors ${
+                    isMuted ? "text-error bg-error/10" : "text-on-surface-variant hover:bg-surface-container"
+                  }`}
+                  title={isMuted ? "Unmute Thread" : "Mute Thread"}
+                >
+                  <span className="material-symbols-outlined text-lg">{isMuted ? "notifications_off" : "notifications"}</span>
+                </button>
+                <button
+                  onClick={() => setShowVideoCallModal(true)}
+                  className="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-xs touch-target"
+                >
+                  <span className="material-symbols-outlined text-base">videocam</span>
+                  <span>Join Video Call</span>
+                </button>
               </div>
             </div>
 
@@ -300,6 +326,56 @@ export default function MessagingCentrePage() {
           </section>
         </main>
       </div>
+
+      <Modal
+        isOpen={showVideoCallModal}
+        onClose={() => setShowVideoCallModal(false)}
+        title="1-on-1 Enterprise Video Meeting"
+      >
+        <div className="space-y-4 text-xs font-body-md text-center">
+          <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center border border-outline-variant/30 shadow-inner">
+            <img
+              src={activeContact.avatar}
+              alt={activeContact.name}
+              className="w-24 h-24 rounded-full object-cover border-4 border-primary/50 animate-pulse"
+            />
+            <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-2 rounded-xl text-white text-left flex items-center justify-between text-xs font-bold">
+              <span>{activeContact.name} ({activeContact.role})</span>
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                Live HD
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-4 pt-2">
+            <button
+              onClick={() => showToast("Microphone muted", "info")}
+              className="p-3 bg-surface-container-high rounded-full hover:bg-surface-container text-on-surface"
+              title="Mute Mic"
+            >
+              <span className="material-symbols-outlined text-xl">mic</span>
+            </button>
+            <button
+              onClick={() => showToast("Camera toggled", "info")}
+              className="p-3 bg-surface-container-high rounded-full hover:bg-surface-container text-on-surface"
+              title="Toggle Camera"
+            >
+              <span className="material-symbols-outlined text-xl">videocam</span>
+            </button>
+            <button
+              onClick={() => {
+                setShowVideoCallModal(false);
+                showToast("Video call ended", "info");
+              }}
+              className="p-3 bg-error text-on-error rounded-full hover:bg-error/90 shadow-md"
+              title="End Call"
+            >
+              <span className="material-symbols-outlined text-xl">call_end</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
     </ProtectedRoute>
   );
 }

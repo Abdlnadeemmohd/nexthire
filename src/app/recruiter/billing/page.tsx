@@ -6,6 +6,8 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
+import { BillingService, SUBSCRIPTION_PLANS } from "@/services/billingService";
+import { Modal } from "@/components/ui/Modal";
 
 interface Invoice {
   id: string;
@@ -49,12 +51,33 @@ export default function RecruiterBillingPage() {
   const [autoRenew, setAutoRenew] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [promoCode, setPromoCode] = useState("");
+  const [selectedGateway, setSelectedGateway] = useState<"STRIPE" | "RAZORPAY" | "PAYPAL">("STRIPE");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!promoCode.trim()) return;
-    showToast(`Promo code '${promoCode}' applied! 15% discount will be reflected on next renewal.`, "success");
-    setPromoCode("");
+    const coupon = BillingService.validateCoupon(promoCode);
+    if (coupon) {
+      showToast(`Coupon '${coupon.code}' applied! ${coupon.discountPercentage}% discount added.`, "success");
+    } else {
+      showToast(`Invalid coupon code '${promoCode}'. Try 'HIRE2026' or 'ENTERPRISE50'.`, "error");
+    }
+  };
+
+  const handleProcessUpgrade = async () => {
+    setIsProcessing(true);
+    try {
+      const res = await BillingService.processPayment("enterprise", selectedGateway, promoCode);
+      if (res.success) {
+        showToast(res.message, "success");
+        setShowUpgradeModal(false);
+      }
+    } catch (err) {
+      showToast("Payment processing error. Please try again.", "error");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleDownloadInvoice = (invId: string) => {
@@ -248,7 +271,8 @@ export default function RecruiterBillingPage() {
               <span className="text-xs text-outline font-label-md">Showing last 3 invoices</span>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Desktop Invoice Table (MD+ screens) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px] font-label-md">
@@ -275,7 +299,7 @@ export default function RecruiterBillingPage() {
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => handleDownloadInvoice(inv.id)}
-                          className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-lg transition-colors text-[11px] inline-flex items-center gap-1"
+                          className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-lg transition-colors text-[11px] inline-flex items-center gap-1 touch-target"
                         >
                           <span className="material-symbols-outlined text-sm">download</span> PDF
                         </button>
@@ -284,6 +308,40 @@ export default function RecruiterBillingPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Invoice Stacked Cards (<MD screens) */}
+            <div className="md:hidden space-y-3">
+              {INVOICE_HISTORY.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="bg-surface-container-low/60 border border-outline-variant/20 rounded-2xl p-4 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-mono font-bold text-xs text-on-surface">{inv.id}</div>
+                      <div className="text-on-surface-variant text-[11px]">{inv.date}</div>
+                    </div>
+                    <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-700 font-bold rounded-full text-[10px]">
+                      {inv.status}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] text-outline block">{inv.plan}</span>
+                      <span className="font-mono font-bold text-sm text-primary">{inv.amount}</span>
+                    </div>
+
+                    <button
+                      onClick={() => handleDownloadInvoice(inv.id)}
+                      className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-xl transition-colors text-xs flex items-center gap-1 touch-target"
+                    >
+                      <span className="material-symbols-outlined text-sm">download</span> Download PDF
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </main>

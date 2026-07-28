@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { useAuth } from "@/context/AuthContext";
 
+import { RecruitmentEngine } from "@/services/recruitmentEngine";
+
 export default function RegisterPage() {
   const router = useRouter();
   const { registerSeeker, registerRecruiter, isLoading } = useAuth();
@@ -43,6 +45,14 @@ export default function RegisterPage() {
     if (!terms) {
       setError("You must accept the Terms of Service.");
       return;
+    }
+
+    if (accountType === "RECRUITER") {
+      const domainCheck = RecruitmentEngine.validateRecruiterEmail(email);
+      if (!domainCheck.isValid) {
+        setError(domainCheck.error || "Official corporate company email required.");
+        return;
+      }
     }
 
     if (accountType === "JOB_SEEKER") {

@@ -77,19 +77,25 @@ model Job {
 
 model Application {
   id           String            @id @default(uuid())
-  status       String            @default("APPLIED") // APPLIED, UNDER_REVIEW, SHORTLISTED, INTERVIEW, OFFER, HIRED, REJECTED
+  status       ApplicationStatus @default(SUBMITTED)
   matchScore   Int               @default(85)
   resumeUrl    String?
   coverLetter  String?
   notes        String?
   appliedAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+  // SLA deadline (7 days from last recruiter action)
+  slaDeadline  DateTime?
 
   jobId        String
   job          Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   applicantId  String
   applicant    User              @relation("SeekerApplications", fields: [applicantId], references: [id], onDelete: Cascade)
 
+  // Relations
+  events       ApplicationEvent[]
+  offer        Offer?
+  rejection    Rejection?
   interviews   Interview[]
 }
 
@@ -107,11 +113,17 @@ model SavedJob {
 
 model Interview {
   id            String   @id @default(uuid())
+  round         Int
   scheduledAt   DateTime
-  location      String
+  timezone      String
+  type          String
+  platform      String
   meetingLink   String?
+  agenda        String?
+  panelMembers  String[]
+  documents     String[]
   notes         String?
-  status        String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  status        InterviewStatus @default(PENDING)
   createdAt     DateTime @default(now())
 
   applicationId String
@@ -156,3 +168,90 @@ model Profile {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+// ---------- Enums ----------
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  INTERVIEW_SCHEDULED
+  INTERVIEW_ROUND_1
+  INTERVIEW_ROUND_2
+  INTERVIEW_ROUND_3
+  FINAL_DECISION
+  OFFER_EXTENDED
+  REJECTED
+  APPLICATION_CLOSED
+}
+
+enum EventType {
+  STATUS_CHANGED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_UPDATED
+  OFFER_CREATED
+  REJECTION_SUBMITTED
+  NOTE_ADDED
+  SLA_REMINDER_SENT
+  AUTO_CLOSED
+}
+
+enum InterviewStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum RejectionReason {
+  MISSING_EXPERIENCE
+  MISSING_SKILLS
+  SALARY_MISMATCH
+  COMMUNICATION
+  TECHNICAL_PERFORMANCE
+  ROLE_CLOSED
+  CULTURE_FIT
+  POSITION_CANCELLED
+  OTHER
+}
+
+// ---------- Additional Models ----------
+model ApplicationEvent {
+  id            String   @id @default(uuid())
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+  type          EventType
+  timestamp     DateTime @default(now())
+  actorId       String
+  notes         String?
+}
+
+model Offer {
+  id            String   @id @default(uuid())
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+  title         String
+  salary        Int
+  bonus         Int?
+  benefits      String?
+  joiningDate   DateTime
+  workModel     String
+  noticePeriod  String?
+  expiryDate    DateTime
+  letterUrl     String?
+  status        OfferStatus @default(PENDING)
+}
+
+model Rejection {
+  id            String   @id @default(uuid())
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+  reason        RejectionReason
+  suggestions   String[]
+  closingMessage String
+}
+

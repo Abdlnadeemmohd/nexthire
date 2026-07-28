@@ -246,41 +246,50 @@ export function TopAppBar() {
           {/* Right: Actions, Notifications & Profile with Vertical Divider */}
           <div className="flex items-center gap-2 relative">
             {!isMounted || !isAuthenticated || !user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
-                  href="/login"
-                  className="px-4 py-2 text-xs font-label-md font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-full transition-all"
+                  href="/login?role=seeker"
+                  className="px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-all touch-target"
                 >
-                  Sign In
+                  Candidate Login
+                </Link>
+                <Link
+                  href="/login?role=recruiter"
+                  className="px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-tertiary hover:bg-surface-container rounded-full transition-all touch-target"
+                >
+                  Recruiter Login
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs"
+                  className="px-4 py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target"
                 >
                   Sign Up
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Wide Global Search Input & Attached Dropdown Container */}
                 <div className="relative">
                   <button
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
-                    className="w-56 sm:w-72 md:w-80 lg:w-[420px] px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all hidden sm:flex items-center justify-between border border-outline-variant/30 group shadow-2xs"
+                    className="w-44 sm:w-72 md:w-80 lg:w-[420px] px-3.5 sm:px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target"
                     aria-label="Global search (Ctrl+K)"
                     title="Global Context-Aware Search (Ctrl+K)"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">search</span>
                       <span className="truncate text-outline text-xs">
-                        {user?.role === "RECRUITER"
-                          ? "Search candidates, jobs, companies..."
-                          : user?.role === "PLATFORM_ADMIN"
-                          ? "Search users, subscriptions, tickets..."
-                          : "Search jobs, companies, skills..."}
+                        <span className="inline sm:hidden">Search...</span>
+                        <span className="hidden sm:inline">
+                          {user?.role === "RECRUITER"
+                            ? "Search candidates, jobs, companies..."
+                            : user?.role === "PLATFORM_ADMIN"
+                            ? "Search users, subscriptions, tickets..."
+                            : "Search jobs, companies, skills..."}
+                        </span>
                       </span>
                     </div>
-                    <kbd className="px-2 py-0.5 bg-surface-container-lowest text-[10px] font-mono text-outline rounded-md border border-outline-variant/40 shadow-2xs flex-shrink-0">
+                    <kbd className="hidden sm:flex px-2 py-0.5 bg-surface-container-lowest text-[10px] font-mono text-outline rounded-md border border-outline-variant/40 shadow-2xs flex-shrink-0">
                       ⌘K
                     </kbd>
                   </button>
@@ -294,7 +303,7 @@ export function TopAppBar() {
                 {/* Notification Trigger Button with soft background hover */}
                 <button
                   onClick={toggleNotif}
-                  className={`relative p-2.5 rounded-full transition-all ${
+                  className={`relative p-2.5 rounded-full transition-all touch-target ${
                     isNotifOpen
                       ? "bg-primary-container/20 text-primary"
                       : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
@@ -313,7 +322,7 @@ export function TopAppBar() {
                 {/* Profile Trigger Avatar with subtle border & active ring */}
                 <button
                   onClick={toggleProfile}
-                  className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all block ${
+                  className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-all block touch-target ${
                     isProfileOpen
                       ? "border-primary ring-2 ring-primary/30 scale-105"
                       : "border-outline-variant/40 hover:border-primary hover:ring-2 hover:ring-primary/20"
@@ -348,14 +357,17 @@ export function TopAppBar() {
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden flex flex-col bg-surface pt-16 animate-fade-in">
-          <div className="p-6 space-y-4 flex-1 overflow-y-auto">
-            <div className="space-y-1 pb-4 border-b border-outline-variant/20">
+          <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto">
+            <div className="space-y-1 pb-4 border-b border-outline-variant/20 flex items-center justify-between">
               <span className="text-[10px] font-label-sm font-bold text-outline uppercase tracking-wider">
-                Role Menu ({user?.role?.replace("_", " ") || "Guest Visitor"})
+                Active Portal Menu
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 capitalize">
+                {user?.role ? user.role.replace("_", " ").toLowerCase() : "Guest"}
               </span>
             </div>
 
-            <nav className="space-y-2">
+            <nav className="space-y-1.5" role="navigation" aria-label="Mobile main navigation">
               {navItems.map((item) => {
                 const isActive = isItemActive(pathname, item.href);
                 return (
@@ -363,9 +375,9 @@ export function TopAppBar() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-xl text-sm font-label-md font-bold transition-all ${
+                    className={`flex items-center min-h-[48px] px-4 py-3 rounded-xl text-sm font-label-md font-bold transition-all ${
                       isActive
-                        ? "bg-primary-container text-on-primary-container"
+                        ? "bg-primary text-on-primary shadow-xs"
                         : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
                     }`}
                   >
@@ -376,35 +388,44 @@ export function TopAppBar() {
             </nav>
           </div>
 
-          <div className="p-6 border-t border-outline-variant/20 bg-surface-container-lowest">
+          <div className="p-4 sm:p-6 border-t border-outline-variant/20 bg-surface-container-lowest">
             {!isAuthenticated ? (
               <div className="flex flex-col gap-2">
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 text-center text-xs font-label-md font-bold border border-outline-variant/40 rounded-xl text-on-surface"
+                  className="w-full py-3.5 text-center text-xs font-label-md font-bold border border-outline-variant/40 rounded-xl text-on-surface touch-target"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 text-center text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl"
+                  className="w-full py-3.5 text-center text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl touch-target"
                 >
                   Create Account
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <img
-                  src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-                  alt={user?.name || "User Avatar"}
-                  className="w-10 h-10 rounded-full object-cover border border-outline-variant"
-                />
-                <div>
-                  <h4 className="font-bold text-xs text-on-surface">{user?.name}</h4>
-                  <p className="text-[11px] text-on-surface-variant">{user?.email}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+                    alt={user?.name || "User Avatar"}
+                    className="w-10 h-10 rounded-full object-cover border border-outline-variant flex-shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-xs text-on-surface truncate">{user?.name}</h4>
+                    <p className="text-[11px] text-on-surface-variant truncate">{user?.email}</p>
+                  </div>
                 </div>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 text-primary hover:bg-primary/10 rounded-xl text-xs font-bold transition-colors touch-target flex-shrink-0"
+                >
+                  Profile
+                </Link>
               </div>
             )}
           </div>

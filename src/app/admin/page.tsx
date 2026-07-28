@@ -11,9 +11,42 @@ import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
+import { Security } from "@/lib/security";
+import { useToast } from "@/components/ui/Toast";
+
 export default function PlatformAdminPage() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [showRecruiterPreviewModal, setShowRecruiterPreviewModal] = useState(false);
+  const [showFeatureFlagsModal, setShowFeatureFlagsModal] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [activeImpersonation, setActiveImpersonation] = useState<string | null>(null);
+
+  const [featureFlags, setFeatureFlags] = useState({
+    aiSourcingEngine: true,
+    realtimeMessaging: true,
+    videoInterviewCalls: true,
+    stripePayments: true,
+    autoSlaReminders: true,
+  });
+
+  const handleImpersonate = (role: "RECRUITER" | "JOB_SEEKER") => {
+    if (role === "RECRUITER") {
+      Security.impersonateUser("sarah.recruiter@stellarsystems.com", "RECRUITER");
+      setActiveImpersonation("Recruiter (Sarah Jenkins)");
+      showToast("Impersonating Recruiter profile: Sarah Jenkins", "info");
+    } else {
+      Security.impersonateUser("alex.morgan@candidate.com", "JOB_SEEKER");
+      setActiveImpersonation("Job Seeker (Alex Morgan)");
+      showToast("Impersonating Candidate profile: Alex Morgan", "info");
+    }
+  };
+
+  const handleClearImpersonation = () => {
+    Security.clearImpersonation();
+    setActiveImpersonation(null);
+    showToast("Cleared impersonation. Returned to Platform Admin view.", "success");
+  };
 
   return (
     <ProtectedRoute requiredPortal="admin">
@@ -26,79 +59,129 @@ export default function PlatformAdminPage() {
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
             <Breadcrumbs items={[{ label: "Home", href: "/admin" }, { label: "Admin Operations" }]} />
 
-            {/* Header Banner */}
-            <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden shadow-xs">
-              <div className="space-y-2 z-10 max-w-2xl">
+            {/* Impersonation & Security Control Bar */}
+            <div className="glass-card bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-amber-600 text-lg">admin_panel_settings</span>
+                <div>
+                  <span className="font-bold text-on-surface">Admin Security & Impersonation Engine</span>
+                  <p className="text-[11px] text-on-surface-variant">
+                    {activeImpersonation ? (
+                      <>Currently impersonating: <span className="font-bold text-amber-700">{activeImpersonation}</span></>
+                    ) : (
+                      "Impersonate user roles to test exact access controls or trigger feature flags."
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                {activeImpersonation ? (
+                  <button
+                    onClick={handleClearImpersonation}
+                    className="px-3 py-1.5 bg-amber-600 text-white font-bold text-xs rounded-xl hover:bg-amber-700 transition-colors shadow-xs"
+                  >
+                    Clear Impersonation
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleImpersonate("RECRUITER")}
+                      className="px-3 py-1.5 bg-surface text-on-surface border border-outline-variant/30 font-bold text-xs rounded-xl hover:bg-surface-container transition-colors"
+                    >
+                      Impersonate Recruiter
+                    </button>
+                    <button
+                      onClick={() => handleImpersonate("JOB_SEEKER")}
+                      className="px-3 py-1.5 bg-surface text-on-surface border border-outline-variant/30 font-bold text-xs rounded-xl hover:bg-surface-container transition-colors"
+                    >
+                      Impersonate Candidate
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowFeatureFlagsModal(true)}
+                  className="px-3 py-1.5 bg-primary/10 text-primary font-bold text-xs rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-base">toggle_on</span>
+                  Feature Flags
+                </button>
+              </div>
+            </div>
+
+            {/* Compact Header Banner */}
+            <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden shadow-xs">
+              <div className="space-y-1 z-10 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-rose-500/15 text-rose-700 text-xs font-bold rounded-full border border-rose-500/30 flex items-center gap-1.5">
+                  <span className="px-2.5 py-0.5 bg-rose-500/15 text-rose-700 text-[11px] font-bold rounded-full border border-rose-500/30 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
-                    Platform Admin Operations Console
+                    Platform Admin Console
                   </span>
                   <VerifiedBadge role="PLATFORM_ADMIN" size="sm" />
                 </div>
-                <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                <h1 className="font-display text-xl sm:text-2xl font-bold text-on-surface">
                   Welcome back, {user?.name || "System Operator"}
                 </h1>
-                <p className="text-on-surface-variant text-xs sm:text-sm leading-relaxed">
+                <p className="text-on-surface-variant text-xs leading-relaxed">
                   Overview of live SaaS platform metrics, pending employer verification queue, user directories, and recurring revenue engines.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 z-10">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full md:w-auto z-10">
                 <Link
                   href="/admin/companies"
-                  className="px-4 py-2.5 btn-accessible-success font-bold text-xs rounded-2xl transition-all shadow-xs flex items-center gap-2"
+                  className="px-3.5 py-2 btn-accessible-success font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 whitespace-nowrap touch-target flex-shrink-0"
                 >
                   <span className="material-symbols-outlined text-base">verified_user</span>
-                  Employer Verification Queue (3)
+                  Verification Queue (3)
                 </Link>
                 <Link
                   href="/help"
-                  className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-2xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-2"
+                  className="px-3.5 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-1.5 whitespace-nowrap touch-target flex-shrink-0"
                 >
                   <span className="material-symbols-outlined text-base">headset_mic</span>
-                  Support Operations Inbox
+                  Support Inbox
                 </Link>
                 <Link
                   href="/admin/subscriptions"
-                  className="px-4 py-2.5 border border-outline-variant/40 hover:bg-surface-container text-on-surface font-bold text-xs rounded-2xl transition-colors flex items-center gap-2"
+                  className="px-3.5 py-2 border border-outline-variant/40 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap touch-target flex-shrink-0"
                 >
                   <span className="material-symbols-outlined text-base">payments</span>
-                  SaaS Revenue Overview
+                  Revenue
                 </Link>
               </div>
             </div>
 
-            {/* Quick Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-2 shadow-xs">
+            {/* Quick Metrics Grid (Elevated Above Fold on Mobile) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-1 shadow-xs">
                 <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Total Active Users</span>
-                <div className="text-3xl font-bold text-on-surface font-display">4</div>
-                <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                <div className="text-2xl font-bold text-on-surface font-display">4</div>
+                <p className="text-[10px] text-emerald-700 font-medium flex items-center gap-0.5">
                   <span className="material-symbols-outlined text-xs">trending_up</span>
-                  +12.4% this month
+                  +12.4% MoM
                 </p>
               </div>
 
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-2 shadow-xs">
-                <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Monthly Recurring Revenue</span>
-                <div className="text-3xl font-bold text-primary font-display">$14,850</div>
-                <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-1 shadow-xs">
+                <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Monthly MRR</span>
+                <div className="text-2xl font-bold text-primary font-display">$14,850</div>
+                <p className="text-[10px] text-emerald-700 font-medium flex items-center gap-0.5">
                   <span className="material-symbols-outlined text-xs">trending_up</span>
-                  42 Active SaaS Subscriptions
+                  42 Active SaaS Subs
                 </p>
               </div>
 
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-2 shadow-xs">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-1 shadow-xs">
                 <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Pending Employer Approvals</span>
-                <div className="text-3xl font-bold text-amber-700 font-display">3</div>
-                <p className="text-xs text-on-surface-variant font-medium">Requires verification audit</p>
+                <div className="text-2xl font-bold text-amber-700 font-display">3</div>
+                <p className="text-[10px] text-on-surface-variant font-medium">Verification queue</p>
               </div>
 
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-2 shadow-xs">
-                <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Platform Security Status</span>
-                <div className="text-3xl font-bold text-emerald-700 font-display">100%</div>
-                <p className="text-xs text-emerald-700 font-medium">RBAC Security Active</p>
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-1 shadow-xs">
+                <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Platform Security</span>
+                <div className="text-2xl font-bold text-emerald-700 font-display">100%</div>
+                <p className="text-[10px] text-emerald-700 font-medium">RBAC Active</p>
               </div>
             </div>
 
@@ -199,6 +282,55 @@ export default function PlatformAdminPage() {
                 Open Recruiter Suite Sandbox
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Feature Flags Management Modal */}
+      {showFeatureFlagsModal && (
+        <Modal
+          isOpen={showFeatureFlagsModal}
+          onClose={() => setShowFeatureFlagsModal(false)}
+          title="Platform Feature Flags & Maintenance"
+        >
+          <div className="space-y-4 text-xs font-body-md">
+            <p className="text-on-surface-variant">
+              Instantly enable or disable core enterprise modules across all production environments without requiring code deployments.
+            </p>
+
+            <div className="space-y-3">
+              {Object.entries(featureFlags).map(([flagKey, enabled]) => (
+                <div key={flagKey} className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl border border-outline-variant/20">
+                  <span className="font-bold text-on-surface capitalize">
+                    {flagKey.replace(/([A-Z])/g, " $1")}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={enabled}
+                    onChange={(e) => {
+                      setFeatureFlags({ ...featureFlags, [flagKey]: e.target.checked });
+                      showToast(`Feature flag '${flagKey}' set to ${e.target.checked ? "ENABLED" : "DISABLED"}`, "info");
+                    }}
+                    className="w-4 h-4 text-primary rounded border-outline-variant cursor-pointer"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+              <span className="font-bold text-error">System Maintenance Mode</span>
+              <button
+                onClick={() => {
+                  setMaintenanceMode(!maintenanceMode);
+                  showToast(`Maintenance mode ${!maintenanceMode ? "ENABLED" : "DISABLED"}`, !maintenanceMode ? "info" : "success");
+                }}
+                className={`px-3 py-1.5 font-bold text-xs rounded-xl ${
+                  maintenanceMode ? "bg-error text-on-error" : "bg-surface-container-high text-on-surface border border-outline-variant/30"
+                }`}
+              >
+                {maintenanceMode ? "Disable Maintenance" : "Enable Maintenance"}
+              </button>
             </div>
           </div>
         </Modal>

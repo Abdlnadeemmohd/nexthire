@@ -17,6 +17,9 @@ function LoginFormContent() {
   const redirectUrl = searchParams.get("redirect") || "";
   const infoMessage = searchParams.get("message") || "";
 
+  const initialRole = searchParams.get("role") === "recruiter" ? "recruiter" : "seeker";
+  const [activeRole, setActiveRole] = useState<"seeker" | "recruiter">(initialRole);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,14 +32,14 @@ function LoginFormContent() {
     setErrorMsg("");
     setIsSubmitting(true);
 
-    const result = await login(email, password, undefined, rememberMe);
+    const targetRole = activeRole === "seeker" ? "JOB_SEEKER" : "RECRUITER";
+    const result = await login(email, password, targetRole, rememberMe);
 
     setIsSubmitting(false);
 
     if (result.success && result.user) {
       showToast(`Welcome back, ${result.user.name}!`, "success");
 
-      // Role-safe redirection logic: ensure user role has access to redirectUrl
       const isRedirectAllowed = redirectUrl && hasRouteAccess(result.user.role, redirectUrl);
 
       let targetUrl = "/dashboard";
@@ -69,14 +72,46 @@ function LoginFormContent() {
         </div>
       )}
 
+      {/* Role Switcher Tabs */}
+      <div className="flex bg-surface-container-high p-1 rounded-2xl text-xs font-bold shadow-xs">
+        <button
+          onClick={() => {
+            setActiveRole("seeker");
+            setEmail("jobseeker@nexthire.com");
+          }}
+          className={`flex-1 py-2.5 text-center rounded-xl transition-all ${
+            activeRole === "seeker"
+              ? "bg-surface text-primary shadow-xs"
+              : "text-outline hover:text-on-surface"
+          }`}
+        >
+          Candidate Login
+        </button>
+        <button
+          onClick={() => {
+            setActiveRole("recruiter");
+            setEmail("recruiter@nexthire.com");
+          }}
+          className={`flex-1 py-2.5 text-center rounded-xl transition-all ${
+            activeRole === "recruiter"
+              ? "bg-surface text-tertiary shadow-xs"
+              : "text-outline hover:text-on-surface"
+          }`}
+        >
+          Recruiter Login
+        </button>
+      </div>
+
       {/* Production Glass Card */}
       <div className="glass-card rounded-3xl p-8 border border-white/60 shadow-2xl space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="font-display text-3xl font-bold text-on-surface">
-            Sign In to Next<span className="text-primary">Hire</span>
+          <h1 className="font-display text-2xl font-bold text-on-surface">
+            {activeRole === "seeker" ? "Welcome Back, Candidate" : "Welcome Back, Recruiter"}
           </h1>
-          <p className="text-on-surface-variant text-xs font-body-md">
-            Enter your email and password to access your portal.
+          <p className="text-on-surface-variant text-xs font-body-md leading-relaxed">
+            {activeRole === "seeker"
+              ? "Sign in to manage your profile, applications, interviews, and career opportunities."
+              : "Sign in to manage job postings, candidates, interviews, and hiring workflows."}
           </p>
         </div>
 

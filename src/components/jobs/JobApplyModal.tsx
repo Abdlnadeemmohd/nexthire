@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { RecruitmentEngine } from "@/services/recruitmentEngine";
 
 interface JobApplyModalProps {
   jobId: string;
@@ -20,7 +21,17 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast(`Application submitted for ${jobTitle} at ${companyName}!`, "success");
+    const app = RecruitmentEngine.applyForJob(jobId, {
+      name: "Alex Rivers",
+      email: "alex.rivers@example.com",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    });
+
+    if (app) {
+      showToast(`Application submitted for ${jobTitle} at ${companyName}! Added to recruiter ATS.`, "success");
+    } else {
+      showToast(`Position ${jobTitle} is closed or filled.`, "error");
+    }
     onClose();
   };
 

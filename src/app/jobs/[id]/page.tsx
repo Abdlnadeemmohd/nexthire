@@ -6,6 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { NativeShareButton } from "@/components/ui/MobileInteractionUtils";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { formatSalary } from "@/lib/utils";
 
@@ -68,7 +70,7 @@ export default function JobDetailPage() {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={() => setSaved(!saved)}
-                className={`p-3 rounded-full border transition-all ${
+                className={`p-3 rounded-full border transition-all touch-target ${
                   saved
                     ? "bg-primary-container/20 border-primary text-primary"
                     : "border-outline-variant/40 text-on-surface-variant hover:bg-surface-container"
@@ -80,9 +82,11 @@ export default function JobDetailPage() {
                 </span>
               </button>
 
+              <NativeShareButton title={`${job.title} at ${job.companyName}`} />
+
               <button
                 onClick={() => setApplyModalOpen(true)}
-                className="flex-1 md:flex-initial px-8 py-3.5 bg-primary text-on-primary rounded-full font-label-md font-bold text-sm hover:bg-primary-container transition-all shadow-md active:scale-95"
+                className="flex-1 md:flex-initial px-8 py-3.5 bg-primary text-on-primary rounded-full font-label-md font-bold text-sm hover:bg-primary-container transition-all shadow-md active:scale-95 touch-target"
               >
                 Apply Now
               </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
@@ -8,6 +8,24 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
+import { InterviewScheduleModal, ScheduledInterviewEvent } from "@/components/recruiter/InterviewScheduleModal";
+import { StructuredRejectionModal, RejectionFeedbackData } from "@/components/recruiter/StructuredRejectionModal";
+import { CandidateTimelineModal, CandidateTimelineEvent } from "@/components/recruiter/CandidateTimelineModal";
+import { RecruitmentEngine } from "@/services/recruitmentEngine";
+
+export type ATSPipelineStage = 
+  | "ALL"
+  | "APPLIED"
+  | "REVIEW"
+  | "SCREENING"
+  | "INTERVIEW"
+  | "TECHNICAL"
+  | "HR"
+  | "OFFER"
+  | "HIRED"
+  | "REJECTED"
+  | "WITHDRAWN";
 
 interface CandidateApplication {
   id: string;
@@ -15,7 +33,7 @@ interface CandidateApplication {
   applicantAvatar: string;
   jobTitle: string;
   appliedDate: string;
-  stage: "NEW" | "REVIEWING" | "INTERVIEW" | "OFFER" | "REJECTED";
+  stage: ATSPipelineStage;
   aiMatchScore: number;
   resumeScore: number;
   experience: string;
@@ -23,6 +41,11 @@ interface CandidateApplication {
   availability: string;
   salaryExpectation: string;
   skills: string[];
+  starRating?: number;
+  isDuplicate?: boolean;
+  timeline: CandidateTimelineEvent[];
+  rejectionFeedback?: RejectionFeedbackData;
+  scheduledInterviews?: ScheduledInterviewEvent[];
 }
 
 const INITIAL_APPLICANTS: CandidateApplication[] = [
@@ -32,7 +55,7 @@ const INITIAL_APPLICANTS: CandidateApplication[] = [
     applicantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     jobTitle: "Senior Full-Stack Engineer (Next.js & TypeScript)",
     appliedDate: "2 hours ago",
-    stage: "NEW",
+    stage: "APPLIED",
     aiMatchScore: 96,
     resumeScore: 94,
     experience: "7+ years",
@@ -40,6 +63,18 @@ const INITIAL_APPLICANTS: CandidateApplication[] = [
     availability: "Immediate (2 weeks notice)",
     salaryExpectation: "$160k - $180k/yr",
     skills: ["React", "Next.js", "TypeScript", "Node.js", "GraphQL"],
+    starRating: 5,
+    timeline: [
+      {
+        id: "evt-1",
+        timestamp: "2 hours ago",
+        stage: "APPLIED",
+        actorName: "Sarah Jenkins",
+        actorRole: "Candidate",
+        description: "Application submitted via NextHire AI Direct Apply.",
+        badgeType: "APPLIED",
+      },
+    ],
   },
   {
     id: "app-102",
@@ -47,7 +82,7 @@ const INITIAL_APPLICANTS: CandidateApplication[] = [
     applicantAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
     jobTitle: "Lead DevOps & Platform Engineer",
     appliedDate: "1 day ago",
-    stage: "REVIEWING",
+    stage: "REVIEW",
     aiMatchScore: 92,
     resumeScore: 89,
     experience: "9+ years",
@@ -55,6 +90,28 @@ const INITIAL_APPLICANTS: CandidateApplication[] = [
     availability: "1 month notice",
     salaryExpectation: "$185k - $205k/yr",
     skills: ["Kubernetes", "AWS", "Terraform", "Docker", "CI/CD"],
+    starRating: 4,
+    timeline: [
+      {
+        id: "evt-2",
+        timestamp: "1 day ago",
+        stage: "APPLIED",
+        actorName: "David Chen",
+        actorRole: "Candidate",
+        description: "Application received.",
+        badgeType: "APPLIED",
+      },
+      {
+        id: "evt-3",
+        timestamp: "4 hours ago",
+        stage: "REVIEW",
+        actorName: "Alex Vance",
+        actorRole: "Tech Recruiter",
+        description: "Moved candidate to Review stage after ATS match scan.",
+        notes: "High Kubernetes experience fits platform requirements.",
+        badgeType: "NOTE",
+      },
+    ],
   },
   {
     id: "app-103",
@@ -70,6 +127,28 @@ const INITIAL_APPLICANTS: CandidateApplication[] = [
     availability: "Immediate",
     salaryExpectation: "$190k - $220k/yr",
     skills: ["PyTorch", "Python", "LLMs", "LangChain", "Vector DBs"],
+    starRating: 5,
+    timeline: [
+      {
+        id: "evt-4",
+        timestamp: "3 days ago",
+        stage: "APPLIED",
+        actorName: "Elena Rostova",
+        actorRole: "Candidate",
+        description: "Application submitted.",
+        badgeType: "APPLIED",
+      },
+      {
+        id: "evt-5",
+        timestamp: "Yesterday",
+        stage: "INTERVIEW",
+        actorName: "Sarah Jenkins",
+        actorRole: "Lead Recruiter",
+        description: "Technical interview scheduled via Google Meet.",
+        notes: "Focus on LLM fine-tuning and vector indexing.",
+        badgeType: "INTERVIEW",
+      },
+    ],
   },
   {
     id: "app-104",
@@ -85,25 +164,141 @@ const INITIAL_APPLICANTS: CandidateApplication[] = [
     availability: "Immediate",
     salaryExpectation: "$140k - $160k/yr",
     skills: ["Figma", "Design Tokens", "Design Systems", "Prototyping"],
+    starRating: 4,
+    timeline: [
+      {
+        id: "evt-6",
+        timestamp: "4 days ago",
+        stage: "APPLIED",
+        actorName: "Marcus Vance",
+        actorRole: "Candidate",
+        description: "Application received.",
+        badgeType: "APPLIED",
+      },
+      {
+        id: "evt-7",
+        timestamp: "2 days ago",
+        stage: "OFFER",
+        actorName: "Sarah Jenkins",
+        actorRole: "Lead Recruiter",
+        description: "Official offer extended ($150,000 base + equity).",
+        badgeType: "OFFER",
+      },
+    ],
   },
 ];
 
 export default function RecruiterApplicantsPage() {
   const { showToast } = useToast();
-  const [applicants, setApplicants] = useState<CandidateApplication[]>(INITIAL_APPLICANTS);
+  const [applicants, setApplicants] = useState<any[]>(RecruitmentEngine.getApplications());
   const [selectedStage, setSelectedStage] = useState<string>("ALL");
-  const [selectedCandidate, setSelectedCandidate] = useState<CandidateApplication | null>(null);
+  const [scheduleModalCandidate, setScheduleModalCandidate] = useState<CandidateApplication | null>(null);
+  const [rejectionModalCandidate, setRejectionModalCandidate] = useState<CandidateApplication | null>(null);
+  const [timelineModalCandidate, setTimelineModalCandidate] = useState<CandidateApplication | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const unsub = RecruitmentEngine.subscribe(() => {
+      setApplicants([...RecruitmentEngine.getApplications()]);
+    });
+    return unsub;
+  }, []);
 
   const filteredApplicants = applicants.filter(
     (app) => selectedStage === "ALL" || app.stage === selectedStage
   );
 
-  const handleMoveStage = (id: string, newStage: CandidateApplication["stage"]) => {
+  const handleMoveStage = (candidate: CandidateApplication, newStage: ATSPipelineStage) => {
+    if (newStage === "REJECTED") {
+      setRejectionModalCandidate(candidate);
+      return;
+    }
+
+    if (newStage === "INTERVIEW") {
+      setScheduleModalCandidate(candidate);
+      return;
+    }
+
+    if (newStage === "HIRED") {
+      const ok = RecruitmentEngine.hireCandidate(candidate.id, "Sarah Jenkins");
+      if (ok) {
+        showToast(`Candidate ${candidate.applicantName} marked as HIRED! Job automatically closed and remaining candidates notified.`, "success");
+      }
+      return;
+    }
+
+    const ok = RecruitmentEngine.updateApplicationStage(candidate.id, newStage as any, "Sarah Jenkins");
+    if (ok) {
+      showToast(`Updated candidate status to ${newStage}! Candidate notified.`, "success");
+    }
+  };
+
+  const handleInterviewScheduled = (event: ScheduledInterviewEvent) => {
+    if (!scheduleModalCandidate) return;
+    const newEvt: CandidateTimelineEvent = {
+      id: `evt-int-${Date.now()}`,
+      timestamp: "Just now",
+      stage: "INTERVIEW",
+      actorName: "Sarah Jenkins",
+      actorRole: "Lead Recruiter",
+      description: `Scheduled ${event.interviewType.replace("_", " ")} via ${event.platform.replace("_", " ")} for ${event.date} at ${event.time}.`,
+      notes: event.agendaNotes,
+      badgeType: "INTERVIEW",
+    };
+
     setApplicants((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, stage: newStage } : app))
+      prev.map((app) =>
+        app.id === scheduleModalCandidate.id
+          ? {
+              ...app,
+              stage: "INTERVIEW",
+              timeline: [newEvt, ...(app.timeline || [])],
+              scheduledInterviews: [...(app.scheduledInterviews || []), event],
+            }
+          : app
+      )
     );
-    showToast(`Moved candidate application to ${newStage} stage!`, "success");
-    if (selectedCandidate?.id === id) setSelectedCandidate(null);
+  };
+
+  const handleRejectionConfirmed = (feedback: RejectionFeedbackData) => {
+    if (!rejectionModalCandidate) return;
+    const newEvt: CandidateTimelineEvent = {
+      id: `evt-rej-${Date.now()}`,
+      timestamp: "Just now",
+      stage: "REJECTED",
+      actorName: "Sarah Jenkins",
+      actorRole: "Lead Recruiter",
+      description: `Application closed. Primary reason: ${feedback.reason.replace("_", " ")}.`,
+      notes: feedback.recruiterComments,
+      badgeType: "REJECTED",
+    };
+
+    setApplicants((prev) =>
+      prev.map((app) =>
+        app.id === rejectionModalCandidate.id
+          ? {
+              ...app,
+              stage: "REJECTED",
+              rejectionFeedback: feedback,
+              timeline: [newEvt, ...(app.timeline || [])],
+            }
+          : app
+      )
+    );
+  };
+
+  const handleBulkMove = (newStage: ATSPipelineStage) => {
+    if (selectedIds.length === 0) return;
+    setApplicants((prev) =>
+      prev.map((app) => (selectedIds.includes(app.id) ? { ...app, stage: newStage } : app))
+    );
+    showToast(`Bulk updated ${selectedIds.length} candidate(s) to ${newStage}!`, "success");
+    setSelectedIds([]);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) setSelectedIds(filteredApplicants.map((a) => a.id));
+    else setSelectedIds([]);
   };
 
   const handleScheduleInterview = (candidateName: string) => {
@@ -121,216 +316,289 @@ export default function RecruiterApplicantsPage() {
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
             <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Candidate Pipeline" }]} />
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-2xl">view_kanban</span>
-                <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-                  Candidate Recruitment Pipeline
-                </h1>
+            {/* Enterprise Header Metrics Bar */}
+            <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-2xl">view_kanban</span>
+                    <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                      Applicant Tracking System (ATS)
+                    </h1>
+                  </div>
+                  <p className="text-on-surface-variant text-xs sm:text-sm">
+                    Enterprise candidate recruitment pipeline, automated status workflows, structured feedback, and interview scheduling.
+                  </p>
+                </div>
               </div>
-              <p className="text-on-surface-variant text-xs sm:text-sm">
-                Review AI-matched candidate applications, schedule technical interviews, and advance hiring stages.
-              </p>
+
+              {/* KPI Summary Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 space-y-1">
+                  <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">Total Applicants</span>
+                  <div className="text-xl font-bold text-on-surface font-display">{applicants.length}</div>
+                </div>
+
+                <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 space-y-1">
+                  <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">Interviews Scheduled</span>
+                  <div className="text-xl font-bold text-purple-700 font-display">
+                    {applicants.filter((a) => a.stage === "INTERVIEW" || a.stage === "TECHNICAL" || a.stage === "HR").length}
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 space-y-1">
+                  <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">Offers Pending</span>
+                  <div className="text-xl font-bold text-emerald-700 font-display">
+                    {applicants.filter((a) => a.stage === "OFFER").length}
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 space-y-1">
+                  <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">Action Required (SLA)</span>
+                  <div className="text-xl font-bold text-amber-700 font-display">
+                    {applicants.filter((a) => a.stage === "APPLIED" || a.stage === "REVIEW").length}
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 space-y-1">
+                  <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">Hiring Progress</span>
+                  <div className="text-xl font-bold text-primary font-display">
+                    {Math.round(((applicants.filter((a) => a.stage === "HIRED" || a.stage === "OFFER").length) / Math.max(1, applicants.length)) * 100)}%
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="px-3.5 py-1.5 bg-primary-container text-primary font-bold text-xs rounded-full">
-                {applicants.length} Total Applicants
-              </span>
-            </div>
-          </div>
+            {/* 8-Stage Enterprise ATS Pipeline Chips (Read-only View Filters) */}
+            <MobileScrollableChips
+              items={[
+                { id: "ALL", label: "All Applicants", count: applicants.length, icon: "view_kanban" },
+                { id: "APPLIED", label: "Applied", count: applicants.filter((a) => a.stage === "APPLIED").length, icon: "inbox" },
+                { id: "REVIEW", label: "Review", count: applicants.filter((a) => a.stage === "REVIEW").length, icon: "rate_review" },
+                { id: "SCREENING", label: "Screening", count: applicants.filter((a) => a.stage === "SCREENING").length, icon: "find_in_page" },
+                { id: "INTERVIEW", label: "Interview", count: applicants.filter((a) => a.stage === "INTERVIEW").length, icon: "event" },
+                { id: "TECHNICAL", label: "Technical", count: applicants.filter((a) => a.stage === "TECHNICAL").length, icon: "code" },
+                { id: "HR", label: "HR Round", count: applicants.filter((a) => a.stage === "HR").length, icon: "groups" },
+                { id: "OFFER", label: "Offer", count: applicants.filter((a) => a.stage === "OFFER").length, icon: "verified" },
+                { id: "HIRED", label: "Hired", count: applicants.filter((a) => a.stage === "HIRED").length, icon: "task_alt" },
+                { id: "REJECTED", label: "Rejected", count: applicants.filter((a) => a.stage === "REJECTED").length, icon: "cancel" },
+              ]}
+              activeId={selectedStage}
+              onChange={(id) => setSelectedStage(id)}
+              ariaLabel="ATS Candidate Pipeline view filters"
+            />
 
-          {/* Stage Filter Buttons */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-outline-variant/20 font-label-md text-xs">
-            {["ALL", "NEW", "REVIEWING", "INTERVIEW", "OFFER", "REJECTED"].map((stage) => (
-              <button
-                key={stage}
-                onClick={() => setSelectedStage(stage)}
-                className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-                  selectedStage === stage
-                    ? "bg-primary text-on-primary shadow-xs"
-                    : "text-on-surface-variant hover:bg-surface-container"
-                }`}
-              >
-                {stage === "ALL" ? "All Applicants" : stage} (
-                {stage === "ALL" ? applicants.length : applicants.filter((a) => a.stage === stage).length})
-              </button>
-            ))}
-          </div>
-
-          {/* Candidate Card Pipeline List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredApplicants.map((candidate) => (
-              <div
-                key={candidate.id}
-                className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5"
-              >
-                <div className="space-y-4">
-                  {/* Candidate Header */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <img
-                        src={candidate.applicantAvatar}
-                        alt={candidate.applicantName}
-                        className="w-12 h-12 rounded-2xl object-cover border border-outline-variant/30 flex-shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-headline-sm text-base font-bold text-on-surface truncate">
-                            {candidate.applicantName}
-                          </h3>
-                          <VerifiedBadge role="JOB_SEEKER" size="sm" showIconOnly />
+            {/* Candidate Card Pipeline List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredApplicants.map((candidate) => (
+                <div
+                  key={candidate.id}
+                  className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5"
+                >
+                  <div className="space-y-4">
+                    {/* Candidate Header */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <img
+                          src={candidate.applicantAvatar}
+                          alt={candidate.applicantName}
+                          className="w-12 h-12 rounded-2xl object-cover border border-outline-variant/30 flex-shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-headline-sm text-base font-bold text-on-surface truncate">
+                              {candidate.applicantName}
+                            </h3>
+                            <VerifiedBadge role="JOB_SEEKER" size="sm" showIconOnly />
+                          </div>
+                          <p className="text-xs text-primary font-bold truncate">{candidate.jobTitle}</p>
+                          <div className="flex items-center gap-2 pt-0.5">
+                            <span className="text-[11px] text-outline">Applied {candidate.appliedDate}</span>
+                            <span className="text-amber-500 font-bold text-xs flex items-center">
+                              ★ {candidate.starRating || 5}.0
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-xs text-primary font-bold truncate">{candidate.jobTitle}</p>
-                        <span className="text-[11px] text-outline">Applied {candidate.appliedDate}</span>
+                      </div>
+
+                      {/* AI Match & Stage Badge */}
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <span className="px-2.5 py-1 bg-tertiary-container/30 border border-tertiary/20 text-tertiary text-xs font-bold rounded-full flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">auto_awesome</span>
+                          {candidate.aiMatchScore}% Match
+                        </span>
+                        <span
+                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                            candidate.stage === "OFFER" || candidate.stage === "HIRED"
+                              ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
+                              : candidate.stage === "INTERVIEW" || candidate.stage === "TECHNICAL" || candidate.stage === "HR"
+                              ? "bg-purple-500/15 text-purple-700 border border-purple-500/30"
+                              : candidate.stage === "REJECTED"
+                              ? "bg-rose-500/15 text-rose-700 border border-rose-500/30"
+                              : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
+                          }`}
+                        >
+                          {candidate.stage}
+                        </span>
                       </div>
                     </div>
 
-                    {/* AI Match & Stage Badge */}
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span className="px-2.5 py-1 bg-tertiary-container/30 border border-tertiary/20 text-tertiary text-xs font-bold rounded-full flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">auto_awesome</span>
-                        {candidate.aiMatchScore}% AI Match
-                      </span>
-                      <span
-                        className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${
-                          candidate.stage === "OFFER"
-                            ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
-                            : candidate.stage === "INTERVIEW"
-                            ? "bg-purple-500/15 text-purple-700 border border-purple-500/30"
-                            : candidate.stage === "REJECTED"
-                            ? "bg-rose-500/15 text-rose-700 border border-rose-500/30"
-                            : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
-                        }`}
-                      >
-                        {candidate.stage}
-                      </span>
+                    {/* Candidate Specs Card */}
+                    <div className="bg-surface-container-low/60 rounded-2xl p-3 text-xs space-y-2 border border-outline-variant/20">
+                      <div className="flex items-center justify-between text-on-surface-variant">
+                        <span className="text-outline font-label-md">Experience & Location:</span>
+                        <span className="font-bold text-on-surface">{candidate.experience} • {candidate.location}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-on-surface-variant">
+                        <span className="text-outline font-label-md">Availability:</span>
+                        <span className="font-bold text-on-surface">{candidate.availability}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-on-surface-variant">
+                        <span className="text-outline font-label-md">Salary Expectation:</span>
+                        <span className="font-mono font-bold text-primary">{candidate.salaryExpectation}</span>
+                      </div>
+                    </div>
+
+                    {/* Skill Badges */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {(candidate.skills || []).map((skill: string, idx: number) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[11px] font-bold rounded-lg"
+                        >
+                          {skill}
+                        </span>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Candidate Specs Card */}
-                  <div className="bg-surface-container-low/60 rounded-2xl p-3 text-xs space-y-2 border border-outline-variant/20">
-                    <div className="flex items-center justify-between text-on-surface-variant">
-                      <span className="text-outline font-label-md">Experience & Location:</span>
-                      <span className="font-bold text-on-surface">{candidate.experience} • {candidate.location}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-on-surface-variant">
-                      <span className="text-outline font-label-md">Availability:</span>
-                      <span className="font-bold text-on-surface">{candidate.availability}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-on-surface-variant">
-                      <span className="text-outline font-label-md">Salary Expectations:</span>
-                      <span className="font-mono font-bold text-primary">{candidate.salaryExpectation}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-on-surface-variant">
-                      <span className="text-outline font-label-md">AI Resume Match Score:</span>
-                      <span className="font-mono font-bold text-tertiary">{candidate.resumeScore}/100</span>
-                    </div>
-                  </div>
-
-                  {/* Candidate Skill Badges */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {candidate.skills.map((skill, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[11px] font-bold rounded-lg"
+                  {/* Actions & Workflow Management */}
+                  <div className="pt-3 border-t border-outline-variant/20 space-y-3">
+                    <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                      {/* Timeline Button */}
+                      <button
+                        onClick={() => setTimelineModalCandidate(candidate)}
+                        className="px-3 py-1.5 bg-surface-container text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-high transition-colors flex items-center gap-1"
                       >
-                        {skill}
+                        <span className="material-symbols-outlined text-base text-primary">history</span>
+                        <span>View Timeline ({candidate.timeline?.length || 1})</span>
+                      </button>
+
+                      {/* Schedule Interview */}
+                      <button
+                        onClick={() => setScheduleModalCandidate(candidate)}
+                        className="px-3 py-1.5 bg-purple-600/10 hover:bg-purple-600/20 text-purple-700 border border-purple-600/30 font-bold text-xs rounded-xl transition-colors flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-base">event</span>
+                        <span>Schedule Interview</span>
+                      </button>
+
+                      {/* Single Update Status Dropdown */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-outline uppercase">Status:</span>
+                        <select
+                          value={candidate.stage}
+                          onChange={(e) => handleMoveStage(candidate, e.target.value as ATSPipelineStage)}
+                          className="px-3 py-1.5 bg-surface border border-outline-variant/40 rounded-xl font-bold text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                        >
+                          <option value="APPLIED">Applied</option>
+                          <option value="REVIEW">Review</option>
+                          <option value="SCREENING">Screening</option>
+                          <option value="INTERVIEW">Interview</option>
+                          <option value="TECHNICAL">Technical Round</option>
+                          <option value="HR">HR Round</option>
+                          <option value="OFFER">Offer Extended</option>
+                          <option value="HIRED">Hired</option>
+                          <option value="REJECTED">Rejected (Feedback Required)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Resume Action Bar */}
+                    <div className="p-2 bg-surface-container-low rounded-xl flex items-center justify-between text-[11px] font-bold text-on-surface-variant">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-base text-primary">description</span>
+                        Resume v2.0
                       </span>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            showToast(`Opening resume abstract preview for ${candidate.applicantName}`, "info");
+                          }}
+                          className="hover:text-primary transition-colors"
+                        >
+                          View
+                        </button>
+                        <span>•</span>
+                        <button
+                          onClick={() => {
+                            showToast(`Downloading resume for ${candidate.applicantName}`, "success");
+                          }}
+                          className="hover:text-primary transition-colors"
+                        >
+                          Download
+                        </button>
+                        <span>•</span>
+                        <button
+                          onClick={() => {
+                            showToast(`AI Summary generated for ${candidate.applicantName}: 96% fit for senior lead developer.`, "info");
+                          }}
+                          className="hover:text-tertiary transition-colors"
+                        >
+                          AI Summary
+                        </button>
+                        <span>•</span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`https://nexthire.ai/candidate/${candidate.id}`);
+                            showToast("Candidate profile link copied!", "success");
+                          }}
+                          className="hover:text-primary transition-colors"
+                        >
+                          Share
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Candidate Action Buttons */}
-                <div className="pt-3 border-t border-outline-variant/20 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => setSelectedCandidate(candidate)}
-                    className="px-3.5 py-2 border border-outline-variant/40 hover:bg-surface-container text-on-surface text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
-                  >
-                    <span className="material-symbols-outlined text-base">description</span>
-                    View Resume
-                  </button>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleScheduleInterview(candidate.applicantName)}
-                      className="px-3.5 py-2 bg-purple-600/10 hover:bg-purple-600/20 text-purple-700 border border-purple-600/30 text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-base">event</span>
-                      Interview
-                    </button>
-                    <button
-                      onClick={() => handleMoveStage(candidate.id, "INTERVIEW")}
-                      className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs"
-                    >
-                      Advance Stage
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </main>
           <Footer />
         </div>
       </div>
 
-      {/* Candidate Resume Preview Modal */}
-      {selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl space-y-6 animate-scale-in">
-            <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={selectedCandidate.applicantAvatar}
-                  alt={selectedCandidate.applicantName}
-                  className="w-10 h-10 rounded-xl object-cover"
-                />
-                <div>
-                  <h3 className="font-headline-sm text-base font-bold text-on-surface">
-                    {selectedCandidate.applicantName}
-                  </h3>
-                  <p className="text-xs text-primary font-bold">{selectedCandidate.jobTitle}</p>
-                </div>
-              </div>
+      {/* Schedule Interview Modal */}
+      {scheduleModalCandidate && (
+        <InterviewScheduleModal
+          isOpen={!!scheduleModalCandidate}
+          onClose={() => setScheduleModalCandidate(null)}
+          candidateName={scheduleModalCandidate.applicantName}
+          jobTitle={scheduleModalCandidate.jobTitle}
+          onScheduleComplete={handleInterviewScheduled}
+        />
+      )}
 
-              <button
-                onClick={() => setSelectedCandidate(null)}
-                className="p-1 text-on-surface-variant hover:bg-surface-container rounded-lg"
-              >
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
-            </div>
+      {/* Mandatory Structured Rejection Modal */}
+      {rejectionModalCandidate && (
+        <StructuredRejectionModal
+          isOpen={!!rejectionModalCandidate}
+          onClose={() => setRejectionModalCandidate(null)}
+          candidateName={rejectionModalCandidate.applicantName}
+          jobTitle={rejectionModalCandidate.jobTitle}
+          onConfirmRejection={handleRejectionConfirmed}
+        />
+      )}
 
-            <div className="space-y-4 text-xs">
-              <div className="p-4 bg-surface-container-low rounded-2xl space-y-2">
-                <span className="font-bold text-on-surface uppercase tracking-wider text-[10px] block text-outline">
-                  Executive Resume Abstract & AI Match Summary
-                </span>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Highly skilled software engineer with {selectedCandidate.experience} of industry experience building cloud-native microservices and frontend web applications. Demonstrated expertise in {selectedCandidate.skills.join(", ")}.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-outline-variant/20">
-              <button
-                onClick={() => handleMoveStage(selectedCandidate.id, "REJECTED")}
-                className="px-4 py-2 bg-rose-500/10 text-rose-700 border border-rose-500/30 text-xs font-bold rounded-xl hover:bg-rose-500/20"
-              >
-                Reject Candidate
-              </button>
-              <button
-                onClick={() => handleMoveStage(selectedCandidate.id, "OFFER")}
-                className="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 shadow-xs"
-              >
-                Extend Offer
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Candidate Hiring Timeline Modal */}
+      {timelineModalCandidate && (
+        <CandidateTimelineModal
+          isOpen={!!timelineModalCandidate}
+          onClose={() => setTimelineModalCandidate(null)}
+          candidateName={timelineModalCandidate.applicantName}
+          jobTitle={timelineModalCandidate.jobTitle}
+          events={timelineModalCandidate.timeline || []}
+        />
       )}
     </ProtectedRoute>
   );

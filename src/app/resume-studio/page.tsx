@@ -6,12 +6,19 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
+import { AIEngine, ATSAnalysisResult } from "@/lib/aiEngine";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
+import { Modal } from "@/components/ui/Modal";
 
 export default function ResumeStudioPage() {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<"builder" | "preview" | "ats">("builder");
   const [resumeTitle, setResumeTitle] = useState("Alex_Rivers_Senior_UX_Architect_2026");
   const [targetRole, setTargetRole] = useState("Senior Product Designer / Lead UX Engineer");
+  const [selectedTemplate, setSelectedTemplate] = useState<"modern" | "classic" | "minimal">("modern");
+  const [selectedVersion, setSelectedVersion] = useState("v2.0 (AI Optimized - Current)");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [atsResult, setAtsResult] = useState<ATSAnalysisResult | null>(null);
 
   const [skills, setSkills] = useState([
     "Design Systems",
@@ -37,6 +44,14 @@ export default function ResumeStudioPage() {
   const handleRemoveSkill = (skillToRemove: string) => {
     setSkills(skills.filter((s) => s !== skillToRemove));
     showToast(`Skill removed.`, "info");
+  };
+
+  const handleRunAtsScan = () => {
+    const resumeContentText = `Alex Rivers ${targetRole} Skills: ${skills.join(", ")} Senior Lead Years Experience Frontend Architect`;
+    const result = AIEngine.analyzeResumeATS(resumeContentText, ["React", "TypeScript", "Next.js", "AI UX", "System Design"]);
+    setAtsResult(result);
+    setActiveTab("ats");
+    showToast(`ATS Optimization Scan Complete! Score: ${result.score}/100`, "success");
   };
 
   const handleDownloadPdf = () => {
@@ -69,53 +84,83 @@ export default function ResumeStudioPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={handleRunAtsScan}
+                  className="px-4 py-2 bg-secondary-container text-on-secondary-container font-bold text-xs rounded-2xl hover:bg-secondary-container/80 transition-all shadow-xs flex items-center gap-1.5 touch-target"
+                >
+                  <span className="material-symbols-outlined text-base text-primary">auto_awesome</span>
+                  Run AI ATS Scan
+                </button>
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-2xl border border-outline-variant/30 hover:bg-surface-container transition-all flex items-center gap-1.5 touch-target"
+                >
+                  <span className="material-symbols-outlined text-base">share</span>
+                  Share Link
+                </button>
                 <button
                   onClick={handleDownloadPdf}
-                  className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-2xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-2"
+                  className="px-5 py-2 bg-primary text-on-primary font-bold text-xs rounded-2xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-2 touch-target"
                 >
                   <span className="material-symbols-outlined text-base">download</span>
-                  Export Resume (PDF)
+                  Export (PDF)
                 </button>
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex border-b border-outline-variant/20 gap-6 text-xs font-bold">
-              <button
-                onClick={() => setActiveTab("builder")}
-                className={`pb-3 transition-all flex items-center gap-2 border-b-2 ${
-                  activeTab === "builder"
-                    ? "text-primary border-primary"
-                    : "text-on-surface-variant border-transparent hover:text-on-surface"
-                }`}
-              >
-                <span className="material-symbols-outlined text-base">edit_note</span>
-                Resume Editor
-              </button>
-              <button
-                onClick={() => setActiveTab("preview")}
-                className={`pb-3 transition-all flex items-center gap-2 border-b-2 ${
-                  activeTab === "preview"
-                    ? "text-primary border-primary"
-                    : "text-on-surface-variant border-transparent hover:text-on-surface"
-                }`}
-              >
-                <span className="material-symbols-outlined text-base">visibility</span>
-                Live PDF Preview
-              </button>
-              <button
-                onClick={() => setActiveTab("ats")}
-                className={`pb-3 transition-all flex items-center gap-2 border-b-2 ${
-                  activeTab === "ats"
-                    ? "text-primary border-primary"
-                    : "text-on-surface-variant border-transparent hover:text-on-surface"
-                }`}
-              >
-                <span className="material-symbols-outlined text-base">auto_awesome</span>
-                ATS Keyword Optimization (98%)
-              </button>
+            {/* Template & Version Selection Bar */}
+            <div className="glass-card rounded-2xl p-4 border border-outline-variant/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-outline uppercase tracking-wider text-[10px]">Resume Version:</span>
+                <select
+                  value={selectedVersion}
+                  onChange={(e) => {
+                    setSelectedVersion(e.target.value);
+                    showToast(`Switched to version: ${e.target.value}`, "info");
+                  }}
+                  className="px-3 py-1.5 bg-surface text-on-surface border border-outline-variant/30 rounded-xl font-bold focus:outline-none"
+                >
+                  <option value="v2.0 (AI Optimized - Current)">v2.0 (AI Optimized - Current)</option>
+                  <option value="v1.2 (Frontend Engineering)">v1.2 (Frontend Engineering)</option>
+                  <option value="v1.0 (Baseline Master)">v1.0 (Baseline Master)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-outline uppercase tracking-wider text-[10px]">Layout Template:</span>
+                <div className="flex gap-1.5">
+                  {(["modern", "classic", "minimal"] as const).map((tmpl) => (
+                    <button
+                      key={tmpl}
+                      onClick={() => {
+                        setSelectedTemplate(tmpl);
+                        showToast(`Applied ${tmpl.toUpperCase()} resume template`, "success");
+                      }}
+                      className={`px-3 py-1.5 rounded-xl font-bold uppercase text-[10px] transition-all ${
+                        selectedTemplate === tmpl
+                          ? "bg-primary text-on-primary shadow-xs"
+                          : "bg-surface-container text-on-surface-variant hover:text-on-surface"
+                      }`}
+                    >
+                      {tmpl}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
+
+            {/* Navigation Tabs */}
+            <MobileScrollableChips
+              items={[
+                { id: "builder", label: "Resume Editor", icon: "edit_note" },
+                { id: "preview", label: "Live PDF Preview", icon: "visibility" },
+                { id: "ats", label: "ATS Optimization Score", count: atsResult ? atsResult.score : 92, icon: "analytics" },
+              ]}
+              activeId={activeTab}
+              onChange={(id) => setActiveTab(id as any)}
+              ariaLabel="Resume Studio navigation tabs"
+            />
 
             {/* Resume Builder Section */}
             {activeTab === "builder" && (
@@ -261,6 +306,31 @@ export default function ResumeStudioPage() {
           <Footer />
         </div>
       </div>
+
+      <Modal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title="Share Public Resume Link"
+      >
+        <div className="space-y-4 text-xs font-body-md">
+          <p className="text-on-surface-variant">
+            Generate a secure, password-protected public link to share your live ATS resume with recruiters or hiring managers.
+          </p>
+          <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/30 font-mono text-[11px] text-primary flex items-center justify-between">
+            <span>https://nexthire.ai/r/alex-rivers-2026</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText("https://nexthire.ai/r/alex-rivers-2026");
+                showToast("Public resume link copied to clipboard!", "success");
+                setShowShareModal(false);
+              }}
+              className="px-3 py-1 bg-primary text-on-primary font-bold rounded-lg text-[10px] hover:bg-primary-container"
+            >
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </Modal>
     </ProtectedRoute>
   );
 }

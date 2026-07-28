@@ -229,8 +229,9 @@ export default function HelpCentrePage() {
                   </div>
                 </div>
 
-                {/* Ticket Inbox Table */}
-                <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 overflow-x-auto">
+                {/* Ticket Inbox Section */}
+                {/* Desktop Ticket Inbox Table (MD+ screens) */}
+                <div className="hidden md:block glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px]">
@@ -283,22 +284,65 @@ export default function HelpCentrePage() {
                                   : "bg-emerald-500/15 text-emerald-700"
                               }`}
                             >
-                              {t.status}
+                              {t.status.replace("_", " ")}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
                             <button
                               onClick={() => { setSelectedTicket(t); setReplyInput(t.replyText || ""); }}
-                              className="px-3 py-1.5 bg-primary text-on-primary font-bold text-[11px] rounded-xl hover:bg-primary-container transition-all flex items-center gap-1"
+                              className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-lg transition-colors text-[11px] touch-target"
                             >
-                              <span className="material-symbols-outlined text-xs">edit_note</span>
-                              Inspect / Reply
+                              Manage
                             </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Ticket Inbox Stacked Cards (<MD screens) */}
+                <div className="md:hidden space-y-3">
+                  {filteredTickets.map((t) => (
+                    <div
+                      key={t.id}
+                      className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-3 shadow-xs"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold font-mono text-primary text-[11px]">{t.id}</div>
+                          <h4 className="font-bold text-sm text-on-surface line-clamp-1">{t.subject}</h4>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 font-bold rounded-full text-[10px] flex-shrink-0 ${
+                            t.status === "OPEN"
+                              ? "bg-rose-500/15 text-rose-700"
+                              : t.status === "IN_PROGRESS"
+                              ? "bg-amber-500/15 text-amber-700"
+                              : "bg-emerald-500/15 text-emerald-700"
+                          }`}
+                        >
+                          {t.status.replace("_", " ")}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-on-surface-variant space-y-1 bg-surface-container-low p-2.5 rounded-xl">
+                        <div><span className="text-outline">Submitter:</span> <span className="font-bold">{t.submitterName}</span></div>
+                        <div><span className="text-outline">Priority:</span> <span className="font-bold">{t.priority.replace("_", " ")}</span></div>
+                        <div><span className="text-outline">Submitted:</span> <span>{t.submittedAt}</span></div>
+                      </div>
+
+                      <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+                        <VerifiedBadge role={t.submitterRole} size="sm" />
+                        <button
+                          onClick={() => { setSelectedTicket(t); setReplyInput(t.replyText || ""); }}
+                          className="px-3.5 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl shadow-xs touch-target"
+                        >
+                          Manage Ticket
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (

@@ -136,14 +136,14 @@ export function JobCard({
           <div className="flex items-center gap-2 flex-shrink-0">
             <Link
               href={`/jobs/${id}`}
-              className="px-3.5 py-2 border border-outline-variant/40 hover:border-primary text-on-surface hover:text-primary font-label-md font-bold text-xs rounded-xl transition-all whitespace-nowrap"
+              className="px-3.5 py-2 border border-outline-variant/40 hover:border-primary text-on-surface hover:text-primary font-label-md font-bold text-xs rounded-xl transition-all whitespace-nowrap touch-target"
             >
-              View Details
+              Details
             </Link>
 
             <button
               onClick={handleApplyClick}
-              className="px-4 py-2 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs whitespace-nowrap"
+              className="px-4 py-2 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs whitespace-nowrap touch-target"
             >
               Apply Now
             </button>

@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { useToast } from "@/components/ui/Toast";
+import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 
 interface Candidate {
   id: string;
@@ -17,6 +18,7 @@ interface Candidate {
   experience: string;
   skills: string[];
   matchScore: number;
+  employmentStatus: "UNEMPLOYED" | "ON_NOTICE_PERIOD" | "SEARCHING_EMPLOYED" | "OPEN_TO_OPPORTUNITIES" | "EMPLOYED";
   availability: string;
   summary: string;
 }
@@ -31,8 +33,22 @@ const MOCK_CANDIDATES: Candidate[] = [
     experience: "7+ years",
     skills: ["Figma", "Next.js", "AI UX", "TypeScript", "Tailwind CSS"],
     matchScore: 98,
-    availability: "Immediate",
+    employmentStatus: "ON_NOTICE_PERIOD",
+    availability: "1-2 Weeks Notice",
     summary: "Passionate product designer and engineer with extensive experience building enterprise SaaS platforms, complex design systems, and AI-driven interfaces.",
+  },
+  {
+    id: "cand-3",
+    name: "Elena Rostova",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+    title: "Principal Machine Learning Engineer",
+    location: "New York, NY (Remote)",
+    experience: "6+ years",
+    skills: ["PyTorch", "Transformers", "LLMs", "Vector DBs", "Python"],
+    matchScore: 95,
+    employmentStatus: "UNEMPLOYED",
+    availability: "Immediate",
+    summary: "AI research engineer focusing on large language models, retrieval-augmented generation (RAG), and model fine-tuning for production SaaS products.",
   },
   {
     id: "cand-2",
@@ -43,20 +59,9 @@ const MOCK_CANDIDATES: Candidate[] = [
     experience: "8+ years",
     skills: ["Node.js", "Python", "PostgreSQL", "AWS", "GraphQL"],
     matchScore: 94,
-    availability: "2 Weeks Notice",
+    employmentStatus: "SEARCHING_EMPLOYED",
+    availability: "2-3 Weeks Notice",
     summary: "Distributed systems engineer skilled in microservices architecture, high-throughput REST/GraphQL APIs, and database optimization.",
-  },
-  {
-    id: "cand-3",
-    name: "Elena Rostova",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-    title: "Principal Machine Learning Engineer",
-    location: "New York, NY (Remote)",
-    experience: "6+ years",
-    skills: ["PyTorch", "Transformers", "LLMs", "Vector DBs", "Python"],
-    matchScore: 91,
-    availability: "Immediate",
-    summary: "AI research engineer focusing on large language models, retrieval-augmented generation (RAG), and model fine-tuning for production SaaS products.",
   },
   {
     id: "cand-4",
@@ -67,16 +72,25 @@ const MOCK_CANDIDATES: Candidate[] = [
     experience: "5+ years",
     skills: ["React", "Go", "Docker", "Kubernetes", "Redis"],
     matchScore: 89,
+    employmentStatus: "OPEN_TO_OPPORTUNITIES",
     availability: "1 Month Notice",
     summary: "Versatile engineer with strong foundations in frontend micro-applications and ultra-fast backend microservices written in Golang.",
   },
 ];
 
+const STATUS_PRIORITY = {
+  UNEMPLOYED: 1,
+  ON_NOTICE_PERIOD: 2,
+  SEARCHING_EMPLOYED: 3,
+  OPEN_TO_OPPORTUNITIES: 4,
+  EMPLOYED: 5,
+};
+
 export default function CandidateSearchPage() {
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkill, setSelectedSkill] = useState("ALL");
-  const [selectedAvailability, setSelectedAvailability] = useState("ALL");
+  const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   const filteredCandidates = MOCK_CANDIDATES.filter((cand) => {
@@ -85,14 +99,11 @@ export default function CandidateSearchPage() {
       cand.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cand.skills.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesSkill =
-      selectedSkill === "ALL" || cand.skills.includes(selectedSkill);
+    const matchesSkill = selectedSkill === "ALL" || cand.skills.includes(selectedSkill);
+    const matchesStatus = selectedStatus === "ALL" || cand.employmentStatus === selectedStatus;
 
-    const matchesAvail =
-      selectedAvailability === "ALL" || cand.availability.includes(selectedAvailability);
-
-    return matchesSearch && matchesSkill && matchesAvail;
-  });
+    return matchesSearch && matchesSkill && matchesStatus;
+  }).sort((a, b) => STATUS_PRIORITY[a.employmentStatus] - STATUS_PRIORITY[b.employmentStatus]);
 
   const handleContactCandidate = (candName: string) => {
     showToast(`Conversation opened with ${candName}. Redirecting to Messages...`, "success");
@@ -126,6 +137,20 @@ export default function CandidateSearchPage() {
                 <span>Unlimited Candidate Search Unlocked</span>
               </div>
             </div>
+
+            {/* Quick Skill Filter Chips */}
+            <MobileScrollableChips
+              items={[
+                { id: "ALL", label: "All Skills", count: MOCK_CANDIDATES.length, icon: "badge" },
+                { id: "Next.js", label: "Next.js & React", count: MOCK_CANDIDATES.filter((c) => c.skills.includes("Next.js") || c.skills.includes("React")).length, icon: "code" },
+                { id: "Figma", label: "Figma & UI", count: MOCK_CANDIDATES.filter((c) => c.skills.includes("Figma") || c.skills.includes("Design Tokens")).length, icon: "palette" },
+                { id: "PyTorch", label: "AI & PyTorch", count: MOCK_CANDIDATES.filter((c) => c.skills.includes("PyTorch") || c.skills.includes("Python")).length, icon: "psychology" },
+                { id: "Go", label: "Go / Microservices", count: MOCK_CANDIDATES.filter((c) => c.skills.includes("Go") || c.skills.includes("Distributed Systems")).length, icon: "dns" },
+              ]}
+              activeId={selectedSkill}
+              onChange={(id) => setSelectedSkill(id)}
+              ariaLabel="Filter candidate profiles by skill"
+            />
 
             {/* Filter Bar */}
             <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
@@ -161,17 +186,19 @@ export default function CandidateSearchPage() {
                   </select>
                 </div>
 
-                {/* Availability Filter */}
+                {/* Employment Status Filter */}
                 <div>
                   <select
-                    value={selectedAvailability}
-                    onChange={(e) => setSelectedAvailability(e.target.value)}
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
                     className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                   >
-                    <option value="ALL">All Availabilities</option>
-                    <option value="Immediate">Immediate Start</option>
-                    <option value="2 Weeks Notice">2 Weeks Notice</option>
-                    <option value="1 Month Notice">1 Month Notice</option>
+                    <option value="ALL">All Employment Statuses</option>
+                    <option value="UNEMPLOYED">Unemployed (Immediate Start)</option>
+                    <option value="ON_NOTICE_PERIOD">On Notice Period (1-2 Wks)</option>
+                    <option value="SEARCHING_EMPLOYED">Searching but Employed</option>
+                    <option value="OPEN_TO_OPPORTUNITIES">Open to Opportunities</option>
+                    <option value="EMPLOYED">Employed</option>
                   </select>
                 </div>
               </div>
@@ -268,7 +295,7 @@ export default function CandidateSearchPage() {
                   onClick={() => {
                     setSearchQuery("");
                     setSelectedSkill("ALL");
-                    setSelectedAvailability("ALL");
+                    setSelectedStatus("ALL");
                   }}
                   className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-xl"
                 >

@@ -173,20 +173,26 @@ export function RecruiterFeedbackModal({
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/10">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-full"
-          >
-            Skip Feedback
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2 bg-error text-on-error font-label-md font-bold rounded-full hover:opacity-90 shadow-md"
-          >
-            Send Feedback & Reject
-          </button>
+        <div className="flex justify-between items-center pt-2 border-t border-outline-variant/10">
+          <span className="text-[10px] text-error font-bold flex items-center gap-1">
+            <span className="material-symbols-outlined text-xs">info</span>
+            Mandatory feedback required per platform SLA
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-full"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-error text-on-error font-label-md font-bold rounded-full hover:opacity-90 shadow-md"
+            >
+              Submit Feedback & Reject
+            </button>
+          </div>
         </div>
       </form>
     </Modal>

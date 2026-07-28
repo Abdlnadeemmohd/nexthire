@@ -27,85 +27,85 @@ export default function SeekerDashboardPage() {
         <SidebarNav portal="seeker" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-6 md:p-10 space-y-6 max-w-[1600px] w-full">
+          <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 max-w-[1600px] w-full">
             <Breadcrumbs items={[{ label: "Home", href: "/dashboard" }, { label: "Candidate Dashboard" }]} />
 
-            {/* Quick Actions Bar */}
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/resume-studio"
-                className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-2 shadow-xs"
-              >
-                <span className="material-symbols-outlined text-base">upload_file</span>
-                Upload & Optimize Resume
-              </Link>
-              <Link
-                href="/jobs"
-                className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">search</span>
-                Search Live Jobs
-              </Link>
-              <Link
-                href="/applications"
-                className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">assignment</span>
-                View Applications
-              </Link>
-              <Link
-                href="/messages"
-                className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">mail</span>
-                Recruiter Messages
-              </Link>
-            </div>
-
-            {/* Header Greeting Banner */}
-            <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-surface-container-lowest to-secondary-container/20">
-              <div className="space-y-2">
-                <span className="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm font-bold text-xs rounded-full inline-block">
-                  ✨ AI Radar Active
+            {/* Compact Header Greeting Banner */}
+            <div className="glass-card rounded-2xl p-5 sm:p-6 border border-outline-variant/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-surface-container-lowest to-secondary-container/20">
+              <div className="space-y-1">
+                <span className="px-2.5 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm font-bold text-[11px] rounded-full inline-block">
+                  ✨ AI Match Radar Active
                 </span>
-                <h1 className="font-display text-3xl font-bold text-on-surface">
+                <h1 className="font-display text-xl sm:text-2xl font-bold text-on-surface">
                   Welcome back, {user?.name || "Alex"}!
                 </h1>
-                <p className="text-on-surface-variant text-sm font-body-md">
+                <p className="text-on-surface-variant text-xs font-body-md">
                   You have 2 upcoming interview rounds and 4 active applications matching your profile.
                 </p>
               </div>
               <Link
                 href="/profile"
-                className="px-6 py-3 bg-primary text-on-primary font-label-md font-bold rounded-full text-xs hover:bg-primary-container transition-all shadow-md flex items-center gap-2"
+                className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold rounded-xl text-xs hover:bg-primary-container transition-all shadow-xs flex items-center gap-2 touch-target flex-shrink-0"
               >
                 <span className="material-symbols-outlined text-base">edit_note</span>
                 Update Profile & Resume
               </Link>
             </div>
 
-            {/* Metric Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-2">
-                <span className="text-xs font-label-md uppercase font-semibold text-outline">Applications</span>
-                <div className="font-display text-3xl font-bold text-on-surface">4</div>
-                <span className="text-[11px] text-tertiary font-label-sm font-bold">2 in Review</span>
+            {/* Key Metric Summary Cards (Elevated Above The Fold on Mobile) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="glass-card rounded-2xl p-4 border border-outline-variant/20 space-y-1">
+                <span className="text-[10px] font-label-md uppercase font-semibold text-outline">Applications</span>
+                <div className="font-display text-2xl font-bold text-on-surface">4</div>
+                <span className="text-[10px] text-tertiary font-label-sm font-bold">2 in Review</span>
               </div>
-              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-2">
-                <span className="text-xs font-label-md uppercase font-semibold text-outline">Interviews</span>
-                <div className="font-display text-3xl font-bold text-primary">2</div>
-                <span className="text-[11px] text-primary font-label-sm font-bold">1 Scheduled Today</span>
+              <div className="glass-card rounded-2xl p-4 border border-outline-variant/20 space-y-1">
+                <span className="text-[10px] font-label-md uppercase font-semibold text-outline">Interviews</span>
+                <div className="font-display text-2xl font-bold text-primary">2</div>
+                <span className="text-[10px] text-primary font-label-sm font-bold">1 Today</span>
               </div>
-              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-2">
-                <span className="text-xs font-label-md uppercase font-semibold text-outline">Saved Jobs</span>
-                <div className="font-display text-3xl font-bold text-on-surface">12</div>
-                <span className="text-[11px] text-outline font-label-sm font-bold">3 closing soon</span>
+              <div className="glass-card rounded-2xl p-4 border border-outline-variant/20 space-y-1">
+                <span className="text-[10px] font-label-md uppercase font-semibold text-outline">Saved Jobs</span>
+                <div className="font-display text-2xl font-bold text-on-surface">12</div>
+                <span className="text-[10px] text-outline font-label-sm font-bold">3 closing soon</span>
               </div>
-              <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-2">
-                <span className="text-xs font-label-md uppercase font-semibold text-outline">Profile Views</span>
-                <div className="font-display text-3xl font-bold text-tertiary">86</div>
-                <span className="text-[11px] text-tertiary font-label-sm font-bold">+24% this week</span>
+              <div className="glass-card rounded-2xl p-4 border border-outline-variant/20 space-y-1">
+                <span className="text-[10px] font-label-md uppercase font-semibold text-outline">Profile Views</span>
+                <div className="font-display text-2xl font-bold text-tertiary">86</div>
+                <span className="text-[10px] text-tertiary font-label-sm font-bold">+24% this week</span>
               </div>
+            </div>
+
+            {/* Quick Actions Bar (Scrollable on Mobile) */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+              <Link
+                href="/resume-studio"
+                className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-2 shadow-xs whitespace-nowrap touch-target flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">upload_file</span>
+                Optimize Resume
+              </Link>
+              <Link
+                href="/jobs"
+                className="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2 whitespace-nowrap touch-target flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">search</span>
+                Search Jobs
+              </Link>
+              <Link
+                href="/applications"
+                className="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2 whitespace-nowrap touch-target flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">assignment</span>
+                View Applications
+              </Link>
+              <Link
+                href="/messages"
+                className="px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl transition-all flex items-center gap-2 whitespace-nowrap touch-target flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">mail</span>
+                Messages
+              </Link>
             </div>
 
             {/* Recommended Jobs */}
