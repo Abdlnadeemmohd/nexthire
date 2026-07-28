@@ -24,7 +24,8 @@ export function ProtectedRoute({ children, requiredPortal }: ProtectedRouteProps
     if (!isMounted || isLoading) return;
 
     if (!isAuthenticated || !user) {
-      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      const roleParam = requiredPortal === "recruiter" ? "recruiter" : requiredPortal === "admin" ? "admin" : "seeker";
+      router.push(`/login?role=${roleParam}&redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 
