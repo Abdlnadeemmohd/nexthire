@@ -71,7 +71,7 @@ export default function LandingPage() {
 
       <main className="pt-16 flex-1 overflow-x-hidden bg-surface">
         {/* 1. Hero Section & Global Search Bar */}
-        <section className="relative min-h-[75vh] flex flex-col items-center justify-center bg-mesh px-4 sm:px-6 lg:px-8 py-16 text-center border-b border-outline-variant/20">
+        <section className="relative min-h-[65vh] sm:min-h-[75vh] flex flex-col items-center justify-center bg-mesh px-4 sm:px-6 lg:px-8 py-8 sm:py-16 text-center border-b border-outline-variant/20">
           <div className="relative z-10 max-w-4xl mx-auto space-y-6 flex flex-col items-center justify-center">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm uppercase tracking-wider text-[11px] sm:text-xs font-bold shadow-xs">
               <span className="material-symbols-outlined text-sm text-primary">auto_awesome</span>

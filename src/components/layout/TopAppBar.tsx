@@ -249,19 +249,19 @@ export function TopAppBar() {
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   href="/login?role=seeker"
-                  className="px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-all touch-target"
+                  className="hidden md:inline-flex px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-all touch-target"
                 >
                   Candidate Login
                 </Link>
                 <Link
                   href="/login?role=recruiter"
-                  className="px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-tertiary hover:bg-surface-container rounded-full transition-all touch-target"
+                  className="hidden md:inline-flex px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-tertiary hover:bg-surface-container rounded-full transition-all touch-target"
                 >
                   Recruiter Login
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target"
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target"
                 >
                   Sign Up
                 </Link>
@@ -392,18 +392,25 @@ export function TopAppBar() {
             {!isAuthenticated ? (
               <div className="flex flex-col gap-2">
                 <Link
-                  href="/login"
+                  href="/login?role=seeker"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3.5 text-center text-xs font-label-md font-bold border border-outline-variant/40 rounded-xl text-on-surface touch-target"
+                  className="w-full py-3 text-center text-xs font-label-md font-bold border border-primary/30 text-primary bg-primary/10 rounded-xl touch-target"
                 >
-                  Sign In
+                  Candidate Login
+                </Link>
+                <Link
+                  href="/login?role=recruiter"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 text-center text-xs font-label-md font-bold border border-tertiary/30 text-tertiary bg-tertiary/10 rounded-xl touch-target"
+                >
+                  Recruiter Login
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3.5 text-center text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl touch-target"
+                  className="w-full py-3 text-center text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl touch-target shadow-xs"
                 >
-                  Create Account
+                  Create Account / Sign Up
                 </Link>
               </div>
             ) : (

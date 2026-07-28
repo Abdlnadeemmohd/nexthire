@@ -1,14 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 export function Footer() {
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const toggleSection = (section: string) => {
+    setOpenSection((prev) => (prev === section ? null : section));
+  };
+
   return (
-    <footer className="bg-surface-container border-t border-outline-variant/20 pt-10 sm:pt-12 pb-8 transition-colors duration-200 mt-auto w-full flex-shrink-0">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <footer className="bg-surface-container border-t border-outline-variant/20 pt-8 sm:pt-12 pb-8 transition-colors duration-200 mt-auto w-full flex-shrink-0">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         {/* Main Footer Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
           {/* Brand Column */}
           <div className="md:col-span-2 space-y-3">
             <Link href="/" className="flex items-center gap-2.5">
@@ -24,12 +30,20 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Navigation Columns */}
-          <div className="space-y-2.5">
-            <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-              Platform
-            </h4>
-            <ul className="space-y-1.5 text-xs text-on-surface-variant">
+          {/* Desktop & Collapsible Mobile Navigation Columns */}
+          <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
+            <div
+              onClick={() => toggleSection("platform")}
+              className="flex justify-between items-center cursor-pointer md:cursor-default"
+            >
+              <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
+                Platform
+              </h4>
+              <span className="material-symbols-outlined text-sm md:hidden text-outline">
+                {openSection === "platform" ? "expand_less" : "expand_more"}
+              </span>
+            </div>
+            <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "platform" ? "block" : "hidden md:block"}`}>
               <li><Link href="/jobs" className="hover:text-primary transition-colors">Browse Live Jobs</Link></li>
               <li><Link href="/companies" className="hover:text-primary transition-colors">Employer Profiles</Link></li>
               <li><Link href="/about" className="hover:text-primary transition-colors">About NextHire</Link></li>
@@ -37,11 +51,19 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-2.5">
-            <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-              Support
-            </h4>
-            <ul className="space-y-1.5 text-xs text-on-surface-variant">
+          <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
+            <div
+              onClick={() => toggleSection("support")}
+              className="flex justify-between items-center cursor-pointer md:cursor-default"
+            >
+              <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
+                Support
+              </h4>
+              <span className="material-symbols-outlined text-sm md:hidden text-outline">
+                {openSection === "support" ? "expand_less" : "expand_more"}
+              </span>
+            </div>
+            <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "support" ? "block" : "hidden md:block"}`}>
               <li><Link href="/help" className="hover:text-primary transition-colors">Help Centre</Link></li>
               <li><Link href="/help" className="hover:text-primary transition-colors">Contact Support</Link></li>
               <li><Link href="/help" className="hover:text-primary transition-colors">Recruiter Guides</Link></li>
@@ -49,11 +71,19 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-2.5">
-            <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-              Legal
-            </h4>
-            <ul className="space-y-1.5 text-xs text-on-surface-variant">
+          <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
+            <div
+              onClick={() => toggleSection("legal")}
+              className="flex justify-between items-center cursor-pointer md:cursor-default"
+            >
+              <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
+                Legal
+              </h4>
+              <span className="material-symbols-outlined text-sm md:hidden text-outline">
+                {openSection === "legal" ? "expand_less" : "expand_more"}
+              </span>
+            </div>
+            <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "legal" ? "block" : "hidden md:block"}`}>
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/cookies" className="hover:text-primary transition-colors">Cookie Policy</Link></li>

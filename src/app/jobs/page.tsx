@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
@@ -12,18 +12,30 @@ import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 
-export default function JobSearchPage() {
+function JobSearchContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
 
-  const [keyword, setKeyword] = useState("");
-  const [location, setLocation] = useState("");
+  const queryQ = searchParams.get("q") || "";
+  const queryLoc = searchParams.get("location") || "";
+  const queryType = searchParams.get("type") || "ALL";
+
+  const [keyword, setKeyword] = useState(queryQ);
+  const [location, setLocation] = useState(queryLoc);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
-  const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("ALL");
+  const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>(queryType);
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [minSalary, setMinSalary] = useState(100000);
+  const [sortBy, setSortBy] = useState<"match" | "newest" | "salary">("match");
   const [selectedJobToApply, setSelectedJobToApply] = useState<Job | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  useEffect(() => {
+    if (queryQ) setKeyword(queryQ);
+    if (queryLoc) setLocation(queryLoc);
+    if (queryType !== "ALL") setSelectedEmploymentType(queryType);
+  }, [queryQ, queryLoc, queryType]);
 
   const filteredJobs = useMemo(() => {
     return INITIAL_JOBS.filter((job) => {
@@ -80,29 +92,89 @@ export default function JobSearchPage() {
         {isAuthenticated && <SidebarNav portal={portalType} />}
 
         <div className={`flex-1 flex flex-col min-h-[calc(100vh-4rem)] ${isAuthenticated ? "lg:pl-[270px]" : ""}`}>
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
-            <Breadcrumbs items={[{ label: "Home", href: portalType === "recruiter" ? "/recruiter" : portalType === "admin" ? "/admin" : "/dashboard" }, { label: "Search Jobs" }]} />
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-4">
+            <Breadcrumbs items={[{ label: "Home", href: portalType === "recruiter" ? "/recruiter" : portalType === "admin" ? "/admin" : "/dashboard" }, { label: "Jobs" }, ...(keyword ? [{ label: keyword }] : [])]} />
 
-            {/* Header Title & Controls */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-4">
+            {/* Header Title & Controls - Compact View */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-outline-variant/20 pb-3">
               <div>
                 <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-                  Global Job Search Engine
+                  Enterprise Job Search
                 </h1>
-                <p className="text-on-surface-variant font-body-sm text-xs sm:text-sm">
-                  Showing {filteredJobs.length} AI-matched enterprise role postings
+                <p className="text-on-surface-variant font-body-sm text-xs sm:text-sm pt-0.5">
+                  Showing <strong>{filteredJobs.length}</strong> AI-matched roles {keyword && `for "${keyword}"`} {location && `in ${location}`}
                 </p>
               </div>
 
-            <div className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/30 px-4 py-2 rounded-xl">
-              <span className="text-xs font-label-md text-outline font-semibold">Sort by:</span>
-              <select className="bg-transparent text-xs font-label-md font-bold text-on-surface focus:outline-none cursor-pointer">
-                <option value="match">Highest AI Match</option>
-                <option value="newest">Newest First</option>
-                <option value="salary">Salary (High to Low)</option>
-              </select>
+              <div className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/30 px-3.5 py-1.5 rounded-xl text-xs">
+                <span className="font-label-md text-outline font-semibold">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-transparent font-label-md font-bold text-on-surface focus:outline-none cursor-pointer"
+                >
+                  <option value="match">Highest AI Match</option>
+                  <option value="newest">Newest First</option>
+                  <option value="salary">Salary (High to Low)</option>
+                </select>
+              </div>
             </div>
-          </div>
+
+            {/* Active Filter Chips Bar */}
+            {(keyword || location || selectedCategory !== "ALL" || selectedEmploymentType !== "ALL" || remoteOnly || minSalary > 100000) && (
+              <div className="flex items-center gap-2 flex-wrap text-xs bg-surface-container-low p-3 rounded-2xl border border-outline-variant/20">
+                <span className="font-bold text-outline text-[11px] uppercase tracking-wider">Active Filters:</span>
+
+                {keyword && (
+                  <span className="px-3 py-1 bg-surface text-primary font-bold rounded-full border border-primary/30 flex items-center gap-1.5">
+                    Query: "{keyword}"
+                    <button onClick={() => setKeyword("")} className="hover:text-error text-base leading-none">×</button>
+                  </span>
+                )}
+
+                {location && (
+                  <span className="px-3 py-1 bg-surface text-primary font-bold rounded-full border border-primary/30 flex items-center gap-1.5">
+                    Location: "{location}"
+                    <button onClick={() => setLocation("")} className="hover:text-error text-base leading-none">×</button>
+                  </span>
+                )}
+
+                {selectedCategory !== "ALL" && (
+                  <span className="px-3 py-1 bg-surface text-tertiary font-bold rounded-full border border-tertiary/30 flex items-center gap-1.5">
+                    Category: {selectedCategory}
+                    <button onClick={() => setSelectedCategory("ALL")} className="hover:text-error text-base leading-none">×</button>
+                  </span>
+                )}
+
+                {selectedEmploymentType !== "ALL" && (
+                  <span className="px-3 py-1 bg-surface text-tertiary font-bold rounded-full border border-tertiary/30 flex items-center gap-1.5">
+                    Type: {selectedEmploymentType}
+                    <button onClick={() => setSelectedEmploymentType("ALL")} className="hover:text-error text-base leading-none">×</button>
+                  </span>
+                )}
+
+                {remoteOnly && (
+                  <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 font-bold rounded-full border border-emerald-500/30 flex items-center gap-1.5">
+                    Remote Only
+                    <button onClick={() => setRemoteOnly(false)} className="hover:text-error text-base leading-none">×</button>
+                  </span>
+                )}
+
+                <button
+                  onClick={() => {
+                    setKeyword("");
+                    setLocation("");
+                    setSelectedCategory("ALL");
+                    setSelectedEmploymentType("ALL");
+                    setRemoteOnly(false);
+                    setMinSalary(100000);
+                  }}
+                  className="text-xs text-error font-bold hover:underline ml-auto"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
 
             {/* Mobile Category Scrollable Chips */}
             <div className="lg:hidden">
@@ -334,5 +406,13 @@ export default function JobSearchPage() {
         onClose={() => setSelectedJobToApply(null)}
       />
     </>
+  );
+}
+
+export default function JobSearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-xs font-bold text-outline">Loading Job Search Engine...</div>}>
+      <JobSearchContent />
+    </Suspense>
   );
 }

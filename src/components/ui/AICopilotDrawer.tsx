@@ -62,12 +62,12 @@ export function AICopilotDrawer() {
       {/* Minimized Floating Action Button (FAB) */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 p-4 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 group ${
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 p-3.5 sm:p-4 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 group ${
           isOpen ? "opacity-0 pointer-events-none scale-75" : "opacity-100 scale-100"
         }`}
         title="Open NextHire AI Copilot"
       >
-        <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">
+        <span className="material-symbols-outlined text-xl sm:text-2xl group-hover:rotate-12 transition-transform">
           auto_awesome
         </span>
         <span className="font-bold text-xs pr-1 hidden sm:inline">AI Copilot</span>

@@ -36,6 +36,7 @@ export function JobCard({
   const { isAuthenticated } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [showAiBreakdown, setShowAiBreakdown] = useState(false);
 
   const handleApplyClick = () => {
     if (isAuthenticated) {
@@ -78,14 +79,48 @@ export function JobCard({
             </div>
 
             {/* AI Match Radial / Badge */}
-            <div
-              className="flex-shrink-0 px-2.5 py-1 bg-tertiary-container/30 border border-tertiary/20 text-tertiary rounded-full flex items-center gap-1.5 shadow-2xs"
-              title="AI Skill Match Score"
-            >
-              <span className="material-symbols-outlined text-xs">auto_awesome</span>
-              <span className="text-xs font-bold font-label-md">{aiMatchScore}%</span>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={() => setShowAiBreakdown(!showAiBreakdown)}
+                className="flex-shrink-0 px-2.5 py-1 bg-tertiary-container/30 border border-tertiary/20 text-tertiary rounded-full flex items-center gap-1.5 shadow-2xs hover:bg-tertiary/10 transition-colors"
+                title="Click to toggle AI Match Breakdown"
+              >
+                <span className="material-symbols-outlined text-xs">auto_awesome</span>
+                <span className="text-xs font-bold font-label-md">{aiMatchScore}%</span>
+                <span className="material-symbols-outlined text-xs">
+                  {showAiBreakdown ? "expand_less" : "expand_more"}
+                </span>
+              </button>
             </div>
           </div>
+
+          {/* AI Match Breakdown Drawer */}
+          {showAiBreakdown && (
+            <div className="p-3 bg-surface-container-low rounded-2xl border border-outline-variant/30 text-xs space-y-2 animate-fade-in">
+              <div className="flex justify-between items-center font-bold text-[11px] text-on-surface border-b pb-1">
+                <span>AI Match Score Breakdown</span>
+                <span className="text-tertiary font-mono">{aiMatchScore}% Overall</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div className="flex justify-between font-medium">
+                  <span className="text-outline">Technical Skills:</span>
+                  <span className="font-bold text-emerald-700">94%</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span className="text-outline">Experience Level:</span>
+                  <span className="font-bold text-primary">86%</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span className="text-outline">Education & Certs:</span>
+                  <span className="font-bold text-on-surface">90%</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span className="text-outline">Industry Domain:</span>
+                  <span className="font-bold text-tertiary">89%</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Location & Job Type Badges */}
           <div className="flex items-center gap-2 text-xs text-on-surface-variant font-label-md flex-wrap">
