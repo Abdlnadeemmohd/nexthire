@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 interface NotificationCenterPanelProps {
   isOpen?: boolean;
   onClose?: () => void;
+  onCountChange?: (count: number) => void;
 }
 
 export interface NotificationItem {

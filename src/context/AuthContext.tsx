@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthUser, PRECONFIGURED_USERS, UserRole } from "@/lib/auth";
 import { authService } from "@/services/authService";
 
+export type { UserRole };
+
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
