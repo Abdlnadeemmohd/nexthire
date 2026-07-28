@@ -1,17 +1,39 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  JOB_SEEKER
+  RECRUITER
+  COMPANY_ADMIN
+  PLATFORM_ADMIN
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  REMOTE
+  HYBRID
+}
+
+enum JobStatus {
+  ACTIVE
+  PAUSED
+  CLOSED
+  DRAFT
+}
+
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
   name          String
-  role          String         @default("JOB_SEEKER") // JOB_SEEKER, RECRUITER, COMPANY_ADMIN, PLATFORM_ADMIN
+  role          UserRole       @default(JOB_SEEKER)
   avatar        String?
   headline      String?
   bio           String?
@@ -47,32 +69,32 @@ model Company {
 }
 
 model Job {
-  id              String         @id @default(uuid())
-  title           String
-  description     String
+  id               String         @id @default(uuid())
+  title            String
+  description      String
   responsibilities String
-  requirements    String
-  benefits        String
-  location        String
-  country         String
-  salaryMin       Int
-  salaryMax       Int
-  employmentType  String         @default("FULL_TIME") // FULL_TIME, PART_TIME, CONTRACT, REMOTE, HYBRID
-  experienceLevel String
-  category        String
-  isRemote        Boolean        @default(false)
-  skills          String         // Comma separated or JSON string
-  status          String         @default("ACTIVE") // ACTIVE, CLOSED, DRAFT
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  requirements     String
+  benefits         String
+  location         String
+  country          String
+  salaryMin        Int
+  salaryMax        Int
+  employmentType   EmploymentType @default(FULL_TIME)
+  experienceLevel  String
+  category         String
+  isRemote         Boolean        @default(false)
+  skills           String         // Comma separated or JSON string
+  status           JobStatus      @default(ACTIVE)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  companyId       String
-  company         Company        @relation(fields: [companyId], references: [id])
-  recruiterId     String
-  recruiter       User           @relation("RecruiterJobs", fields: [recruiterId], references: [id])
+  companyId        String
+  company          Company        @relation(fields: [companyId], references: [id])
+  recruiterId      String
+  recruiter        User           @relation("RecruiterJobs", fields: [recruiterId], references: [id])
 
-  applications    Application[]
-  savedBy         SavedJob[]
+  applications     Application[]
+  savedBy          SavedJob[]
 }
 
 model Application {
@@ -84,7 +106,6 @@ model Application {
   notes        String?
   appliedAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
-  // SLA deadline (7 days from last recruiter action)
   slaDeadline  DateTime?
 
   jobId        String
@@ -112,7 +133,7 @@ model SavedJob {
 }
 
 model Interview {
-  id            String   @id @default(uuid())
+  id            String          @id @default(uuid())
   round         Int
   scheduledAt   DateTime
   timezone      String
@@ -124,10 +145,10 @@ model Interview {
   documents     String[]
   notes         String?
   status        InterviewStatus @default(PENDING)
-  createdAt     DateTime @default(now())
+  createdAt     DateTime        @default(now())
 
   applicationId String
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application   Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
 model Message {
@@ -221,19 +242,19 @@ enum RejectionReason {
 
 // ---------- Additional Models ----------
 model ApplicationEvent {
-  id            String   @id @default(uuid())
-  application   Application @relation(fields: [applicationId], references: [id])
+  id            String      @id @default(uuid())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   applicationId String
   type          EventType
-  timestamp     DateTime @default(now())
+  timestamp     DateTime    @default(now())
   actorId       String
   notes         String?
 }
 
 model Offer {
-  id            String   @id @default(uuid())
-  application   Application @relation(fields: [applicationId], references: [id])
-  applicationId String
+  id            String      @id @default(uuid())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId String      @unique
   title         String
   salary        Int
   bonus         Int?
@@ -247,11 +268,10 @@ model Offer {
 }
 
 model Rejection {
-  id            String   @id @default(uuid())
-  application   Application @relation(fields: [applicationId], references: [id])
-  applicationId String
-  reason        RejectionReason
-  suggestions   String[]
+  id             String          @id @default(uuid())
+  application    Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId  String          @unique
+  reason         RejectionReason
+  suggestions    String[]
   closingMessage String
 }
-
