@@ -32,15 +32,17 @@ class AuthService {
         error: data.error || "Authentication failed. Please verify credentials.",
       };
     } catch {
-      // Offline / network fallback for preconfigured users
-      const normalized = email.toLowerCase().trim();
-      const found = PRECONFIGURED_USERS.find((u) => u.email.toLowerCase() === normalized);
-      if (found) {
-        if (remember && typeof window !== "undefined") {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(found));
+      // Offline / network fallback for preconfigured users (Development Only)
+      if (process.env.NODE_ENV !== "production") {
+        const normalized = email.toLowerCase().trim();
+        const found = PRECONFIGURED_USERS.find((u) => u.email.toLowerCase() === normalized);
+        if (found) {
+          if (remember && typeof window !== "undefined") {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(found));
+          }
+          this.setCookieSession(found);
+          return { success: true, user: found };
         }
-        this.setCookieSession(found);
-        return { success: true, user: found };
       }
       return { success: false, error: "Network error during authentication." };
     }

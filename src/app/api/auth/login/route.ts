@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Database User Authentication
+    // 1. Database User Authentication (Always Active)
     let user = null;
     try {
       user = await prisma.user.findUnique({
@@ -62,32 +62,60 @@ export async function POST(request: Request) {
       return response;
     }
 
-    // 2. Preconfigured User Verification (owner, recruiter, jobseeker)
-    const preconfigured = PRECONFIGURED_USERS.find(
-      (u) => u.email.toLowerCase() === normalizedEmail
-    );
+    // -------------------------------------------------------------------------
+    // DEVELOPMENT-ONLY FALLBACK (Strictly disabled in production)
+    // -------------------------------------------------------------------------
+    if (process.env.NODE_ENV !== "production") {
+      // 2. Preconfigured User Verification (Development Only)
+      const preconfigured = PRECONFIGURED_USERS.find(
+        (u) => u.email.toLowerCase() === normalizedEmail
+      );
 
-    if (preconfigured) {
-      let expectedPass = "";
-      if (preconfigured.role === "PLATFORM_ADMIN") expectedPass = "Owner@123";
-      else if (preconfigured.role === "RECRUITER") expectedPass = "Recruiter@123";
-      else if (preconfigured.role === "JOB_SEEKER") expectedPass = "JobSeeker@123";
+      if (preconfigured) {
+        let expectedPass = "";
+        if (preconfigured.role === "PLATFORM_ADMIN") expectedPass = "Owner@123";
+        else if (preconfigured.role === "RECRUITER") expectedPass = "Recruiter@123";
+        else if (preconfigured.role === "JOB_SEEKER") expectedPass = "JobSeeker@123";
 
-      if (password !== expectedPass) {
-        return NextResponse.json(
-          { success: false, error: `Invalid password for ${preconfigured.name}` },
-          { status: 401 }
-        );
+        if (password !== expectedPass) {
+          return NextResponse.json(
+            { success: false, error: `Invalid password for ${preconfigured.name}` },
+            { status: 401 }
+          );
+        }
+
+        const session = await createSession(preconfigured.id);
+        const response = NextResponse.json({ success: true, user: preconfigured });
+        
+        const cookieVal = encodeURIComponent(JSON.stringify(preconfigured));
+        response.cookies.set(SESSION_COOKIE_NAME, cookieVal, {
+          httpOnly: false,
+          secure: false,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 7 * 24 * 60 * 60,
+        });
+
+        return response;
       }
 
-      const session = await createSession(preconfigured.id);
-      const response = NextResponse.json({ success: true, user: preconfigured });
-      
-      // Store JSON fallback value in cookie for compatibility
-      const cookieVal = encodeURIComponent(JSON.stringify(preconfigured));
+      // 3. Dynamic User Fallback for test credentials (Development Only)
+      const role: UserRole = requestedRole || "JOB_SEEKER";
+      const dynamicUser = {
+        id: `usr-${Date.now()}`,
+        name: email.split("@")[0] || "User",
+        email: normalizedEmail,
+        role,
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+        status: "VERIFIED" as const,
+        headline: `${role.replace("_", " ")} Account`,
+      };
+
+      const cookieVal = encodeURIComponent(JSON.stringify(dynamicUser));
+      const response = NextResponse.json({ success: true, user: dynamicUser });
       response.cookies.set(SESSION_COOKIE_NAME, cookieVal, {
         httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         sameSite: "lax",
         path: "/",
         maxAge: 7 * 24 * 60 * 60,
@@ -96,29 +124,11 @@ export async function POST(request: Request) {
       return response;
     }
 
-    // 3. Dynamic User Fallback for test credentials
-    const role: UserRole = requestedRole || "JOB_SEEKER";
-    const dynamicUser = {
-      id: `usr-${Date.now()}`,
-      name: email.split("@")[0] || "User",
-      email: normalizedEmail,
-      role,
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-      status: "VERIFIED" as const,
-      headline: `${role.replace("_", " ")} Account`,
-    };
-
-    const cookieVal = encodeURIComponent(JSON.stringify(dynamicUser));
-    const response = NextResponse.json({ success: true, user: dynamicUser });
-    response.cookies.set(SESSION_COOKIE_NAME, cookieVal, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
-
-    return response;
+    // In production, reject unauthenticated user when not found in database
+    return NextResponse.json(
+      { success: false, error: "Invalid email or password" },
+      { status: 401 }
+    );
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "Internal server error" },
