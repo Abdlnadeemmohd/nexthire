@@ -135,8 +135,8 @@ export default function ApplicationTrackerPage() {
 
               {/* Stepper Pipeline Timeline (Hidden if Rejected/Withdrawn) */}
               {selectedApp.stage !== "REJECTED" && selectedApp.stage !== "WITHDRAWN" ? (
-                <div className="py-6 px-2">
-                  <div className="relative flex items-center justify-between">
+                <div className="py-6 px-2 overflow-x-auto no-scrollbar">
+                  <div className="relative flex items-center justify-between min-w-[640px]">
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-surface-container-high -z-0"></div>
                     <div
                       className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary transition-all duration-700 -z-0"

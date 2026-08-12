@@ -226,6 +226,39 @@ export default function PlatformAdminPage() {
                 </p>
               </Link>
             </div>
+
+            {/* Application & Developer Specification Card (Platform Owner Only) */}
+            <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-4 shadow-xs">
+              <div className="flex items-center gap-3 border-b border-outline-variant/20 pb-3">
+                <span className="material-symbols-outlined text-primary text-xl">info</span>
+                <div>
+                  <h3 className="font-bold text-sm text-on-surface">Application System Specification</h3>
+                  <p className="text-[11px] text-on-surface-variant">Verified platform metadata & developer credits</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-body-md">
+                <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 space-y-0.5">
+                  <span className="text-[10px] font-bold text-outline uppercase">Application</span>
+                  <div className="font-bold text-on-surface">NextHire</div>
+                </div>
+
+                <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 space-y-0.5">
+                  <span className="text-[10px] font-bold text-outline uppercase">Developer</span>
+                  <div className="font-bold text-primary">Abdul Nadeem Mohd</div>
+                </div>
+
+                <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 space-y-0.5">
+                  <span className="text-[10px] font-bold text-outline uppercase">Version</span>
+                  <div className="font-bold text-on-surface">v1.0.0 Production</div>
+                </div>
+
+                <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 space-y-0.5">
+                  <span className="text-[10px] font-bold text-outline uppercase">Environment</span>
+                  <div className="font-bold text-emerald-700 capitalize">{process.env.NODE_ENV || "Production"}</div>
+                </div>
+              </div>
+            </div>
           </main>
 
           <Footer />

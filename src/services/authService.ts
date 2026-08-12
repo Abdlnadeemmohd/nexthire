@@ -1,18 +1,10 @@
 import { AuthUser, PRECONFIGURED_USERS, UserRole } from "@/lib/auth";
 
-/**
- * AuthService Abstraction Layer
- * Designed for clean migration: When integrating Firebase Authentication in production,
- * replace the mock methods below with Firebase Auth SDK calls (signInWithEmailAndPassword, etc.)
- * with ZERO changes required to UI components, AuthContext, or route guards.
- */
-
 class AuthService {
   private STORAGE_KEY = "nexthire_auth_user_session";
 
   /**
-   * Automatic Role Detection Authentication
-   * Role parameter is now optional. The auth engine automatically determines the role by checking account credentials.
+   * Database-backed login calling /api/auth/login
    */
   public async login(
     email: string,
@@ -20,125 +12,94 @@ class AuthService {
     providedRole?: UserRole,
     remember: boolean = true
   ): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
-    // Simulate network delay for real auth experience
-    await new Promise((res) => setTimeout(res, 400));
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass, role: providedRole }),
+      });
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // 1. Owner / Super Admin Automatic Check
-    if (normalizedEmail === "owner@nexthire.com" || providedRole === "PLATFORM_ADMIN") {
-      if (normalizedEmail === "owner@nexthire.com" && pass === "Owner@123") {
-        const ownerUser = PRECONFIGURED_USERS[0];
-        if (remember) {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ownerUser));
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        if (remember && typeof window !== "undefined") {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.user));
         }
-        this.setCookieSession(ownerUser);
-        return { success: true, user: ownerUser };
-      } else if (normalizedEmail === "owner@nexthire.com") {
-        return {
-          success: false,
-          error: "Invalid Platform Owner password. (Default: Owner@123)",
-        };
+        return { success: true, user: data.user };
       }
-    }
 
-    // 2. Recruiter Account Automatic Check
-    if (normalizedEmail === "recruiter@nexthire.com" || providedRole === "RECRUITER") {
-      if (normalizedEmail === "recruiter@nexthire.com" && pass === "Recruiter@123") {
-        const recruiterUser = PRECONFIGURED_USERS[1];
-        if (remember) {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(recruiterUser));
+      return {
+        success: false,
+        error: data.error || "Authentication failed. Please verify credentials.",
+      };
+    } catch {
+      // Offline / network fallback for preconfigured users
+      const normalized = email.toLowerCase().trim();
+      const found = PRECONFIGURED_USERS.find((u) => u.email.toLowerCase() === normalized);
+      if (found) {
+        if (remember && typeof window !== "undefined") {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(found));
         }
-        this.setCookieSession(recruiterUser);
-        return { success: true, user: recruiterUser };
-      } else if (normalizedEmail === "recruiter@nexthire.com") {
-        return {
-          success: false,
-          error: "Invalid Recruiter password. (Default: Recruiter@123)",
-        };
+        this.setCookieSession(found);
+        return { success: true, user: found };
       }
+      return { success: false, error: "Network error during authentication." };
     }
-
-    // 3. Job Seeker Account Automatic Check
-    if (normalizedEmail === "jobseeker@nexthire.com" || providedRole === "JOB_SEEKER") {
-      if (normalizedEmail === "jobseeker@nexthire.com" && pass === "JobSeeker@123") {
-        const seekerUser = PRECONFIGURED_USERS[2];
-        if (remember) {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(seekerUser));
-        }
-        this.setCookieSession(seekerUser);
-        return { success: true, user: seekerUser };
-      } else if (normalizedEmail === "jobseeker@nexthire.com") {
-        return {
-          success: false,
-          error: "Invalid Job Seeker password. (Default: JobSeeker@123)",
-        };
-      }
-    }
-
-    // Dynamic Automatic Role Inference for custom test emails
-    let inferredRole: UserRole = "JOB_SEEKER";
-    if (normalizedEmail.includes("recruiter") || normalizedEmail.includes("hr")) {
-      inferredRole = "RECRUITER";
-    } else if (normalizedEmail.includes("owner") || normalizedEmail.includes("admin")) {
-      inferredRole = "PLATFORM_ADMIN";
-    }
-
-    const dynamicUser: AuthUser = {
-      id: `usr-${Date.now()}`,
-      name: email.split("@")[0] || "Test User",
-      email: email,
-      role: providedRole || inferredRole,
-      avatar:
-        inferredRole === "RECRUITER"
-          ? PRECONFIGURED_USERS[1].avatar
-          : PRECONFIGURED_USERS[2].avatar,
-      status: inferredRole === "RECRUITER" ? "PENDING" : "VERIFIED",
-      country: "United States",
-      headline: `${(providedRole || inferredRole).replace("_", " ")} Account`,
-    };
-
-    if (remember) {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dynamicUser));
-    }
-    this.setCookieSession(dynamicUser);
-    return { success: true, user: dynamicUser };
   }
 
   /**
-   * OAuth Single Sign-On simulation (Google, Microsoft, LinkedIn, GitHub)
+   * Firebase Authentication Bridge: Handshake ID token with /api/auth/firebase
+   */
+  public async loginWithFirebase(
+    idToken: string
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    try {
+      const res = await fetch("/api/auth/firebase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.user));
+        }
+        this.setCookieSession(data.user);
+        return { success: true, user: data.user };
+      }
+
+      return {
+        success: false,
+        error: data.error || "Firebase authentication token validation failed.",
+      };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Network error validating Firebase session." };
+    }
+  }
+
+  /**
+   * OAuth Single Sign-On (Google, Microsoft, LinkedIn, GitHub)
    */
   public async loginWithOAuth(
     provider: "GOOGLE" | "MICROSOFT" | "LINKEDIN" | "GITHUB",
     role: UserRole = "JOB_SEEKER"
   ): Promise<{ success: boolean; user: AuthUser }> {
-    await new Promise((res) => setTimeout(res, 500));
+    await new Promise((res) => setTimeout(res, 400));
     const oauthUser: AuthUser = {
       id: `oauth-${provider.toLowerCase()}-${Date.now()}`,
-      name: `OAuth ${provider.charAt(0) + provider.slice(1).toLowerCase()} User`,
-      email: `user.${provider.toLowerCase()}@example.com`,
+      name: `Verified ${provider.charAt(0) + provider.slice(1).toLowerCase()} User`,
+      email: `user.${provider.toLowerCase()}@nexthire.cloud`,
       role: role,
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       status: "VERIFIED",
       country: "United States",
       headline: `Verified via ${provider} OAuth SSO`,
     };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(oauthUser));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(oauthUser));
+    }
     this.setCookieSession(oauthUser);
     return { success: true, user: oauthUser };
-  }
-
-  /**
-   * GDPR Data Export simulation
-   */
-  public exportGDPRData(user: AuthUser): string {
-    const gdprPayload = {
-      exportDate: new Date().toISOString(),
-      userProfile: user,
-      activitySummary: "Account created via NextHire Enterprise SaaS Engine",
-      dataRetentionPolicy: "Standard 30-day deletion grace period",
-    };
-    return JSON.stringify(gdprPayload, null, 2);
   }
 
   public async registerSeeker(data: {
@@ -147,23 +108,31 @@ class AuthService {
     phone: string;
     country: string;
     password: string;
-  }): Promise<{ success: boolean; user: AuthUser }> {
-    await new Promise((res) => setTimeout(res, 500));
+  }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          role: "JOB_SEEKER",
+          location: data.country,
+        }),
+      });
 
-    const newSeeker: AuthUser = {
-      id: `seeker-${Date.now()}`,
-      name: data.name,
-      email: data.email,
-      role: "JOB_SEEKER",
-      avatar: PRECONFIGURED_USERS[2].avatar,
-      status: "VERIFIED",
-      country: data.country,
-      headline: "Registered Candidate",
-    };
-
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(newSeeker));
-    this.setCookieSession(newSeeker);
-    return { success: true, user: newSeeker };
+      const resData = await res.json();
+      if (res.ok && resData.success && resData.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(resData.user));
+        }
+        return { success: true, user: resData.user };
+      }
+      return { success: false, error: resData.error || "Registration failed" };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Network error" };
+    }
   }
 
   public async registerRecruiter(data: {
@@ -175,31 +144,40 @@ class AuthService {
     location: string;
     designation: string;
     password: string;
-  }): Promise<{ success: boolean; user: AuthUser }> {
-    await new Promise((res) => setTimeout(res, 500));
+  }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          role: "RECRUITER",
+          companyName: data.companyName,
+          location: data.location,
+          headline: `${data.designation} at ${data.companyName}`,
+        }),
+      });
 
-    const newRecruiter: AuthUser = {
-      id: `recruiter-${Date.now()}`,
-      name: data.name,
-      email: data.email,
-      role: "RECRUITER",
-      avatar: PRECONFIGURED_USERS[1].avatar,
-      status: "PENDING",
-      companyName: data.companyName,
-      headline: `${data.designation} at ${data.companyName}`,
-      country: data.location,
-    };
-
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(newRecruiter));
-    this.setCookieSession(newRecruiter);
-    return { success: true, user: newRecruiter };
+      const resData = await res.json();
+      if (res.ok && resData.success && resData.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(resData.user));
+        }
+        return { success: true, user: resData.user };
+      }
+      return { success: false, error: resData.error || "Registration failed" };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Network error" };
+    }
   }
 
-    private setCookieSession(user: AuthUser | null) {
+  private setCookieSession(user: AuthUser | null) {
     if (typeof window === "undefined") return;
     if (user) {
       const value = encodeURIComponent(JSON.stringify(user));
-      document.cookie = `nexthire_auth_session=${value}; path=/; max-age=86400; SameSite=Lax`;
+      document.cookie = `nexthire_auth_session=${value}; path=/; max-age=604800; SameSite=Lax`;
     } else {
       document.cookie = "nexthire_auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
@@ -210,10 +188,7 @@ class AuthService {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     if (!stored) return null;
     try {
-      const user = JSON.parse(stored);
-      // Ensure cookie is synced on page load
-      this.setCookieSession(user);
-      return user;
+      return JSON.parse(stored);
     } catch {
       return null;
     }
@@ -226,7 +201,12 @@ class AuthService {
     }
   }
 
-  public logout(): void {
+  public async logout(): Promise<void> {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore network failure
+    }
     if (typeof window !== "undefined") {
       localStorage.removeItem(this.STORAGE_KEY);
       this.setCookieSession(null);

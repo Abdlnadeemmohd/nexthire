@@ -5,6 +5,7 @@ import Link from "next/link";
 
 export function Footer() {
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const developerUrl = process.env.NEXT_PUBLIC_DEVELOPER_URL;
 
   const toggleSection = (section: string) => {
     setOpenSection((prev) => (prev === section ? null : section));
@@ -47,6 +48,7 @@ export function Footer() {
               <li><Link href="/jobs" className="hover:text-primary transition-colors">Browse Live Jobs</Link></li>
               <li><Link href="/companies" className="hover:text-primary transition-colors">Employer Profiles</Link></li>
               <li><Link href="/about" className="hover:text-primary transition-colors">About NextHire</Link></li>
+              <li><Link href="/developer" className="hover:text-primary transition-colors">About the Developer</Link></li>
               <li><Link href="/recruiter/billing" className="hover:text-primary transition-colors">Pricing & Plans</Link></li>
             </ul>
           </div>
@@ -93,10 +95,28 @@ export function Footer() {
         </div>
 
         {/* Bottom Copyright & Version Bar */}
-        <div className="border-t border-outline-variant/20 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-outline font-label-md">
-          <p>© {new Date().getFullYear()} NextHire Technologies Inc. All rights reserved.</p>
-          <div className="flex items-center gap-3 text-outline">
-            <span className="text-[11px]">Version 1.0.0</span>
+        <div className="border-t border-outline-variant/20 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-outline font-label-md text-center sm:text-left">
+          <p>© {new Date().getFullYear()} NextHire. All rights reserved.</p>
+          
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-outline">
+            <span className="text-xs text-on-surface-variant font-medium">
+              Built & Developed by{" "}
+              {developerUrl ? (
+                <a
+                  href={developerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-primary hover:underline"
+                >
+                  Abdul Nadeem Mohd
+                </a>
+              ) : (
+                <strong className="font-bold text-on-surface">Abdul Nadeem Mohd</strong>
+              )}
+            </span>
+            <span className="text-[11px] font-semibold text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+              Version 1.0.0
+            </span>
           </div>
         </div>
       </div>

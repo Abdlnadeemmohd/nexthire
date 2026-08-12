@@ -22,6 +22,9 @@ export default function AboutPage() {
           <p className="font-body-fluid-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
             NextHire was created to replace slow, keyword-stuffed job boards with intelligent, verified skill-first matching that connects top talent with high-growth companies.
           </p>
+          <div className="pt-2 text-xs font-semibold text-primary/80 uppercase tracking-widest">
+            Built & Developed by Abdul Nadeem Mohd
+          </div>
         </section>
 
         {/* Mission & Vision Cards */}

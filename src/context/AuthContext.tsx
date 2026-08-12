@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { AuthUser, PRECONFIGURED_USERS, UserRole } from "@/lib/auth";
+import { AuthUser, UserRole } from "@/lib/auth";
 import { authService } from "@/services/authService";
 
 export type { UserRole };
@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, pass: string, role?: UserRole, remember?: boolean) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
+  loginWithFirebase: (idToken: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
   registerSeeker: (name: string, email: string, phone: string, country: string, pass: string) => Promise<{ success: boolean }>;
   registerRecruiter: (name: string, company: string, email: string, website: string, phone: string, location: string, designation: string, pass: string) => Promise<{ success: boolean }>;
   logout: () => void;
@@ -57,12 +58,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: false, error: res.error || "Authentication failed." };
   };
 
+  const loginWithFirebase = async (idToken: string) => {
+    setIsLoading(true);
+    const res = await authService.loginWithFirebase(idToken);
+    setIsLoading(false);
+
+    if (res.success && res.user) {
+      setUser(res.user);
+      return { success: true, user: res.user };
+    }
+    return { success: false, error: res.error || "Firebase authentication failed." };
+  };
+
   const registerSeeker = async (name: string, email: string, phone: string, country: string, pass: string) => {
     setIsLoading(true);
     const res = await authService.registerSeeker({ name, email, phone, country, password: pass });
     setIsLoading(false);
-    setUser(res.user);
-    return { success: true };
+    if (res.success && res.user) {
+      setUser(res.user);
+      return { success: true };
+    }
+    return { success: false, error: res.error || "Registration failed" };
   };
 
   const registerRecruiter = async (
@@ -87,8 +103,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: pass,
     });
     setIsLoading(false);
-    setUser(res.user);
-    return { success: true };
+    if (res.success && res.user) {
+      setUser(res.user);
+      return { success: true };
+    }
+    return { success: false, error: res.error || "Registration failed" };
   };
 
   const logout = () => {
@@ -117,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithFirebase,
         registerSeeker,
         registerRecruiter,
         logout,

@@ -61,12 +61,20 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
           )}
 
           {!isAuthenticated ? (
-            <Link
-              href="/register"
-              className="px-3.5 py-1.5 text-xs font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target whitespace-nowrap flex-shrink-0"
-            >
-              Sign Up
-            </Link>
+            <div className="flex items-center gap-1.5">
+              <Link
+                href="/login?role=seeker"
+                className="px-2.5 py-1.5 text-xs font-bold text-on-surface hover:text-primary rounded-full hover:bg-surface-container transition-all touch-target whitespace-nowrap flex-shrink-0"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="px-3 py-1.5 text-xs font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target whitespace-nowrap flex-shrink-0"
+              >
+                Sign Up
+              </Link>
+            </div>
           ) : (
             <Link href={user?.role === "RECRUITER" ? "/recruiter/profile" : "/profile"}>
               <img

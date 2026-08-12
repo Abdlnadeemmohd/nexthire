@@ -31,8 +31,24 @@
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
     min-height: 100vh;
+    min-height: 100dvh;
   }
 }
+
+/* Safe Area Inset Support for Mobile Devices with Notches / Dynamic Islands */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 
 /* WCAG 2.2 AA Accessible High-Contrast Focus Rings & Buttons */
 *:focus-visible {

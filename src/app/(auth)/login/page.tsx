@@ -6,12 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase/client";
 import { hasRouteAccess } from "@/lib/auth";
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth();
+  const { login, loginWithFirebase } = useAuth();
   const { showToast } = useToast();
 
   const redirectUrl = searchParams.get("redirect") || "";
@@ -26,6 +28,30 @@ function LoginFormContent() {
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setErrorMsg("");
+    setIsSubmitting(true);
+    try {
+      const cred = await signInWithPopup(auth, googleProvider);
+      const idToken = await cred.user.getIdToken();
+      const result = await loginWithFirebase(idToken);
+      setIsSubmitting(false);
+
+      if (result.success && result.user) {
+        showToast(`Welcome back, ${result.user.name}!`, "success");
+        let targetUrl = "/dashboard";
+        if (result.user.role === "PLATFORM_ADMIN") targetUrl = "/admin";
+        else if (result.user.role === "RECRUITER") targetUrl = "/recruiter";
+        window.location.href = targetUrl;
+      } else {
+        setErrorMsg(result.error || "Firebase authentication token verification failed.");
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMsg(err.message || "Google Sign-In was cancelled or failed.");
+    }
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +97,19 @@ function LoginFormContent() {
           </div>
         </div>
       )}
+
+      {/* Top Auth Mode Navigation Toggle */}
+      <div className="flex items-center justify-between p-1.5 bg-surface-container border border-outline-variant/30 rounded-2xl text-xs font-bold shadow-2xs">
+        <span className="px-4 py-2 bg-primary text-on-primary rounded-xl flex-1 text-center shadow-xs">
+          Sign In
+        </span>
+        <Link
+          href="/register"
+          className="px-4 py-2 text-on-surface-variant hover:text-primary rounded-xl flex-1 text-center transition-colors"
+        >
+          Create Account / Sign Up
+        </Link>
+      </div>
 
       {/* Role Switcher Tabs */}
       <div className="flex bg-surface-container-high p-1 rounded-2xl text-xs font-bold shadow-xs">
@@ -211,6 +250,7 @@ function LoginFormContent() {
           <div className="grid grid-cols-4 gap-2">
             <button
               type="button"
+              onClick={handleGoogleSignIn}
               className="py-2.5 bg-surface border border-outline-variant/30 hover:bg-surface-container rounded-xl flex items-center justify-center text-on-surface transition-colors shadow-xs"
               title="Sign in with Google"
             >

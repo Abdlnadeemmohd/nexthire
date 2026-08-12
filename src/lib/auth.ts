@@ -51,6 +51,7 @@ export interface AuthUser {
   avatar: string;
   status: "VERIFIED" | "PENDING" | "BLOCKED";
   badgeStatus?: "APPROVED" | "PENDING" | "SUSPENDED" | "REJECTED";
+  companyId?: string;
   companyName?: string;
   headline?: string;
   phone?: string;

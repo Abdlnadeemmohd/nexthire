@@ -29,7 +29,10 @@ export const metadata: Metadata = {
     "Remote Tech Jobs",
     "NextHire Cloud",
   ],
-  authors: [{ name: "NextHire Technologies", url: "https://www.nexthire.cloud" }],
+  authors: [
+    { name: "Abdul Nadeem Mohd", url: process.env.NEXT_PUBLIC_DEVELOPER_URL || "https://www.nexthire.cloud/developer" },
+    { name: "NextHire Platform", url: "https://www.nexthire.cloud" },
+  ],
   openGraph: {
     title: "NextHire | AI-Powered Premium Global Job Portal",
     description: "Find your next career breakthrough with AI-verified skill matching.",

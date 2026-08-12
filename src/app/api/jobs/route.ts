@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { INITIAL_JOBS } from "@/lib/mockData";
+import { getAuthenticatedUser } from "@/lib/auth/session";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -7,8 +9,61 @@ export async function GET(request: Request) {
   const location = searchParams.get("location") || "";
   const category = searchParams.get("category") || "";
 
-  let filtered = INITIAL_JOBS;
+  try {
+    const dbJobs = await prisma.job.findMany({
+      where: {
+        status: "ACTIVE",
+        AND: [
+          q
+            ? {
+                OR: [
+                  { title: { contains: q, mode: "insensitive" } },
+                  { description: { contains: q, mode: "insensitive" } },
+                  { skills: { contains: q, mode: "insensitive" } },
+                ],
+              }
+            : {},
+          location ? { location: { contains: location, mode: "insensitive" } } : {},
+          category && category !== "ALL" ? { category: { equals: category } } : {},
+        ],
+      },
+      include: { company: true },
+      orderBy: { createdAt: "desc" },
+    });
 
+    if (dbJobs && dbJobs.length > 0) {
+      const formatted = dbJobs.map((j) => ({
+        id: j.id,
+        title: j.title,
+        companyName: j.company.name,
+        companyLogo: j.company.logo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
+        location: j.location,
+        country: j.country,
+        salaryMin: j.salaryMin,
+        salaryMax: j.salaryMax,
+        employmentType: j.employmentType,
+        experienceLevel: j.experienceLevel,
+        category: j.category,
+        isRemote: j.isRemote,
+        matchScore: 95,
+        tags: j.skills ? j.skills.split(",").map((s) => s.trim()) : [],
+        description: j.description,
+        responsibilities: j.responsibilities ? JSON.parse(j.responsibilities) : [],
+        requirements: j.requirements ? JSON.parse(j.requirements) : [],
+        benefits: j.benefits ? JSON.parse(j.benefits) : [],
+        postedAt: j.createdAt.toISOString().split("T")[0],
+        companyDescription: j.company.description,
+        companyWebsite: j.company.website || "",
+        companySize: "100-250 employees",
+      }));
+
+      return NextResponse.json({ success: true, count: formatted.length, data: formatted });
+    }
+  } catch (err) {
+    console.warn("Prisma jobs query failed, using initial jobs fixture:", err);
+  }
+
+  let filtered = INITIAL_JOBS;
   if (q) {
     filtered = filtered.filter(
       (j) =>
@@ -16,13 +71,11 @@ export async function GET(request: Request) {
         j.tags.some((t) => t.toLowerCase().includes(q.toLowerCase()))
     );
   }
-
   if (location) {
     filtered = filtered.filter((j) =>
       j.location.toLowerCase().includes(location.toLowerCase())
     );
   }
-
   if (category && category !== "ALL") {
     filtered = filtered.filter((j) => j.category === category);
   }
@@ -31,39 +84,81 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const match = cookieHeader.match(/nexthire_auth_session=([^;]+)/);
-  
-  if (!match) {
-    return NextResponse.json({ success: false, error: "Unauthorized: Missing session" }, { status: 401 });
+  const authUser = await getAuthenticatedUser();
+  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Recruiter or Admin role required" },
+      { status: 403 }
+    );
   }
 
   try {
-    const user = JSON.parse(decodeURIComponent(match[1]));
-    if (user.role !== "RECRUITER" && user.role !== "PLATFORM_ADMIN") {
-      return NextResponse.json({ success: false, error: "Forbidden: Only recruiters and admins can post jobs" }, { status: 403 });
+    const body = await request.json();
+    
+    // Attempt DB creation
+    try {
+      let companyId = body.companyId;
+      if (!companyId) {
+        let comp = await prisma.company.findFirst();
+        if (!comp) {
+          comp = await prisma.company.create({
+            data: {
+              name: authUser.companyName || "Enterprise Partner Inc",
+              industry: "Software",
+              location: "San Francisco, CA",
+              description: "Enterprise software organization.",
+            },
+          });
+        }
+        companyId = comp.id;
+      }
+
+      const newJob = await prisma.job.create({
+        data: {
+          title: body.title || "Software Engineer",
+          description: body.description || "Exciting engineering opportunity.",
+          responsibilities: JSON.stringify(body.responsibilities || []),
+          requirements: JSON.stringify(body.requirements || []),
+          benefits: JSON.stringify(body.benefits || []),
+          location: body.location || "San Francisco, CA",
+          country: body.country || "United States",
+          salaryMin: body.salaryMin || 120000,
+          salaryMax: body.salaryMax || 160000,
+          employmentType: body.employmentType || "FULL_TIME",
+          experienceLevel: body.experienceLevel || "Mid-Senior",
+          category: body.category || "Engineering",
+          isRemote: body.isRemote ?? true,
+          skills: Array.isArray(body.tags) ? body.tags.join(",") : body.skills || "TypeScript, React",
+          status: "ACTIVE",
+          companyId,
+          recruiterId: authUser.id,
+        },
+      });
+
+      return NextResponse.json({ success: true, data: newJob }, { status: 201 });
+    } catch {
+      // Memory fallback
+      const newJobMemory = {
+        id: `job-${Date.now()}`,
+        postedAt: "Just now",
+        matchScore: 95,
+        companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
+        companyName: authUser.companyName || "Stellar Systems",
+        companyDescription: "Next-gen software organization.",
+        companyWebsite: "https://stellarsystems.ai",
+        companySize: "250-500 employees",
+        responsibilities: body.responsibilities || ["Deliver software modules."],
+        requirements: body.requirements || ["3+ years experience."],
+        benefits: body.benefits || ["Health insurance", "PTO"],
+        ...body,
+      };
+      INITIAL_JOBS.unshift(newJobMemory);
+      return NextResponse.json({ success: true, data: newJobMemory }, { status: 201 });
     }
-  } catch {
-    return NextResponse.json({ success: false, error: "Unauthorized: Invalid session" }, { status: 401 });
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: err.message || "Failed to create job" },
+      { status: 500 }
+    );
   }
-
-  const body = await request.json();
-  const newJob = {
-    id: `job-${Date.now()}`,
-    postedAt: "Just now",
-    matchScore: 95,
-    companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuDUSY4HuOhQnp99RQGM7nj2qJaAWM49iI9uWz43APGGY9elmswm8Xhx8Hx3opdXODLdtZq0n-bxGcH7MRRbeOar3uNrgkHm1g4eL86ilUFWlHgKQHoc0-DqJsvor7xRNbZXRHP0WvFXR_dNDhMolXMQPnmQg4Jl_XDs_ssI9JsQ_WcIV4LJRpTCzOkZnd3pXcC9vurP6zcFOrmGm5bUwPACA1hF1P7gnmLUPkIZbbhMPh5kRmRcRFnUqsykv9lu5Rpjm64oHzTH_oyL",
-    companyName: "Stellar Systems",
-    companyDescription: "Next-gen enterprise software organization.",
-    companyWebsite: "https://stellarsystems.ai",
-    companySize: "250-500 employees",
-    responsibilities: ["Lead engineering deliverables.", "Collaborate across teams."],
-    requirements: ["5+ years relevant experience."],
-    benefits: ["Full health insurance", "Equity package"],
-    ...body,
-  };
-
-  INITIAL_JOBS.unshift(newJob);
-
-  return NextResponse.json({ success: true, data: newJob }, { status: 201 });
 }
