@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
-import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { Modal } from "@/components/ui/Modal";
 
 interface SupportTicket {
   id: string;
@@ -54,7 +55,7 @@ const INITIAL_SUPPORT_TICKETS: SupportTicket[] = [
     submitterName: "Sarah Jenkins",
     submitterEmail: "sarah.jenkins@techcorp.io",
     submitterRole: "RECRUITER",
-    subject: "Monthly Growth Plan Invoice Invoice Receipt",
+    subject: "Monthly Growth Plan Invoice Receipt",
     category: "BILLING",
     priority: "P2_NORMAL",
     status: "RESOLVED",
@@ -64,21 +65,236 @@ const INITIAL_SUPPORT_TICKETS: SupportTicket[] = [
   },
 ];
 
-export default function HelpCentrePage() {
+interface FaqItem {
+  id: string;
+  category: "AUTH" | "SEEKER" | "RECRUITER" | "PRIVACY" | "BILLING" | "AI";
+  q: string;
+  a: string;
+}
+
+const FAQS_DATA: FaqItem[] = [
+  // Account & Authentication
+  {
+    id: "auth-1",
+    category: "AUTH",
+    q: "How do I create a NextHire account?",
+    a: "Click 'Sign Up' in the top navigation or navigate to /register. Select whether you are registering as a Job Seeker (Candidate) or an Employer (Recruiter), provide your details, and verify your email address.",
+  },
+  {
+    id: "auth-2",
+    category: "AUTH",
+    q: "How do I reset my password?",
+    a: "Navigate to the Sign In page and click 'Forgot Password?' or visit /forgot-password. Enter your registered email address, and we will immediately dispatch a secure password reset link.",
+  },
+  {
+    id: "auth-3",
+    category: "AUTH",
+    q: "How do I verify my email?",
+    a: "Upon registration, a verification email is automatically sent with a confirmation link. If you did not receive it, visit /verify-email to request a new verification link.",
+  },
+  {
+    id: "auth-4",
+    category: "AUTH",
+    q: "What should I do if I cannot sign in?",
+    a: "Ensure your email and password are entered correctly. If you signed up via Google Single Sign-On, click 'Sign In with Google'. If you forgot your registered email, visit /recover-email to submit an account recovery inquiry.",
+  },
+
+  // Job Seeker
+  {
+    id: "seeker-1",
+    category: "SEEKER",
+    q: "How do I complete my candidate profile?",
+    a: "Log into your Candidate Dashboard and navigate to 'Profile'. You can add your headline, bio, location, top skills, work experience history, and educational background.",
+  },
+  {
+    id: "seeker-2",
+    category: "SEEKER",
+    q: "How do I upload and parse my resume?",
+    a: "Navigate to 'Resume Studio' in your dashboard. You can upload PDF or DOCX resume files (up to 5MB). NextHire will automatically parse your skills and experience to match against published job openings.",
+  },
+  {
+    id: "seeker-3",
+    category: "SEEKER",
+    q: "How do I apply for a job?",
+    a: "Browse live jobs on the /jobs page. Select any listing to view requirements, salary ranges, and match breakdown, then click 'Apply Now' to submit your application and tailored resume.",
+  },
+  {
+    id: "seeker-4",
+    category: "SEEKER",
+    q: "How can I track my submitted applications?",
+    a: "Go to 'Applications' in your dashboard. You can monitor your application status across stages including Submitted, Under Review, Shortlisted, Interview Scheduled, and Offer.",
+  },
+
+  // Recruiter
+  {
+    id: "recruiter-1",
+    category: "RECRUITER",
+    q: "How do I create a recruiter account?",
+    a: "Visit /register, select 'Register as Employer', and provide your official corporate email address, company name, and company website.",
+  },
+  {
+    id: "recruiter-2",
+    category: "RECRUITER",
+    q: "How do I create and verify my company profile?",
+    a: "Navigate to 'Company Profile' in the Recruiter portal. Add your logo, company description, headquarters, and submit your business verification documents to earn the Verified Employer badge.",
+  },
+  {
+    id: "recruiter-3",
+    category: "RECRUITER",
+    q: "How do I post a new job opening?",
+    a: "From the Recruiter portal, click 'Post a New Job' (/recruiter/jobs/new). Fill in the title, role requirements, skill tags, employment type, location (remote/onsite), and compensation details.",
+  },
+  {
+    id: "recruiter-4",
+    category: "RECRUITER",
+    q: "How can I manage candidate pipelines?",
+    a: "Use the visual Kanban pipeline on the Applicants page (/recruiter/applicants). You can drag or move candidates across hiring stages, schedule interviews, and log evaluation notes.",
+  },
+
+  // Account & Privacy
+  {
+    id: "privacy-1",
+    category: "PRIVACY",
+    q: "How can I update my privacy settings?",
+    a: "Visit 'Settings' in your account navigation to manage profile visibility, search indexing preferences, and marketing notification preferences.",
+  },
+  {
+    id: "privacy-2",
+    category: "PRIVACY",
+    q: "How can I request a complete export of my personal data?",
+    a: "Under 'Account Settings > Data & Privacy', you can request a complete export of your personal profile data, applications, and documents in compliance with GDPR and CCPA.",
+  },
+  {
+    id: "privacy-3",
+    category: "PRIVACY",
+    q: "How do I permanently delete my account?",
+    a: "Navigate to 'Account Settings > Danger Zone' and select 'Delete Account'. This will revoke active sessions and permanently delete your profile and application history.",
+  },
+
+  // Billing
+  {
+    id: "billing-1",
+    category: "BILLING",
+    q: "What subscription plans are available for recruiters?",
+    a: "NextHire offers Starter, Growth, and Enterprise plans with flexible monthly and annual billing. Check /recruiter/billing for active pricing tiers, feature limits, and outreach allowances.",
+  },
+  {
+    id: "billing-2",
+    category: "BILLING",
+    q: "How do invoices and payment receipts work?",
+    a: "All payments are processed securely via Stripe. Invoices and VAT receipts are available for download under 'Billing & Invoices' in the Recruiter portal.",
+  },
+
+  // AI & Matching
+  {
+    id: "ai-1",
+    category: "AI",
+    q: "How is the AI Match Score calculated?",
+    a: "NextHire analyzes candidate verified skill tags, years of domain experience, and role competencies against the employer's published job criteria to calculate an objective match percentage.",
+  },
+  {
+    id: "ai-2",
+    category: "AI",
+    q: "Do recruiters see my full resume and application notes?",
+    a: "Yes. When you submit an application, verified recruiters on that job requisition can securely view your resume and evaluation metrics within their company portal.",
+  },
+];
+
+function HelpCentreContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+
+  const sectionParam = searchParams.get("section");
+  const [activeTab, setActiveTab] = useState<"overview" | "contact" | "faq">(
+    sectionParam === "contact" ? "contact" : sectionParam === "faq" ? "faq" : "overview"
+  );
+
+  useEffect(() => {
+    if (sectionParam === "contact") setActiveTab("contact");
+    else if (sectionParam === "faq") setActiveTab("faq");
+    else setActiveTab("overview");
+  }, [sectionParam]);
+
+  const handleTabChange = (tab: "overview" | "contact" | "faq") => {
+    setActiveTab(tab);
+    if (tab === "overview") router.push("/help");
+    else router.push(`/help?section=${tab}`);
+  };
+
+  // Search & FAQ filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [faqCategoryFilter, setFaqCategoryFilter] = useState<string>("ALL");
+  const [openFaqId, setOpenFaqId] = useState<string | null>("auth-1");
+
+  // Contact Form State
+  const [contactName, setContactName] = useState(user?.name || "");
+  const [contactEmail, setContactEmail] = useState(user?.email || "");
+  const [contactUserType, setContactUserType] = useState<string>(
+    user?.role === "RECRUITER" ? "RECRUITER" : "CANDIDATE"
+  );
+  const [contactSubject, setContactSubject] = useState("");
+  const [contactCategory, setContactCategory] = useState("Account & Login");
+  const [contactMessage, setContactMessage] = useState("");
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSuccessMessage, setContactSuccessMessage] = useState("");
+  const [contactErrorMessage, setContactErrorMessage] = useState("");
+
+  // Admin Tickets State
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_SUPPORT_TICKETS);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [replyInput, setReplyInput] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [search, setSearch] = useState("");
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Candidate/Recruiter Ticket Submission Modal State
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [ticketSubject, setTicketSubject] = useState("");
-  const [ticketCategory, setTicketCategory] = useState<"BILLING" | "VERIFICATION" | "TECHNICAL" | "GENERAL">("GENERAL");
-  const [ticketDesc, setTicketDesc] = useState("");
-  const [ticketSuccessMsg, setTicketSuccessMsg] = useState("");
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactErrorMessage("");
+    setContactSuccessMessage("");
+
+    if (!contactName.trim() || !contactEmail.trim() || !contactSubject.trim() || !contactMessage.trim()) {
+      setContactErrorMessage("Please complete all required fields.");
+      return;
+    }
+
+    setIsSubmittingContact(true);
+
+    try {
+      const res = await fetch("/api/support/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          userType: contactUserType,
+          subject: contactSubject,
+          category: contactCategory,
+          message: contactMessage,
+        }),
+      });
+
+      const data = await res.json();
+      setIsSubmittingContact(false);
+
+      if (res.ok && data.success) {
+        setContactSuccessMessage(data.message || `Support ticket created successfully!`);
+        setContactSubject("");
+        setContactMessage("");
+      } else {
+        setContactErrorMessage(data.error || "Unable to send support request. Please try again.");
+      }
+    } catch {
+      setIsSubmittingContact(false);
+      setContactErrorMessage("Network error communicating with support service. Please try again.");
+    }
+  };
+
+  const filteredFaqs = FAQS_DATA.filter((f) => {
+    if (faqCategoryFilter !== "ALL" && f.category !== faqCategoryFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const portalType =
     user?.role === "RECRUITER"
@@ -87,340 +303,527 @@ export default function HelpCentrePage() {
       ? "admin"
       : "seeker";
 
-  const handleResolveTicket = (ticketId: string, newStatus: "IN_PROGRESS" | "RESOLVED") => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId
-          ? { ...t, status: newStatus, replyText: replyInput || t.replyText || "Updated by Support Admin." }
-          : t
-      )
-    );
-    setSelectedTicket(null);
-    setReplyInput("");
-  };
-
-  const handleCreateTicketSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ticketSubject.trim() || !ticketDesc.trim()) return;
-
-    const newTicket: SupportTicket = {
-      id: `TICK-${Math.floor(100 + Math.random() * 900)}`,
-      submitterName: user?.name || "User",
-      submitterEmail: user?.email || "user@nexthire.com",
-      submitterRole: user?.role === "RECRUITER" ? "RECRUITER" : "JOB_SEEKER",
-      subject: ticketSubject,
-      category: ticketCategory,
-      priority: "P2_NORMAL",
-      status: "OPEN",
-      submittedAt: "Just now",
-      description: ticketDesc,
-    };
-
-    setTickets([newTicket, ...tickets]);
-    setTicketSuccessMsg(`Support Ticket ${newTicket.id} successfully created! Our support desk will respond shortly.`);
-    setTicketSubject("");
-    setTicketDesc("");
-    setTimeout(() => {
-      setTicketSuccessMsg("");
-      setIsSubmitModalOpen(false);
-    }, 2000);
-  };
-
-  const filteredTickets = tickets.filter((t) => {
-    if (statusFilter !== "ALL" && t.status !== statusFilter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        t.subject.toLowerCase().includes(q) ||
-        t.submitterName.toLowerCase().includes(q) ||
-        t.id.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const hasSidebar = !!user;
 
   return (
-    <ProtectedRoute>
+    <>
       <TopAppBar />
 
-      <div className="flex pt-16 min-h-screen bg-surface">
-        <SidebarNav portal={portalType} />
+      <div className={`flex pt-16 min-h-screen bg-surface ${hasSidebar ? "" : "flex-col"}`}>
+        {hasSidebar && <SidebarNav portal={portalType} />}
 
-        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
-            {/* PLATFORM OWNER: SUPPORT OPERATIONS DASHBOARD (ZENDESK / INTERCOM INBOX) */}
-            {user?.role === "PLATFORM_ADMIN" ? (
+        <div className={`flex-1 ${hasSidebar ? "lg:pl-[270px]" : ""} flex flex-col min-h-[calc(100vh-4rem)]`}>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1400px] w-full mx-auto space-y-8">
+
+            {/* PLATFORM ADMIN DESK (For Admins) */}
+            {user?.role === "PLATFORM_ADMIN" && (
+              <div className="glass-card rounded-2xl p-4 border border-primary/20 bg-primary/5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="material-symbols-outlined text-primary text-xl" aria-hidden="true">admin_panel_settings</span>
+                  <span className="font-bold text-on-surface">Platform Admin Support Operations Desk Active</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTicket(tickets[0])}
+                  className="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl shadow-xs"
+                >
+                  Manage Inbound Tickets ({tickets.filter((t) => t.status === "OPEN").length})
+                </button>
+              </div>
+            )}
+
+            {/* Header Title & Subtitle */}
+            <div className="space-y-2 border-b border-outline-variant/20 pb-6">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-2xl" aria-hidden="true">
+                  support_agent
+                </span>
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                  NextHire Help Centre &amp; Support
+                </h1>
+              </div>
+              <p className="text-on-surface-variant text-xs sm:text-sm max-w-2xl leading-relaxed">
+                Find answers to common questions about your account, application status, resume parsing, and employer verification, or get in touch directly with our support operations team.
+              </p>
+            </div>
+
+            {/* Navigation Tabs */}
+            <nav aria-label="Help Centre Navigation" className="flex border-b border-outline-variant/20 gap-2 sm:gap-4 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => handleTabChange("overview")}
+                className={`pb-3 px-3 text-xs sm:text-sm font-bold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-1 focus:ring-primary rounded-t ${
+                  activeTab === "overview"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-outline hover:text-on-surface"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base" aria-hidden="true">dashboard</span>
+                Help Centre Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabChange("contact")}
+                className={`pb-3 px-3 text-xs sm:text-sm font-bold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-1 focus:ring-primary rounded-t ${
+                  activeTab === "contact"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-outline hover:text-on-surface"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base" aria-hidden="true">mail</span>
+                Contact Support
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabChange("faq")}
+                className={`pb-3 px-3 text-xs sm:text-sm font-bold transition-all border-b-2 flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-1 focus:ring-primary rounded-t ${
+                  activeTab === "faq"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-outline hover:text-on-surface"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base" aria-hidden="true">quiz</span>
+                Frequently Asked Questions
+              </button>
+            </nav>
+
+            {/* 1. OVERVIEW TAB */}
+            {activeTab === "overview" && (
               <div className="space-y-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-2xl">headset_mic</span>
-                      <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-                        Support Operations Dashboard
-                      </h1>
-                    </div>
-                    <p className="text-on-surface-variant text-xs sm:text-sm">
-                      Supervise candidate & employer support inquiries, audit billing tickets, and resolve verification requests.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="px-3.5 py-1.5 bg-rose-500/15 text-rose-700 font-bold text-xs rounded-full border border-rose-500/30 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
-                      {tickets.filter((t) => t.status === "OPEN").length} Open Support Tickets
+                {/* Search Bar */}
+                <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 space-y-3 shadow-xs">
+                  <h2 className="font-bold text-base text-on-surface">How can we help you today?</h2>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3.5 top-3 text-outline text-xl" aria-hidden="true">
+                      search
                     </span>
-                  </div>
-                </div>
-
-                {/* Support Stats Bar */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-1">
-                    <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Open Inquiries</span>
-                    <div className="text-3xl font-bold text-rose-600 font-display">
-                      {tickets.filter((t) => t.status === "OPEN").length}
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant">Requires Admin Attention</p>
-                  </div>
-
-                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-1">
-                    <span className="text-[10px] font-bold text-outline uppercase tracking-wider">In Progress</span>
-                    <div className="text-3xl font-bold text-amber-600 font-display">
-                      {tickets.filter((t) => t.status === "IN_PROGRESS").length}
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant">Assigned & Under Review</p>
-                  </div>
-
-                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-1">
-                    <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Resolved Tickets</span>
-                    <div className="text-3xl font-bold text-emerald-700 font-display">
-                      {tickets.filter((t) => t.status === "RESOLVED").length}
-                    </div>
-                    <p className="text-[11px] text-emerald-700 font-medium">99.2% SLA Resolution Rate</p>
-                  </div>
-                </div>
-
-                {/* Filters & Search */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 text-xs font-label-md overflow-x-auto w-full sm:w-auto">
-                    {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED"].map((st) => (
-                      <button
-                        key={st}
-                        onClick={() => setStatusFilter(st)}
-                        className={`px-3.5 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${
-                          statusFilter === st
-                            ? "bg-primary text-on-primary shadow-xs"
-                            : "text-on-surface-variant hover:bg-surface-container"
-                        }`}
-                      >
-                        {st === "ALL" ? "All Tickets" : st.replace("_", " ")}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="relative w-full sm:w-72">
-                    <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">search</span>
                     <input
                       type="text"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search tickets by ID or user..."
-                      className="w-full pl-9 pr-3 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search knowledgebase, verification FAQs, resume guidelines, and documentation..."
+                      className="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>
 
-                {/* Ticket Inbox Section */}
-                {/* Desktop Ticket Inbox Table (MD+ screens) */}
-                <div className="hidden md:block glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px]">
-                        <th className="py-3 px-4">Ticket ID & Subject</th>
-                        <th className="py-3 px-4">Submitter</th>
-                        <th className="py-3 px-4">Category</th>
-                        <th className="py-3 px-4">Priority</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/15 text-on-surface">
-                      {filteredTickets.map((t) => (
-                        <tr key={t.id} className="hover:bg-surface-container-low/50 transition-colors">
-                          <td className="py-3.5 px-4">
-                            <div className="font-bold font-mono text-primary text-[11px]">{t.id}</div>
-                            <div className="font-semibold text-on-surface max-w-xs truncate">{t.subject}</div>
-                            <div className="text-[10px] text-outline">{t.submittedAt}</div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-bold">{t.submitterName}</div>
-                            <div className="text-[11px] text-on-surface-variant">{t.submitterEmail}</div>
-                            <VerifiedBadge role={t.submitterRole} size="sm" />
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 bg-surface-container-high text-on-surface-variant font-bold rounded-md text-[10px]">
-                              {t.category}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`px-2 py-0.5 font-bold rounded-md text-[10px] ${
-                                t.priority === "P0_CRITICAL"
-                                  ? "bg-rose-500/15 text-rose-700"
-                                  : t.priority === "P1_HIGH"
-                                  ? "bg-amber-500/15 text-amber-700"
-                                  : "bg-blue-500/15 text-blue-700"
-                              }`}
-                            >
-                              {t.priority.replace("_", " ")}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`px-2.5 py-0.5 font-bold rounded-full text-[10px] ${
-                                t.status === "OPEN"
-                                  ? "bg-rose-500/15 text-rose-700"
-                                  : t.status === "IN_PROGRESS"
-                                  ? "bg-amber-500/15 text-amber-700"
-                                  : "bg-emerald-500/15 text-emerald-700"
-                              }`}
-                            >
-                              {t.status.replace("_", " ")}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <button
-                              onClick={() => { setSelectedTicket(t); setReplyInput(t.replyText || ""); }}
-                              className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-lg transition-colors text-[11px] touch-target"
-                            >
-                              Manage
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Ticket Inbox Stacked Cards (<MD screens) */}
-                <div className="md:hidden space-y-3">
-                  {filteredTickets.map((t) => (
-                    <div
-                      key={t.id}
-                      className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 space-y-3 shadow-xs"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-bold font-mono text-primary text-[11px]">{t.id}</div>
-                          <h4 className="font-bold text-sm text-on-surface line-clamp-1">{t.subject}</h4>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 font-bold rounded-full text-[10px] flex-shrink-0 ${
-                            t.status === "OPEN"
-                              ? "bg-rose-500/15 text-rose-700"
-                              : t.status === "IN_PROGRESS"
-                              ? "bg-amber-500/15 text-amber-700"
-                              : "bg-emerald-500/15 text-emerald-700"
-                          }`}
-                        >
-                          {t.status.replace("_", " ")}
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-on-surface-variant space-y-1 bg-surface-container-low p-2.5 rounded-xl">
-                        <div><span className="text-outline">Submitter:</span> <span className="font-bold">{t.submitterName}</span></div>
-                        <div><span className="text-outline">Priority:</span> <span className="font-bold">{t.priority.replace("_", " ")}</span></div>
-                        <div><span className="text-outline">Submitted:</span> <span>{t.submittedAt}</span></div>
-                      </div>
-
-                      <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
-                        <VerifiedBadge role={t.submitterRole} size="sm" />
-                        <button
-                          onClick={() => { setSelectedTicket(t); setReplyInput(t.replyText || ""); }}
-                          className="px-3.5 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl shadow-xs touch-target"
-                        >
-                          Manage Ticket
-                        </button>
-                      </div>
+                {/* Quick Assistance Category Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2.5 shadow-xs">
+                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold">
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">lock</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              /* SEEKER AND RECRUITER HELP PORTAL */
-              <div className="space-y-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
-                  <div>
-                    <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-                      Help Centre & Support Desk
-                    </h1>
-                    <p className="text-on-surface-variant text-xs sm:text-sm">
-                      {user?.role === "RECRUITER"
-                        ? "Get assistance with recruiter verification, employer billing, job postings, and API integrations."
-                        : "Search platform guides, application FAQs, ATS match documentation, and contact support."}
+                    <h3 className="font-bold text-sm text-on-surface">Account &amp; Security</h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      Password resets, email verification, two-factor access, and account recovery assistance.
                     </p>
+                    <Link
+                      href="/help?section=faq"
+                      className="inline-block text-primary text-xs font-bold hover:underline pt-1"
+                    >
+                      View Account FAQs &rarr;
+                    </Link>
+                  </div>
+
+                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2.5 shadow-xs">
+                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold">
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">work</span>
+                    </div>
+                    <h3 className="font-bold text-sm text-on-surface">Job Applications</h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      Submitting applications, tracking review stages, scheduling interviews, and ATS scoring.
+                    </p>
+                    <Link
+                      href="/help?section=faq"
+                      className="inline-block text-primary text-xs font-bold hover:underline pt-1"
+                    >
+                      View Candidate FAQs &rarr;
+                    </Link>
+                  </div>
+
+                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2.5 shadow-xs">
+                    <div className="w-10 h-10 bg-tertiary/10 text-tertiary rounded-xl flex items-center justify-center font-bold">
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">domain</span>
+                    </div>
+                    <h3 className="font-bold text-sm text-on-surface">Employer Verification</h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      Verified employer badges, corporate domain validation, and candidate pipeline tools.
+                    </p>
+                    <Link
+                      href="/help?section=faq"
+                      className="inline-block text-primary text-xs font-bold hover:underline pt-1"
+                    >
+                      View Recruiter FAQs &rarr;
+                    </Link>
+                  </div>
+
+                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2.5 shadow-xs">
+                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold">
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">credit_card</span>
+                    </div>
+                    <h3 className="font-bold text-sm text-on-surface">Billing &amp; Subscriptions</h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      SaaS growth plans, Stripe payment receipts, tax invoices, and quota allowances.
+                    </p>
+                    <Link
+                      href="/help?section=faq"
+                      className="inline-block text-primary text-xs font-bold hover:underline pt-1"
+                    >
+                      View Billing FAQs &rarr;
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Direct Contact Banner */}
+                <div className="glass-card bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-2 max-w-xl">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-xl" aria-hidden="true">mark_email_read</span>
+                      <h3 className="font-bold text-base text-on-surface">Need Direct Assistance from Our Support Team?</h3>
+                    </div>
+                    <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+                      Our support operations desk is available to assist candidates and employer teams with technical, billing, and verification requests.
+                    </p>
+                    <div className="pt-2 text-xs text-outline flex flex-wrap gap-4">
+                      <span><strong>Support Channel:</strong> In-App Ticket Desk</span>
+                      <span><strong>Official Support Email:</strong> support@nexthire.cloud</span>
+                    </div>
                   </div>
 
                   <button
-                    onClick={() => setIsSubmitModalOpen(true)}
-                    className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-2 self-start sm:self-auto"
+                    type="button"
+                    onClick={() => handleTabChange("contact")}
+                    className="px-6 py-3 bg-primary text-on-primary font-bold text-xs sm:text-sm rounded-full hover:bg-primary-container transition-all shadow-md flex items-center gap-2 flex-shrink-0"
                   >
-                    <span className="material-symbols-outlined text-base">support_agent</span>
-                    Submit Support Ticket
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">send</span>
+                    Open Contact Support Form
                   </button>
                 </div>
 
-                {/* Search Header */}
-                <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xs">
-                  <h3 className="font-bold text-base text-on-surface">How can we help you today?</h3>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3.5 top-3 text-outline text-xl">search</span>
+                {/* FAQ Highlights Preview */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-base text-on-surface">Frequently Asked Questions</h3>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange("faq")}
+                      className="text-xs font-bold text-primary hover:underline"
+                    >
+                      View All 18 FAQs &rarr;
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {FAQS_DATA.slice(0, 4).map((faq) => {
+                      const isOpen = openFaqId === faq.id;
+                      return (
+                        <div
+                          key={faq.id}
+                          className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
+                            aria-expanded={isOpen}
+                            aria-controls={`faq-answer-${faq.id}`}
+                            className="w-full flex items-center justify-between text-left font-bold text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary rounded p-1"
+                          >
+                            <span>{faq.q}</span>
+                            <span className="material-symbols-outlined text-base text-outline" aria-hidden="true">
+                              {isOpen ? "expand_less" : "expand_more"}
+                            </span>
+                          </button>
+                          {isOpen && (
+                            <p
+                              id={`faq-answer-${faq.id}`}
+                              className="text-xs text-on-surface-variant leading-relaxed pt-2 border-t border-outline-variant/20"
+                            >
+                              {faq.a}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. CONTACT SUPPORT TAB */}
+            {activeTab === "contact" && (
+              <div className="max-w-2xl mx-auto space-y-6">
+                <div className="text-center space-y-1">
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-on-surface">
+                    Contact NextHire Support
+                  </h2>
+                  <p className="text-xs text-on-surface-variant">
+                    Submit your inquiry below. Our support operations team will review and reply via email.
+                  </p>
+                </div>
+
+                {contactSuccessMessage ? (
+                  <div className="glass-card bg-surface-container-lowest border border-emerald-500/30 rounded-3xl p-8 text-center space-y-4 shadow-sm">
+                    <div className="w-14 h-14 bg-emerald-500/15 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-2xl">
+                      <span className="material-symbols-outlined text-3xl" aria-hidden="true">check_circle</span>
+                    </div>
+                    <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+                      Support Request Dispatched
+                    </h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed max-w-md mx-auto">
+                      {contactSuccessMessage}
+                    </p>
+                    <div className="pt-2 flex justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setContactSuccessMessage("")}
+                        className="px-5 py-2 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container transition-all"
+                      >
+                        Submit Another Request
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("faq")}
+                        className="px-5 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-full hover:bg-surface-container transition-all"
+                      >
+                        Browse FAQs
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleContactSubmit} className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xs text-xs">
+                    {contactErrorMessage && (
+                      <div role="alert" className="p-3.5 bg-error-container/40 border border-error/40 text-error text-xs font-bold rounded-xl flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base" aria-hidden="true">error</span>
+                        <span>{contactErrorMessage}</span>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Name */}
+                      <div className="space-y-1">
+                        <label htmlFor="contactName" className="block text-outline font-bold uppercase text-[11px]">
+                          Full Name <span className="text-error">*</span>
+                        </label>
+                        <input
+                          id="contactName"
+                          type="text"
+                          required
+                          value={contactName}
+                          onChange={(e) => setContactName(e.target.value)}
+                          placeholder="e.g. Alex Rivers"
+                          className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-1">
+                        <label htmlFor="contactEmail" className="block text-outline font-bold uppercase text-[11px]">
+                          Email Address <span className="text-error">*</span>
+                        </label>
+                        <input
+                          id="contactEmail"
+                          type="email"
+                          required
+                          value={contactEmail}
+                          onChange={(e) => setContactEmail(e.target.value)}
+                          placeholder="you@company.com"
+                          className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* User Type */}
+                      <div className="space-y-1">
+                        <label htmlFor="contactUserType" className="block text-outline font-bold uppercase text-[11px]">
+                          User / Account Type
+                        </label>
+                        <select
+                          id="contactUserType"
+                          value={contactUserType}
+                          onChange={(e) => setContactUserType(e.target.value)}
+                          className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                        >
+                          <option value="CANDIDATE">Candidate / Job Seeker</option>
+                          <option value="RECRUITER">Employer / Recruiter</option>
+                          <option value="OTHER">Other Platform Visitor</option>
+                        </select>
+                      </div>
+
+                      {/* Category */}
+                      <div className="space-y-1">
+                        <label htmlFor="contactCategory" className="block text-outline font-bold uppercase text-[11px]">
+                          Inquiry Category
+                        </label>
+                        <select
+                          id="contactCategory"
+                          value={contactCategory}
+                          onChange={(e) => setContactCategory(e.target.value)}
+                          className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                        >
+                          <option value="Account & Login">Account &amp; Login</option>
+                          <option value="Profile & Resume">Profile &amp; Resume Parsing</option>
+                          <option value="Job Applications">Job Applications &amp; Tracking</option>
+                          <option value="Recruiter & Verification">Recruiter &amp; Company Verification</option>
+                          <option value="Billing & Invoicing">Billing &amp; Invoicing</option>
+                          <option value="Technical Issue">Technical Bug or Issue</option>
+                          <option value="Other">Other Question</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Subject */}
+                    <div className="space-y-1">
+                      <label htmlFor="contactSubject" className="block text-outline font-bold uppercase text-[11px]">
+                        Subject <span className="text-error">*</span>
+                      </label>
+                      <input
+                        id="contactSubject"
+                        type="text"
+                        required
+                        value={contactSubject}
+                        onChange={(e) => setContactSubject(e.target.value)}
+                        placeholder="Brief summary of your question or issue..."
+                        className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+
+                    {/* Message */}
+                    <div className="space-y-1">
+                      <label htmlFor="contactMessage" className="block text-outline font-bold uppercase text-[11px]">
+                        Message Details <span className="text-error">*</span>
+                      </label>
+                      <textarea
+                        id="contactMessage"
+                        rows={5}
+                        required
+                        value={contactMessage}
+                        onChange={(e) => setContactMessage(e.target.value)}
+                        placeholder="Provide details, relevant URLs, or steps to reproduce..."
+                        className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary leading-relaxed"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmittingContact}
+                      className="w-full py-3.5 bg-primary text-on-primary font-bold text-xs sm:text-sm rounded-full hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2 mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                    >
+                      {isSubmittingContact ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Sending Support Request...
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-base" aria-hidden="true">send</span>
+                          Send Support Request
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* 3. FAQS TAB */}
+            {activeTab === "faq" && (
+              <div className="space-y-6">
+                <div className="text-center space-y-2 max-w-xl mx-auto">
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-on-surface">
+                    Frequently Asked Questions
+                  </h2>
+                  <p className="text-xs text-on-surface-variant">
+                    Browse answers organized by topic, or search specifically for what you need.
+                  </p>
+                </div>
+
+                {/* Search & Category Filter Pills */}
+                <div className="space-y-4">
+                  <div className="relative max-w-md mx-auto">
+                    <span className="material-symbols-outlined absolute left-3.5 top-3 text-outline text-lg" aria-hidden="true">
+                      search
+                    </span>
                     <input
                       type="text"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search knowledgebase, verification FAQs, and platform documentation..."
-                      className="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Filter FAQs by keyword..."
+                      className="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                  </div>
+
+                  <div className="flex flex-wrap justify-center gap-2 text-xs">
+                    {[
+                      { id: "ALL", label: "All Questions" },
+                      { id: "AUTH", label: "Account & Login" },
+                      { id: "SEEKER", label: "Job Seekers" },
+                      { id: "RECRUITER", label: "Employers" },
+                      { id: "PRIVACY", label: "Privacy & Data" },
+                      { id: "BILLING", label: "Billing & Plans" },
+                      { id: "AI", label: "AI Match Engine" },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setFaqCategoryFilter(cat.id)}
+                        className={`px-3.5 py-1.5 rounded-full font-bold transition-all focus:outline-none focus:ring-1 focus:ring-primary ${
+                          faqCategoryFilter === cat.id
+                            ? "bg-primary text-on-primary shadow-xs"
+                            : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container"
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* FAQ Accordion */}
-                <div className="space-y-3">
-                  <h3 className="font-bold text-sm text-on-surface">Frequently Asked Questions</h3>
-                  <div className="space-y-3">
-                    {[
-                      {
-                        q: user?.role === "RECRUITER" ? "How do I get a Verified Employer Badge?" : "How does the AI Match Score work?",
-                        a: user?.role === "RECRUITER"
-                          ? "Submit your official company domain and tax registration document in Company Profile. Our Admin team audits submissions within 24 hours."
-                          : "Our AI matching engine compares your skill tags and work experience against published job requirements to calculate an objective match percentage.",
-                      },
-                      {
-                        q: user?.role === "RECRUITER" ? "How does candidate pipeline management work?" : "Can I apply without an account?",
-                        a: user?.role === "RECRUITER"
-                          ? "Recruiters use a visual Kanban board with stages (Applied, Under Review, Shortlisted, Interview, Offer, Hired). Candidates move with 1 click."
-                          : "You can search public listings without logging in. Submitting an application requires a free account to ensure candidate tracking.",
-                      },
-                    ].map((faq, idx) => (
-                      <div
-                        key={idx}
-                        className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2 cursor-pointer"
-                        onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                {/* FAQ List */}
+                <div className="space-y-3 max-w-3xl mx-auto">
+                  {filteredFaqs.length === 0 ? (
+                    <div className="text-center py-12 text-outline text-xs">
+                      No questions matched your search query. Try another term or{" "}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("contact")}
+                        className="text-primary font-bold hover:underline"
                       >
-                        <div className="flex items-center justify-between font-bold text-xs text-on-surface">
-                          <span>{faq.q}</span>
-                          <span className="material-symbols-outlined text-base">
-                            {openFaq === idx ? "expand_less" : "expand_more"}
-                          </span>
+                        Contact Support
+                      </button>.
+                    </div>
+                  ) : (
+                    filteredFaqs.map((faq) => {
+                      const isOpen = openFaqId === faq.id;
+                      return (
+                        <div
+                          key={faq.id}
+                          className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 space-y-2 shadow-xs"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
+                            aria-expanded={isOpen}
+                            aria-controls={`faq-answer-${faq.id}`}
+                            className="w-full flex items-center justify-between text-left font-bold text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary rounded p-1"
+                          >
+                            <span>{faq.q}</span>
+                            <span className="material-symbols-outlined text-base text-outline" aria-hidden="true">
+                              {isOpen ? "expand_less" : "expand_more"}
+                            </span>
+                          </button>
+                          {isOpen && (
+                            <p
+                              id={`faq-answer-${faq.id}`}
+                              className="text-xs text-on-surface-variant leading-relaxed pt-2 border-t border-outline-variant/20"
+                            >
+                              {faq.a}
+                            </p>
+                          )}
                         </div>
-                        {openFaq === idx && (
-                          <p className="text-xs text-on-surface-variant leading-relaxed pt-2 border-t border-outline-variant/20">
-                            {faq.a}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
@@ -430,15 +833,15 @@ export default function HelpCentrePage() {
         </div>
       </div>
 
-      {/* ADMIN TICKET INSPECT / REPLY MODAL */}
+      {/* ADMIN TICKET REPLY MODAL */}
       {selectedTicket && (
         <Modal
           isOpen={!!selectedTicket}
           onClose={() => setSelectedTicket(null)}
           title={`Support Ticket ${selectedTicket.id}`}
         >
-          <div className="space-y-4">
-            <div className="p-4 bg-surface-container-low rounded-2xl space-y-2 text-xs">
+          <div className="space-y-4 text-xs">
+            <div className="p-4 bg-surface-container-low rounded-2xl space-y-2">
               <div className="flex items-center justify-between font-bold">
                 <span className="text-on-surface">{selectedTicket.submitterName} ({selectedTicket.submitterEmail})</span>
                 <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px]">
@@ -449,107 +852,54 @@ export default function HelpCentrePage() {
               <p className="text-on-surface-variant leading-relaxed">{selectedTicket.description}</p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-on-surface">Admin Response / SLA Resolution Note</label>
+            <div className="space-y-1">
+              <label className="font-bold text-on-surface">Admin Response / Resolution Note</label>
               <textarea
                 rows={3}
                 value={replyInput}
                 onChange={(e) => setReplyInput(e.target.value)}
                 placeholder="Type response to submitter..."
-                className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-outline-variant/20">
               <button
-                onClick={() => handleResolveTicket(selectedTicket.id, "IN_PROGRESS")}
-                className="px-4 py-2 bg-amber-500/15 text-amber-700 font-bold text-xs rounded-xl"
+                type="button"
+                onClick={() => setSelectedTicket(null)}
+                className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-xl"
               >
-                Mark In Progress
+                Close
               </button>
               <button
-                onClick={() => handleResolveTicket(selectedTicket.id, "RESOLVED")}
-                className="px-4 py-2 bg-emerald-700 text-white font-bold text-xs rounded-xl hover:bg-emerald-800 transition-all"
+                type="button"
+                onClick={() => {
+                  setTickets((prev) =>
+                    prev.map((t) =>
+                      t.id === selectedTicket.id
+                        ? { ...t, status: "RESOLVED", replyText: replyInput || "Resolved by support desk." }
+                        : t
+                    )
+                  );
+                  setSelectedTicket(null);
+                  setReplyInput("");
+                }}
+                className="px-4 py-2 bg-emerald-700 text-white font-bold rounded-xl hover:bg-emerald-800 transition-all"
               >
-                Resolve Ticket & Notify User
+                Mark Resolved
               </button>
             </div>
           </div>
         </Modal>
       )}
+    </>
+  );
+}
 
-      {/* USER SUBMIT TICKET MODAL */}
-      {isSubmitModalOpen && (
-        <Modal
-          isOpen={isSubmitModalOpen}
-          onClose={() => setIsSubmitModalOpen(false)}
-          title="Submit Support Ticket"
-        >
-          <form onSubmit={handleCreateTicketSubmit} className="space-y-4">
-            {ticketSuccessMsg ? (
-              <div className="p-4 bg-emerald-500/15 text-emerald-700 rounded-2xl text-xs font-bold">
-                {ticketSuccessMsg}
-              </div>
-            ) : (
-              <>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-on-surface">Inquiry Subject</label>
-                  <input
-                    type="text"
-                    required
-                    value={ticketSubject}
-                    onChange={(e) => setTicketSubject(e.target.value)}
-                    placeholder="Brief summary of your question or issue..."
-                    className="w-full p-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-on-surface">Category</label>
-                  <select
-                    value={ticketCategory}
-                    onChange={(e) => setTicketCategory(e.target.value as any)}
-                    className="w-full p-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="GENERAL">General Platform Inquiry</option>
-                    <option value="VERIFICATION">Employer Verification</option>
-                    <option value="BILLING">Billing & Subscription</option>
-                    <option value="TECHNICAL">Technical Issue</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-on-surface">Detailed Explanation</label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={ticketDesc}
-                    onChange={(e) => setTicketDesc(e.target.value)}
-                    placeholder="Provide details or steps to reproduce..."
-                    className="w-full p-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-3 border-t border-outline-variant/20">
-                  <button
-                    type="button"
-                    onClick={() => setIsSubmitModalOpen(false)}
-                    className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all"
-                  >
-                    Submit Ticket
-                  </button>
-                </div>
-              </>
-            )}
-          </form>
-        </Modal>
-      )}
-    </ProtectedRoute>
+export default function HelpCentrePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface flex items-center justify-center text-xs font-bold text-outline">Loading Help Centre...</div>}>
+      <HelpCentreContent />
+    </Suspense>
   );
 }

@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
                 4. Your Data Rights & Deletion
               </h2>
               <p>
-                You have the right to request a complete export of your personal data (`NextHire_Account_Data.json`) or request permanent deletion of your account at any time through your Account Settings panel.
+                You have the right to request a complete export of your personal data or request permanent deletion of your account at any time through your Account Settings panel.
               </p>
             </section>
           </div>

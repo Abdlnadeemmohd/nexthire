@@ -67,9 +67,9 @@ export function Footer() {
             </div>
             <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "support" ? "block" : "hidden md:block"}`}>
               <li><Link href="/help" className="hover:text-primary transition-colors">Help Centre</Link></li>
-              <li><Link href="/help" className="hover:text-primary transition-colors">Contact Support</Link></li>
-              <li><Link href="/help" className="hover:text-primary transition-colors">Recruiter Guides</Link></li>
-              <li><Link href="/help" className="hover:text-primary transition-colors">System FAQs</Link></li>
+              <li><Link href="/help?section=contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
+              <li><Link href="/help?section=faq" className="hover:text-primary transition-colors">System FAQs</Link></li>
+              <li><Link href="/help" className="hover:text-primary transition-colors">Platform Guides</Link></li>
             </ul>
           </div>
 

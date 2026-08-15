@@ -342,10 +342,10 @@ function LoginFormContent() {
             Recover account.
           </li>
           <li className="leading-relaxed">
-            <Link href="/help" className="text-primary hover:underline font-semibold focus:outline-none focus:ring-1 focus:ring-primary rounded">
-              Need assistance?
-            </Link>{" "}
-            Visit our Help Centre &amp; Support.
+            <span className="text-on-surface-variant">Need assistance? </span>
+            <Link href="/help?section=contact" className="text-primary hover:underline font-semibold focus:outline-none focus:ring-1 focus:ring-primary rounded">
+              Contact Support
+            </Link>
           </li>
         </ul>
       </div>
@@ -356,11 +356,11 @@ function LoginFormContent() {
           Help Centre
         </Link>
         <span className="text-outline-variant/60 select-none" aria-hidden="true">&bull;</span>
-        <Link href="/help" className="hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded px-1">
+        <Link href="/help?section=contact" className="hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded px-1">
           Contact Support
         </Link>
         <span className="text-outline-variant/60 select-none" aria-hidden="true">&bull;</span>
-        <Link href="/help" className="hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded px-1">
+        <Link href="/help?section=faq" className="hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded px-1">
           FAQs
         </Link>
       </nav>
