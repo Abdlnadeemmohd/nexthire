@@ -1,24 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
-import { createSession, SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { createSession, formatSessionCookie, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { PRECONFIGURED_USERS, UserRole } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { email, password, role: requestedRole } = body;
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON request body" },
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const { email, password, role: requestedRole } = body || {};
 
     if (!email || !password) {
       return NextResponse.json(
         { success: false, error: "Email and password are required" },
-        { status: 400 }
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Database User Authentication (Always Active)
+    // 1. Database User Authentication
     let user = null;
     try {
       user = await prisma.user.findUnique({
@@ -34,7 +45,7 @@ export async function POST(request: Request) {
       if (!isValid) {
         return NextResponse.json(
           { success: false, error: "Invalid email or password" },
-          { status: 401 }
+          { status: 401, headers: { "Content-Type": "application/json" } }
         );
       }
 
@@ -44,14 +55,26 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         role: user.role as UserRole,
-        avatar: user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+        avatar:
+          user.avatar ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
         status: "VERIFIED" as const,
         companyName: user.company?.name,
         headline: user.headline || undefined,
       };
 
-      const response = NextResponse.json({ success: true, user: authUser });
-      response.cookies.set(SESSION_COOKIE_NAME, session.token, {
+      const cookieValue = formatSessionCookie({
+        token: session.token,
+        userId: authUser.id,
+        email: authUser.email,
+        role: authUser.role,
+      });
+
+      const response = NextResponse.json(
+        { success: true, user: authUser },
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+      response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -80,15 +103,23 @@ export async function POST(request: Request) {
         if (password !== expectedPass) {
           return NextResponse.json(
             { success: false, error: `Invalid password for ${preconfigured.name}` },
-            { status: 401 }
+            { status: 401, headers: { "Content-Type": "application/json" } }
           );
         }
 
         const session = await createSession(preconfigured.id);
-        const response = NextResponse.json({ success: true, user: preconfigured });
-        
-        const cookieVal = encodeURIComponent(JSON.stringify(preconfigured));
-        response.cookies.set(SESSION_COOKIE_NAME, cookieVal, {
+        const cookieValue = formatSessionCookie({
+          token: session.token,
+          userId: preconfigured.id,
+          email: preconfigured.email,
+          role: preconfigured.role,
+        });
+
+        const response = NextResponse.json(
+          { success: true, user: preconfigured },
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+        response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
           httpOnly: false,
           secure: false,
           sameSite: "lax",
@@ -106,14 +137,25 @@ export async function POST(request: Request) {
         name: email.split("@")[0] || "User",
         email: normalizedEmail,
         role,
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+        avatar:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
         status: "VERIFIED" as const,
         headline: `${role.replace("_", " ")} Account`,
       };
 
-      const cookieVal = encodeURIComponent(JSON.stringify(dynamicUser));
-      const response = NextResponse.json({ success: true, user: dynamicUser });
-      response.cookies.set(SESSION_COOKIE_NAME, cookieVal, {
+      const session = await createSession(dynamicUser.id);
+      const cookieValue = formatSessionCookie({
+        token: session.token,
+        userId: dynamicUser.id,
+        email: dynamicUser.email,
+        role: dynamicUser.role,
+      });
+
+      const response = NextResponse.json(
+        { success: true, user: dynamicUser },
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+      response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
         httpOnly: false,
         secure: false,
         sameSite: "lax",
@@ -127,12 +169,12 @@ export async function POST(request: Request) {
     // In production, reject unauthenticated user when not found in database
     return NextResponse.json(
       { success: false, error: "Invalid email or password" },
-      { status: 401 }
+      { status: 401, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "Internal server error" },
-      { status: 500 }
+      { success: false, error: err?.message || "Internal server error" },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

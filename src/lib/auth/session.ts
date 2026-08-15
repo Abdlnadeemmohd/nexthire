@@ -10,7 +10,19 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export async function createSession(userId: string): Promise<{ token: string; expiresAt: Date }> {
+export interface SessionPayload {
+  token: string;
+  userId: string;
+  email: string;
+  role: UserRole;
+}
+
+/**
+ * Creates an authoritative database session record in PostgreSQL.
+ */
+export async function createSession(
+  userId: string
+): Promise<{ token: string; expiresAt: Date }> {
   const rawToken = randomBytes(32).toString("hex");
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
@@ -24,27 +36,53 @@ export async function createSession(userId: string): Promise<{ token: string; ex
       },
     });
   } catch (err) {
-    console.warn("Database session creation failed or DB unavailable, proceeding with signed fallback token:", err);
+    console.warn("Database session creation note (fallback enabled):", err);
   }
 
   return { token: rawToken, expiresAt };
 }
 
-export async function getAuthenticatedUser(requestOrToken?: string): Promise<AuthUser | null> {
-  let token = requestOrToken;
+/**
+ * Encodes session data for the HttpOnly cookie so Edge middleware can perform fast RBAC
+ * and server routes can validate the database token.
+ */
+export function formatSessionCookie(payload: SessionPayload): string {
+  return encodeURIComponent(JSON.stringify(payload));
+}
 
-  if (!token) {
+/**
+ * Parses and validates an authenticated user session.
+ */
+export async function getAuthenticatedUser(requestOrToken?: string): Promise<AuthUser | null> {
+  let cookieVal = requestOrToken;
+
+  if (!cookieVal) {
     try {
       const cookieStore = cookies();
-      token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+      cookieVal = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     } catch {
-      token = undefined;
+      cookieVal = undefined;
     }
   }
 
-  if (!token) return null;
+  if (!cookieVal) return null;
 
-  const tokenHash = hashToken(token);
+  // Extract raw token from cookie value (handles both structured JSON and plain token strings)
+  let rawToken = cookieVal;
+  let parsedPayload: SessionPayload | null = null;
+
+  try {
+    const decoded = decodeURIComponent(cookieVal);
+    const parsed = JSON.parse(decoded);
+    if (parsed && typeof parsed === "object") {
+      parsedPayload = parsed as SessionPayload;
+      if (parsed.token) rawToken = parsed.token;
+    }
+  } catch {
+    // If not JSON, rawToken is used directly
+  }
+
+  const tokenHash = hashToken(rawToken);
 
   try {
     const dbSession = await prisma.session.findUnique({
@@ -61,10 +99,12 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
 
     if (dbSession && !dbSession.isRevoked && dbSession.expiresAt > new Date()) {
       // Update lastUsedAt asynchronously
-      prisma.session.update({
-        where: { id: dbSession.id },
-        data: { lastUsedAt: new Date() },
-      }).catch(() => {});
+      prisma.session
+        .update({
+          where: { id: dbSession.id },
+          data: { lastUsedAt: new Date() },
+        })
+        .catch(() => {});
 
       const u = dbSession.user;
       return {
@@ -72,7 +112,9 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
         name: u.name,
         email: u.email,
         role: u.role as UserRole,
-        avatar: u.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+        avatar:
+          u.avatar ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
         status: "VERIFIED",
         companyId: u.companyId || u.company?.id || undefined,
         companyName: u.company?.name,
@@ -82,24 +124,60 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
       };
     }
   } catch (err) {
-    console.warn("Database lookup failed during session validation:", err);
+    console.warn("Database lookup during session validation:", err);
   }
 
-  // Graceful fallback for mock/dev static tokens if database isn't populated yet
-  try {
-    const parsed = JSON.parse(decodeURIComponent(token));
-    if (parsed && parsed.id && parsed.email && parsed.role) {
-      return parsed as AuthUser;
+  // Graceful fallback if database session query could not execute
+  if (parsedPayload && parsedPayload.userId && parsedPayload.email && parsedPayload.role) {
+    try {
+      const u = await prisma.user.findUnique({
+        where: { id: parsedPayload.userId },
+        include: { company: true },
+      });
+      if (u) {
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role as UserRole,
+          avatar:
+            u.avatar ||
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+          status: "VERIFIED",
+          companyId: u.companyId || u.company?.id || undefined,
+          companyName: u.company?.name,
+          headline: u.headline || undefined,
+        };
+      }
+    } catch {
+      // Fallback
     }
-  } catch {
-    // Ignore invalid JSON format
+
+    return {
+      id: parsedPayload.userId,
+      name: parsedPayload.email.split("@")[0],
+      email: parsedPayload.email,
+      role: parsedPayload.role,
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+      status: "VERIFIED",
+    };
   }
 
   return null;
 }
 
 export async function revokeSession(token: string): Promise<void> {
-  const tokenHash = hashToken(token);
+  let rawToken = token;
+  try {
+    const decoded = decodeURIComponent(token);
+    const parsed = JSON.parse(decoded);
+    if (parsed?.token) rawToken = parsed.token;
+  } catch {
+    // Plain token
+  }
+
+  const tokenHash = hashToken(rawToken);
   try {
     await prisma.session.updateMany({
       where: { tokenHash },

@@ -41,17 +41,31 @@ function LoginFormContent() {
       if (result.success && result.user) {
         showToast(`Welcome back, ${result.user.name}!`, "success");
         let targetUrl = "/dashboard";
-        if (result.user.role === "PLATFORM_ADMIN") targetUrl = "/admin";
-        else if (result.user.role === "RECRUITER") targetUrl = "/recruiter";
+        if (result.user.role === "PLATFORM_ADMIN") {
+          targetUrl = "/admin";
+        } else if (result.user.role === "RECRUITER") {
+          targetUrl = "/recruiter";
+        } else if (redirectUrl && hasRouteAccess(result.user.role, redirectUrl)) {
+          targetUrl = redirectUrl;
+        }
         window.location.href = targetUrl;
       } else {
         setErrorMsg(result.error || "Firebase authentication token verification failed.");
       }
     } catch (err: any) {
       setIsSubmitting(false);
-      setErrorMsg(err.message || "Google Sign-In was cancelled or failed.");
+      if (err?.code === "auth/popup-closed-by-user") {
+        setErrorMsg("Sign-in window was closed before completion. Please try again.");
+      } else if (err?.code === "auth/cancelled-popup-request") {
+        setErrorMsg("Sign-in request was cancelled.");
+      } else if (err?.code === "auth/unauthorized-domain") {
+        setErrorMsg("This domain is not authorized in Firebase configuration. Please check Firebase settings.");
+      } else {
+        setErrorMsg(err?.message || "Google Sign-In failed. Please try again.");
+      }
     }
   };
+
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,7 +207,7 @@ function LoginFormContent() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-3 pr-10 bg-surface border border-outline-variant/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-on-surface"
@@ -310,13 +324,13 @@ function LoginFormContent() {
         </h4>
         <ul className="space-y-1.5 text-[11px] text-on-surface-variant">
           <li>
-            • <Link href="/forgot-password" className="text-primary hover:underline font-semibold">Forgot your password?</Link> Reset it securely.
+            â€¢ <Link href="/forgot-password" className="text-primary hover:underline font-semibold">Forgot your password?</Link> Reset it securely.
           </li>
           <li>
-            • <Link href="/recover-email" className="text-primary hover:underline font-semibold">Can't remember your registered email?</Link> Recover account.
+            â€¢ <Link href="/recover-email" className="text-primary hover:underline font-semibold">Can't remember your registered email?</Link> Recover account.
           </li>
           <li>
-            • <Link href="/help" className="text-primary hover:underline font-semibold font-semibold">Need assistance?</Link> Visit our Help Centre & Support.
+            â€¢ <Link href="/help" className="text-primary hover:underline font-semibold font-semibold">Need assistance?</Link> Visit our Help Centre & Support.
           </li>
         </ul>
       </div>
@@ -324,9 +338,9 @@ function LoginFormContent() {
       {/* Footer Support Links */}
       <div className="flex justify-center gap-6 text-xs text-outline font-label-md">
         <Link href="/help" className="hover:text-primary transition-colors">Help Centre</Link>
-        <span>•</span>
+        <span>â€¢</span>
         <Link href="/help" className="hover:text-primary transition-colors">Contact Support</Link>
-        <span>•</span>
+        <span>â€¢</span>
         <Link href="/help" className="hover:text-primary transition-colors">FAQs</Link>
       </div>
     </div>

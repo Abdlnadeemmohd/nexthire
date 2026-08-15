@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { sendEmail, generateEmailTemplate } from "@/lib/email";
 
 export interface SendNotificationParams {
   userId: string;
+  userEmail?: string;
   title: string;
   body: string;
   type: "APPLICATION_STATUS" | "INTERVIEW" | "OFFER" | "REJECTION" | "SLA_WARNING" | "SYSTEM";
-  emailTemplate?: string;
+  ctaText?: string;
+  ctaUrl?: string;
 }
 
 class NotificationService {
@@ -21,28 +24,25 @@ class NotificationService {
         },
       });
 
-      // 2. Transactional Email Hook abstraction
-      this.triggerTransactionalEmail(params);
-
-      // 3. Future Firebase Push Notification Hook
-      this.triggerFirebasePush(params);
+      // 2. Dispatch Transactional Email if recipient email is known
+      if (params.userEmail) {
+        const html = generateEmailTemplate(
+          params.title,
+          params.body,
+          params.ctaText || "View in NextHire",
+          params.ctaUrl || "https://www.nexthire.cloud/dashboard"
+        );
+        sendEmail({
+          to: params.userEmail,
+          subject: `[NextHire] ${params.title}`,
+          html,
+        }).catch((e) => console.warn("Email dispatch note:", e));
+      }
 
       return true;
     } catch (err) {
-      console.warn("Failed to create in-app notification:", err);
+      console.warn("Notification delivery note:", err);
       return false;
-    }
-  }
-
-  private triggerTransactionalEmail(params: SendNotificationParams): void {
-    if (process.env.RESEND_API_KEY) {
-      console.log(`[EmailService] Dispatching transactional email '${params.type}' to user ${params.userId}`);
-    }
-  }
-
-  private triggerFirebasePush(params: SendNotificationParams): void {
-    if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-      console.log(`[FCM Push] FCM notification '${params.title}' ready for user ${params.userId}`);
     }
   }
 }

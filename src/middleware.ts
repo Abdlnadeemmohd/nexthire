@@ -4,7 +4,12 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protected route prefixes
+  // 1. Never redirect or intercept API routes with HTML pages
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  // 2. Protected page route prefixes
   const isProtected =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/recruiter") ||
@@ -30,11 +35,15 @@ export function middleware(request: NextRequest) {
   let userRole: string | null = null;
   try {
     const rawVal = cookieSession.value;
-    let parsedUser;
+    let parsedUser: any = null;
     try {
       parsedUser = JSON.parse(decodeURIComponent(rawVal));
     } catch {
-      parsedUser = JSON.parse(rawVal);
+      try {
+        parsedUser = JSON.parse(rawVal);
+      } catch {
+        parsedUser = null;
+      }
     }
     userRole = parsedUser?.role || null;
   } catch {
@@ -47,28 +56,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based route enforcement
+  // 3. Role-based route enforcement
   if (userRole === "JOB_SEEKER") {
     if (pathname.startsWith("/admin") || pathname.startsWith("/recruiter")) {
       return NextResponse.redirect(new URL("/403", request.url));
     }
   } else if (userRole === "RECRUITER") {
-    if (
-      pathname.startsWith("/admin") ||
-      pathname.startsWith("/jobseeker") ||
-      pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/applications") ||
-      pathname.startsWith("/profile")
-    ) {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
-  } else if (userRole === "PLATFORM_ADMIN") {
-    if (
-      pathname.startsWith("/jobseeker") ||
-      pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/applications") ||
-      pathname.startsWith("/profile")
-    ) {
+    if (pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/403", request.url));
     }
   }

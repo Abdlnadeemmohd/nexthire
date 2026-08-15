@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const authUser = await getAuthenticatedUser();
   if (!authUser) {
     return NextResponse.json(
       { success: false, error: "Unauthorized: Active session required for document access" },
-      { status: 401 }
+      { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -34,21 +36,24 @@ export async function GET(request: Request) {
         if (!isApplicant && !isRecruiter && !isAdmin) {
           return NextResponse.json(
             { success: false, error: "Forbidden: You do not have permission to access this candidate document" },
-            { status: 403 }
+            { status: 403, headers: { "Content-Type": "application/json" } }
           );
         }
       }
     } catch {
-      // Memory check fallback
+      // Fallback
     }
   }
 
-  return NextResponse.json({
-    success: true,
-    fileKey,
-    authorizedUser: authUser.email,
-    downloadUrl: `/resumes/Alex_Rivers_Resume_2026.pdf`,
-    mimeType: "application/pdf",
-    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15-minute presigned token
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      fileKey,
+      authorizedUser: authUser.email,
+      downloadUrl: `/resumes/Alex_Rivers_Resume_2026.pdf`,
+      mimeType: "application/pdf",
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15-minute presigned token
+    },
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
 }

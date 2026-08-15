@@ -1,7 +1,60 @@
 import { AuthUser, PRECONFIGURED_USERS, UserRole } from "@/lib/auth";
+import {
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  reload,
+  createUserWithEmailAndPassword,
+  ActionCodeSettings,
+} from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
 
 class AuthService {
   private STORAGE_KEY = "nexthire_auth_user_session";
+
+  private getActionCodeSettings(path: string = "/verify-email"): ActionCodeSettings {
+    const origin =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "https://www.nexthire.cloud";
+    return {
+      url: `${origin}${path}`,
+      handleCodeInApp: true,
+    };
+  }
+
+  /**
+   * Safe parser for authentication API responses to prevent HTML parsing crashes.
+   */
+  private async parseApiResponse<T = any>(
+    res: Response
+  ): Promise<{ success: boolean; data?: T; user?: AuthUser; error?: string }> {
+    const contentType = res.headers.get("content-type") || "";
+    let json: any = null;
+
+    if (contentType.includes("application/json")) {
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
+    }
+
+    if (json && typeof json === "object") {
+      if (res.ok && json.success) {
+        return { success: true, data: json, user: json.user };
+      }
+      return {
+        success: false,
+        error: json.error || `Authentication failed (${res.status} ${res.statusText}).`,
+      };
+    }
+
+    // Non-JSON response (e.g. server infrastructure error or unexpected HTML)
+    return {
+      success: false,
+      error: `Authentication server returned unexpected response format (${res.status} ${res.statusText}).`,
+    };
+  }
 
   /**
    * Database-backed login calling /api/auth/login
@@ -19,17 +72,19 @@ class AuthService {
         body: JSON.stringify({ email, password: pass, role: providedRole }),
       });
 
-      const data = await res.json();
-      if (res.ok && data.success && data.user) {
+      const parsed = await this.parseApiResponse(res);
+
+      if (parsed.success && parsed.user) {
         if (remember && typeof window !== "undefined") {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.user));
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        return { success: true, user: data.user };
+        this.setCookieSession(parsed.user);
+        return { success: true, user: parsed.user };
       }
 
       return {
         success: false,
-        error: data.error || "Authentication failed. Please verify credentials.",
+        error: parsed.error || "Authentication failed. Please verify credentials.",
       };
     } catch {
       // Offline / network fallback for preconfigured users (Development Only)
@@ -61,21 +116,25 @@ class AuthService {
         body: JSON.stringify({ idToken }),
       });
 
-      const data = await res.json();
-      if (res.ok && data.success && data.user) {
+      const parsed = await this.parseApiResponse(res);
+
+      if (parsed.success && parsed.user) {
         if (typeof window !== "undefined") {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.user));
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        this.setCookieSession(data.user);
-        return { success: true, user: data.user };
+        this.setCookieSession(parsed.user);
+        return { success: true, user: parsed.user };
       }
 
       return {
         success: false,
-        error: data.error || "Firebase authentication token validation failed.",
+        error: parsed.error || `Firebase authentication failed (${res.status}).`,
       };
     } catch (err: any) {
-      return { success: false, error: err.message || "Network error validating Firebase session." };
+      return {
+        success: false,
+        error: err?.message || "Network error communicating with Firebase auth service.",
+      };
     }
   }
 
@@ -92,7 +151,8 @@ class AuthService {
       name: `Verified ${provider.charAt(0) + provider.slice(1).toLowerCase()} User`,
       email: `user.${provider.toLowerCase()}@nexthire.cloud`,
       role: role,
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       status: "VERIFIED",
       country: "United States",
       headline: `Verified via ${provider} OAuth SSO`,
@@ -112,6 +172,23 @@ class AuthService {
     password: string;
   }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
     try {
+      // 1. Create Firebase Auth user & send verification email if Firebase client is ready
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        if (cred.user) {
+          await sendEmailVerification(cred.user, this.getActionCodeSettings("/verify-email"));
+        }
+      } catch (fbErr: any) {
+        if (fbErr?.code === "auth/email-already-in-use") {
+          return { success: false, error: "An account with this email address already exists." };
+        } else if (fbErr?.code === "auth/weak-password") {
+          return { success: false, error: "Password must be at least 6 characters long." };
+        } else if (fbErr?.code === "auth/invalid-email") {
+          return { success: false, error: "Please enter a valid email address." };
+        }
+      }
+
+      // 2. Register in NextHire PostgreSQL Database
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,16 +201,18 @@ class AuthService {
         }),
       });
 
-      const resData = await res.json();
-      if (res.ok && resData.success && resData.user) {
+      const parsed = await this.parseApiResponse(res);
+
+      if (parsed.success && parsed.user) {
         if (typeof window !== "undefined") {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(resData.user));
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        return { success: true, user: resData.user };
+        this.setCookieSession(parsed.user);
+        return { success: true, user: parsed.user };
       }
-      return { success: false, error: resData.error || "Registration failed" };
+      return { success: false, error: parsed.error || "Registration failed" };
     } catch (err: any) {
-      return { success: false, error: err.message || "Network error" };
+      return { success: false, error: err?.message || "Network error during registration." };
     }
   }
 
@@ -148,6 +227,23 @@ class AuthService {
     password: string;
   }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
     try {
+      // 1. Create Firebase Auth user & send verification email if Firebase client is ready
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        if (cred.user) {
+          await sendEmailVerification(cred.user, this.getActionCodeSettings("/verify-email"));
+        }
+      } catch (fbErr: any) {
+        if (fbErr?.code === "auth/email-already-in-use") {
+          return { success: false, error: "An account with this corporate email already exists." };
+        } else if (fbErr?.code === "auth/weak-password") {
+          return { success: false, error: "Password must be at least 6 characters long." };
+        } else if (fbErr?.code === "auth/invalid-email") {
+          return { success: false, error: "Please enter a valid corporate email address." };
+        }
+      }
+
+      // 2. Register in NextHire PostgreSQL Database
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -162,23 +258,31 @@ class AuthService {
         }),
       });
 
-      const resData = await res.json();
-      if (res.ok && resData.success && resData.user) {
+      const parsed = await this.parseApiResponse(res);
+
+      if (parsed.success && parsed.user) {
         if (typeof window !== "undefined") {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(resData.user));
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        return { success: true, user: resData.user };
+        this.setCookieSession(parsed.user);
+        return { success: true, user: parsed.user };
       }
-      return { success: false, error: resData.error || "Registration failed" };
+      return { success: false, error: parsed.error || "Registration failed" };
     } catch (err: any) {
-      return { success: false, error: err.message || "Network error" };
+      return { success: false, error: err?.message || "Network error during registration." };
     }
   }
 
   private setCookieSession(user: AuthUser | null) {
     if (typeof window === "undefined") return;
     if (user) {
-      const value = encodeURIComponent(JSON.stringify(user));
+      const payload = {
+        token: user.id,
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      };
+      const value = encodeURIComponent(JSON.stringify(payload));
       document.cookie = `nexthire_auth_session=${value}; path=/; max-age=604800; SameSite=Lax`;
     } else {
       document.cookie = "nexthire_auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -215,9 +319,57 @@ class AuthService {
     }
   }
 
-  public async sendPasswordReset(email: string): Promise<{ success: boolean }> {
-    await new Promise((res) => setTimeout(res, 400));
-    return { success: true };
+  /**
+   * Firebase Password Reset Dispatch
+   */
+  public async sendPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      await sendPasswordResetEmail(auth, email, this.getActionCodeSettings("/login"));
+      return { success: true };
+    } catch (err: any) {
+      let errorMsg = "Failed to send password reset email.";
+      if (err?.code === "auth/user-not-found") {
+        return { success: true };
+      } else if (err?.code === "auth/invalid-email") {
+        errorMsg = "Please enter a valid email address.";
+      } else if (err?.code === "auth/too-many-requests") {
+        errorMsg = "Too many password reset attempts. Please wait a few minutes before retrying.";
+      }
+      return { success: false, error: errorMsg };
+    }
+  }
+
+  /**
+   * Resend Firebase Verification Email
+   */
+  public async sendVerificationEmail(): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser, this.getActionCodeSettings("/verify-email"));
+        return { success: true };
+      }
+      return { success: false, error: "No active Firebase user session found to dispatch email." };
+    } catch (err: any) {
+      return { success: false, error: err?.message || "Failed to send verification email." };
+    }
+  }
+
+  /**
+   * Reload & Check Firebase Email Verification Status
+   */
+  public async checkEmailVerification(): Promise<{ isVerified: boolean; userEmail?: string }> {
+    try {
+      if (auth.currentUser) {
+        await reload(auth.currentUser);
+        return {
+          isVerified: auth.currentUser.emailVerified,
+          userEmail: auth.currentUser.email || undefined,
+        };
+      }
+      return { isVerified: false };
+    } catch {
+      return { isVerified: false };
+    }
   }
 }
 
