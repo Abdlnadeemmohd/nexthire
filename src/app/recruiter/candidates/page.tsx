@@ -6,6 +6,8 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { AIMatchBadge } from "@/components/ui/AIMatchBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 
@@ -207,17 +209,17 @@ export default function CandidateSearchPage() {
             {/* Candidate Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
               {filteredCandidates.map((cand) => (
-                <div
+                <article
                   key={cand.id}
-                  className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 flex flex-col justify-between space-y-5 hover:border-primary/40 transition-all shadow-xs"
+                  className="surface-card bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-5 flex flex-col justify-between space-y-5 hover:border-primary/50 hover:shadow-card-hover transition-all shadow-xs"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <img
                           src={cand.avatar}
                           alt={cand.name}
-                          className="w-12 h-12 rounded-2xl object-cover border border-outline-variant/40 flex-shrink-0"
+                          className="w-12 h-12 rounded-xl object-cover border border-outline-variant/40 flex-shrink-0"
                         />
                         <div>
                           <div className="flex items-center gap-1.5">
@@ -228,27 +230,24 @@ export default function CandidateSearchPage() {
                         </div>
                       </div>
 
-                      <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 text-xs font-bold rounded-xl flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">auto_awesome</span>
-                        {cand.matchScore}% Match
-                      </span>
+                      <AIMatchBadge score={cand.matchScore} size="sm" />
                     </div>
 
-                    <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed font-normal">
                       {cand.summary}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 text-[11px] text-outline">
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">location_on</span>
+                        <span className="material-symbols-outlined text-xs" aria-hidden="true">location_on</span>
                         {cand.location}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">work_history</span>
+                        <span className="material-symbols-outlined text-xs" aria-hidden="true">work_history</span>
                         {cand.experience}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">schedule</span>
+                        <span className="material-symbols-outlined text-xs" aria-hidden="true">schedule</span>
                         {cand.availability}
                       </span>
                     </div>
@@ -266,42 +265,40 @@ export default function CandidateSearchPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-4 border-t border-outline-variant/20">
+                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 pt-4 border-t border-outline-variant/20">
                     <button
+                      type="button"
                       onClick={() => setSelectedCandidate(cand)}
-                      className="flex-1 py-2.5 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-bold rounded-xl transition-all border border-outline-variant/30 flex items-center justify-center gap-1.5"
+                      className="w-full sm:flex-1 py-2.5 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-bold rounded-xl transition-all border border-outline-variant/30 flex items-center justify-center gap-1.5 touch-target focus:outline-none focus:ring-1 focus:ring-primary"
                     >
-                      <span className="material-symbols-outlined text-base">visibility</span>
-                      View Resume & Profile
+                      <span className="material-symbols-outlined text-base" aria-hidden="true">visibility</span>
+                      View Resume &amp; Profile
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleContactCandidate(cand.name)}
-                      className="flex-1 py-2.5 bg-primary hover:bg-primary-container text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+                      className="w-full sm:flex-1 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-active text-on-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs touch-target focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                      <span className="material-symbols-outlined text-base">chat</span>
+                      <span className="material-symbols-outlined text-base" aria-hidden="true">chat</span>
                       Contact Candidate
                     </button>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
 
             {filteredCandidates.length === 0 && (
-              <div className="text-center py-16 bg-surface-container-lowest rounded-3xl border border-outline-variant/30 space-y-3">
-                <span className="material-symbols-outlined text-4xl text-outline">search_off</span>
-                <h3 className="font-bold text-sm text-on-surface">No candidates match your search filters</h3>
-                <p className="text-xs text-on-surface-variant">Try resetting or broadening your search terms.</p>
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedSkill("ALL");
-                    setSelectedStatus("ALL");
-                  }}
-                  className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-xl"
-                >
-                  Reset All Filters
-                </button>
-              </div>
+              <EmptyState
+                icon="person_search"
+                title="No candidates match your search filters"
+                description="Try resetting your active skill filters or broadening your search keywords."
+                actionText="Reset All Filters"
+                onAction={() => {
+                  setSearchQuery("");
+                  setSelectedSkill("ALL");
+                  setSelectedStatus("ALL");
+                }}
+              />
             )}
           </main>
 

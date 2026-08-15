@@ -243,17 +243,18 @@ export default function RecruiterBillingPage() {
               </div>
 
               {/* Promo Code Entry Form */}
-              <form onSubmit={handleApplyPromo} className="pt-4 border-t border-outline-variant/20 flex gap-2">
+              <form onSubmit={handleApplyPromo} className="pt-4 border-t border-outline-variant/20 flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
                   placeholder="Enter promo coupon code (e.g. NEXT15)"
+                  aria-label="Promo coupon code"
                   className="flex-1 px-4 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface focus:outline-none focus:border-primary"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-xl transition-colors"
+                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-xl transition-colors touch-target whitespace-nowrap"
                 >
                   Apply Code
                 </button>

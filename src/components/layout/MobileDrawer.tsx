@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { UserRole, useAuth } from "@/context/AuthContext";
 
@@ -14,10 +14,24 @@ interface MobileDrawerProps {
 export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileDrawerProps) {
   const { logout } = useAuth();
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden md:hidden">
+    <div
+      className="fixed inset-0 z-50 overflow-hidden md:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile Navigation Menu"
+    >
       {/* Backdrop */}
       <div
         onClick={onClose}

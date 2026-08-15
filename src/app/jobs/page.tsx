@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
@@ -360,17 +361,20 @@ function JobSearchContent() {
           {/* Job Listings Column */}
           <div className="lg:col-span-3 space-y-4">
             {filteredJobs.length === 0 ? (
-              <div className="p-12 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant/20 space-y-3">
-                <span className="material-symbols-outlined text-4xl text-outline">
-                  search_off
-                </span>
-                <h3 className="font-headline-sm text-lg font-bold text-on-surface">
-                  No matching jobs found
-                </h3>
-                <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
-                  Try adjusting your keywords, lowering minimum salary, or clearing filters.
-                </p>
-              </div>
+              <EmptyState
+                icon="search_off"
+                title="No matching jobs found"
+                description="Try broadening your search keywords, lowering the minimum salary, or clearing your active filters."
+                actionText="Clear All Filters"
+                onAction={() => {
+                  setKeyword("");
+                  setLocation("");
+                  setSelectedCategory("ALL");
+                  setSelectedEmploymentType("ALL");
+                  setRemoteOnly(false);
+                  setMinSalary(100000);
+                }}
+              />
             ) : (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
                 {filteredJobs.map((job) => (

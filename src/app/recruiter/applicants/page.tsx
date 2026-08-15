@@ -7,6 +7,8 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { StatusBadge } from "@/components/ui/Badge";
+import { AIMatchBadge } from "@/components/ui/AIMatchBadge";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
 import { InterviewScheduleModal, ScheduledInterviewEvent } from "@/components/recruiter/InterviewScheduleModal";
@@ -422,24 +424,9 @@ export default function RecruiterApplicantsPage() {
                       </div>
 
                       {/* AI Match & Stage Badge */}
-                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                        <span className="px-2.5 py-1 bg-tertiary-container/30 border border-tertiary/20 text-tertiary text-xs font-bold rounded-full flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs">auto_awesome</span>
-                          {candidate.aiMatchScore}% Match
-                        </span>
-                        <span
-                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${
-                            candidate.stage === "OFFER" || candidate.stage === "HIRED"
-                              ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
-                              : candidate.stage === "INTERVIEW" || candidate.stage === "TECHNICAL" || candidate.stage === "HR"
-                              ? "bg-purple-500/15 text-purple-700 border border-purple-500/30"
-                              : candidate.stage === "REJECTED"
-                              ? "bg-rose-500/15 text-rose-700 border border-rose-500/30"
-                              : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
-                          }`}
-                        >
-                          {candidate.stage}
-                        </span>
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <AIMatchBadge score={candidate.aiMatchScore} size="sm" />
+                        <StatusBadge status={candidate.stage} size="sm" />
                       </div>
                     </div>
 

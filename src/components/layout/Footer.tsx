@@ -33,63 +33,69 @@ export function Footer() {
 
           {/* Desktop & Collapsible Mobile Navigation Columns */}
           <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-            <div
+            <button
+              type="button"
               onClick={() => toggleSection("platform")}
-              className="flex justify-between items-center cursor-pointer md:cursor-default"
+              aria-expanded={openSection === "platform"}
+              className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none"
             >
               <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
                 Platform
               </h4>
-              <span className="material-symbols-outlined text-sm md:hidden text-outline">
+              <span className="material-symbols-outlined text-sm md:hidden text-outline" aria-hidden="true">
                 {openSection === "platform" ? "expand_less" : "expand_more"}
               </span>
-            </div>
+            </button>
             <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "platform" ? "block" : "hidden md:block"}`}>
-              <li><Link href="/jobs" className="hover:text-primary transition-colors">Browse Live Jobs</Link></li>
-              <li><Link href="/companies" className="hover:text-primary transition-colors">Employer Profiles</Link></li>
-              <li><Link href="/about" className="hover:text-primary transition-colors">About NextHire</Link></li>
-              <li><Link href="/developer" className="hover:text-primary transition-colors">About the Developer</Link></li>
-              <li><Link href="/recruiter/billing" className="hover:text-primary transition-colors">Pricing & Plans</Link></li>
+              <li><Link href="/jobs" className="hover:text-primary transition-colors py-1 inline-block">Browse Live Jobs</Link></li>
+              <li><Link href="/companies" className="hover:text-primary transition-colors py-1 inline-block">Employer Profiles</Link></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors py-1 inline-block">About NextHire</Link></li>
+              <li><Link href="/developer" className="hover:text-primary transition-colors py-1 inline-block">About the Developer</Link></li>
+              <li><Link href="/recruiter/billing" className="hover:text-primary transition-colors py-1 inline-block">Pricing & Plans</Link></li>
             </ul>
           </div>
 
           <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-            <div
+            <button
+              type="button"
               onClick={() => toggleSection("support")}
-              className="flex justify-between items-center cursor-pointer md:cursor-default"
+              aria-expanded={openSection === "support"}
+              className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none"
             >
               <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
                 Support
               </h4>
-              <span className="material-symbols-outlined text-sm md:hidden text-outline">
+              <span className="material-symbols-outlined text-sm md:hidden text-outline" aria-hidden="true">
                 {openSection === "support" ? "expand_less" : "expand_more"}
               </span>
-            </div>
+            </button>
             <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "support" ? "block" : "hidden md:block"}`}>
-              <li><Link href="/help" className="hover:text-primary transition-colors">Help Centre</Link></li>
-              <li><Link href="/help?section=contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
-              <li><Link href="/help?section=faq" className="hover:text-primary transition-colors">System FAQs</Link></li>
-              <li><Link href="/help" className="hover:text-primary transition-colors">Platform Guides</Link></li>
+              <li><Link href="/help" className="hover:text-primary transition-colors py-1 inline-block">Help Centre</Link></li>
+              <li><Link href="/help?section=contact" className="hover:text-primary transition-colors py-1 inline-block">Contact Support</Link></li>
+              <li><Link href="/help?section=faq" className="hover:text-primary transition-colors py-1 inline-block">System FAQs</Link></li>
+              <li><Link href="/help" className="hover:text-primary transition-colors py-1 inline-block">Platform Guides</Link></li>
             </ul>
           </div>
 
           <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-            <div
+            <button
+              type="button"
               onClick={() => toggleSection("legal")}
-              className="flex justify-between items-center cursor-pointer md:cursor-default"
+              aria-expanded={openSection === "legal"}
+              className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none"
             >
               <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
                 Legal
               </h4>
-              <span className="material-symbols-outlined text-sm md:hidden text-outline">
+              <span className="material-symbols-outlined text-sm md:hidden text-outline" aria-hidden="true">
                 {openSection === "legal" ? "expand_less" : "expand_more"}
               </span>
-            </div>
+            </button>
             <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "legal" ? "block" : "hidden md:block"}`}>
-              <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-              <li><Link href="/cookies" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
-              <li><Link href="/settings" className="hover:text-primary transition-colors">Data Privacy Settings</Link></li>
+              <li><Link href="/privacy" className="hover:text-primary transition-colors py-1 inline-block">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-primary transition-colors py-1 inline-block">Terms of Service</Link></li>
+              <li><Link href="/cookies" className="hover:text-primary transition-colors py-1 inline-block">Cookie Policy</Link></li>
+              <li><Link href="/settings" className="hover:text-primary transition-colors py-1 inline-block">Data Privacy Settings</Link></li>
             </ul>
           </div>
         </div>

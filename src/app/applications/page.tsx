@@ -11,6 +11,9 @@ import { useEffect } from "react";
 import { RecruitmentEngine, SyncApplication } from "@/services/recruitmentEngine";
 import { useToast } from "@/components/ui/Toast";
 import { CandidateTimelineModal } from "@/components/recruiter/CandidateTimelineModal";
+import { StatusBadge } from "@/components/ui/Badge";
+import { AIMatchBadge } from "@/components/ui/AIMatchBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const PIPELINE_STAGES = [
   { key: "APPLIED", label: "Applied" },
@@ -117,19 +120,7 @@ export default function ApplicationTrackerPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${
-                      selectedApp.stage === "HIRED" || selectedApp.stage === "OFFER"
-                        ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
-                        : selectedApp.stage === "REJECTED"
-                        ? "bg-rose-500/15 text-rose-700 border border-rose-500/30"
-                        : selectedApp.stage === "WITHDRAWN"
-                        ? "bg-gray-500/15 text-gray-700 border border-gray-500/30"
-                        : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
-                    }`}
-                  >
-                    Status: {selectedApp.stage.replace("_", " ")}
-                  </span>
+                  <StatusBadge status={selectedApp.stage} />
                 </div>
               </div>
 
@@ -279,22 +270,8 @@ export default function ApplicationTrackerPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-tertiary-container/30 text-tertiary font-label-sm font-bold text-xs rounded-full">
-                      Match: {app.aiMatchScore}%
-                    </span>
-                    <span
-                      className={`px-3 py-1 font-label-md font-bold text-xs rounded-full uppercase ${
-                        app.stage === "HIRED" || app.stage === "OFFER"
-                          ? "bg-emerald-500/15 text-emerald-700"
-                          : app.stage === "REJECTED"
-                          ? "bg-rose-500/15 text-rose-700"
-                          : app.stage === "WITHDRAWN"
-                          ? "bg-gray-500/15 text-gray-700"
-                          : "bg-amber-500/15 text-amber-700"
-                      }`}
-                    >
-                      {app.stage.replace("_", " ")}
-                    </span>
+                    <AIMatchBadge score={app.aiMatchScore} size="sm" />
+                    <StatusBadge status={app.stage} size="sm" />
                   </div>
                 </div>
               ))}

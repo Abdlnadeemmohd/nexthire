@@ -18,6 +18,7 @@ export default function MessagingCentrePage() {
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [isPinned, setIsPinned] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
@@ -99,8 +100,8 @@ export default function MessagingCentrePage() {
             isRecruiter: user?.role !== "RECRUITER",
           },
         ]);
-      }, 1500);
-    }, 800);
+      }, 1000);
+    }, 600);
   };
 
   return (
@@ -110,20 +111,25 @@ export default function MessagingCentrePage() {
       <div className="flex bg-surface h-[calc(100vh-64px)] mt-16 overflow-hidden">
         <SidebarNav portal={portalType} />
 
-        <main className="flex-1 lg:pl-[270px] flex flex-col md:flex-row h-full w-full">
+        <main className="flex-1 lg:pl-[270px] flex h-full w-full">
           {/* Conversation List Column */}
-          <aside className="w-full md:w-80 lg:w-96 border-r border-outline-variant/20 bg-surface-container-lowest flex flex-col h-full">
+          <aside
+            className={`w-full md:w-80 lg:w-96 border-r border-outline-variant/20 bg-surface-container-lowest flex-col h-full ${
+              mobileView === "list" ? "flex" : "hidden md:flex"
+            }`}
+          >
             <div className="p-4 border-b border-outline-variant/20 space-y-3">
               <h2 className="font-display text-xl font-bold text-on-surface">
                 Messages
               </h2>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg" aria-hidden="true">
                   search
                 </span>
                 <input
                   type="text"
                   placeholder="Search conversations..."
+                  aria-label="Search conversations"
                   className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -131,7 +137,10 @@ export default function MessagingCentrePage() {
 
             <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/10">
               {/* Active Conversation Item */}
-              <div className="p-4 bg-secondary-container/20 border-l-4 border-primary flex items-center gap-3 cursor-pointer">
+              <div
+                onClick={() => setMobileView("chat")}
+                className="p-4 bg-secondary-container/20 border-l-4 border-primary flex items-center gap-3 cursor-pointer hover:bg-secondary-container/30 transition-colors"
+              >
                 <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                   <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-tertiary rounded-full ring-2 ring-white"></span>
@@ -141,7 +150,7 @@ export default function MessagingCentrePage() {
                     <h4 className="font-headline-sm text-sm font-bold text-on-surface truncate">
                       {activeContact.name}
                     </h4>
-                    <span className="text-[10px] text-outline">10:22 AM</span>
+                    <span className="text-[10px] text-outline font-mono">10:22 AM</span>
                   </div>
                   <p className="text-xs text-on-surface-variant font-label-md truncate">
                     {activeContact.company} • {activeContact.role}
@@ -153,7 +162,10 @@ export default function MessagingCentrePage() {
               </div>
 
               {/* Other Conversations */}
-              <div className="p-4 flex items-center gap-3 hover:bg-surface-container/50 cursor-pointer">
+              <div
+                onClick={() => setMobileView("chat")}
+                className="p-4 flex items-center gap-3 hover:bg-surface-container/50 cursor-pointer transition-colors"
+              >
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-container text-on-primary-container flex items-center justify-center font-bold flex-shrink-0">
                   NS
                 </div>
@@ -162,7 +174,7 @@ export default function MessagingCentrePage() {
                     <h4 className="font-headline-sm text-sm font-bold text-on-surface truncate">
                       NeuralScale Talent Team
                     </h4>
-                    <span className="text-[10px] text-outline">Yesterday</span>
+                    <span className="text-[10px] text-outline font-mono">Yesterday</span>
                   </div>
                   <p className="text-xs text-on-surface-variant font-label-md">
                     Lead AI Architect Position
@@ -175,53 +187,72 @@ export default function MessagingCentrePage() {
             </div>
           </aside>
 
-          {/* Main Slack Chat Window */}
-          <section className="flex-1 flex flex-col h-full bg-surface-container-lowest">
+          {/* Main Chat Window */}
+          <section
+            className={`flex-1 flex-col h-full bg-surface-container-lowest ${
+              mobileView === "chat" ? "flex" : "hidden md:flex"
+            }`}
+          >
             {/* Chat Thread Header */}
-            <div className="px-6 py-4 border-b border-outline-variant/20 flex items-center justify-between bg-surface/80 backdrop-blur-xs">
-              <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden">
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-outline-variant/20 flex items-center justify-between bg-surface/80 backdrop-blur-xs gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setMobileView("list")}
+                  aria-label="Back to conversations"
+                  className="md:hidden p-2 text-on-surface hover:text-primary rounded-xl hover:bg-surface-container transition-colors touch-target"
+                >
+                  <span className="material-symbols-outlined text-xl">arrow_back</span>
+                </button>
+
+                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
                   <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
                   <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-tertiary rounded-full ring-2 ring-white"></span>
                 </div>
-                <div>
-                  <h3 className="font-headline-sm text-base font-bold text-on-surface">
+                <div className="min-w-0">
+                  <h3 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface truncate">
                     {activeContact.name}
                   </h3>
-                  <p className="text-xs text-on-surface-variant font-label-md">
+                  <p className="text-[11px] sm:text-xs text-on-surface-variant font-label-md truncate">
                     {activeContact.role} at <span className="font-bold text-primary">{activeContact.company}</span>
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <button
+                  type="button"
                   onClick={() => setIsPinned(!isPinned)}
-                  className={`p-2 rounded-full transition-colors ${
+                  className={`p-2 rounded-full transition-colors touch-target ${
                     isPinned ? "text-primary bg-primary/10" : "text-on-surface-variant hover:bg-surface-container"
                   }`}
                   title={isPinned ? "Unpin Conversation" : "Pin Conversation"}
+                  aria-label="Pin conversation"
                 >
                   <span className="material-symbols-outlined text-lg">push_pin</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMuted(!isMuted);
                     showToast(`Notifications ${!isMuted ? "muted" : "unmuted"} for this thread`, "info");
                   }}
-                  className={`p-2 rounded-full transition-colors ${
+                  className={`p-2 rounded-full transition-colors touch-target ${
                     isMuted ? "text-error bg-error/10" : "text-on-surface-variant hover:bg-surface-container"
                   }`}
                   title={isMuted ? "Unmute Thread" : "Mute Thread"}
+                  aria-label="Mute thread"
                 >
                   <span className="material-symbols-outlined text-lg">{isMuted ? "notifications_off" : "notifications"}</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowVideoCallModal(true)}
-                  className="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-xs touch-target"
+                  className="px-2.5 sm:px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-xs touch-target"
+                  aria-label="Join video call"
                 >
                   <span className="material-symbols-outlined text-base">videocam</span>
-                  <span>Join Video Call</span>
+                  <span className="hidden sm:inline">Join Call</span>
                 </button>
               </div>
             </div>
@@ -297,30 +328,33 @@ export default function MessagingCentrePage() {
             {/* Bottom Message Input Bar */}
             <form
               onSubmit={handleSendMessage}
-              className="p-4 border-t border-outline-variant/20 bg-surface flex items-center gap-3"
+              className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface flex items-center gap-2 sm:gap-3 pb-safe"
             >
               <button
                 type="button"
                 onClick={() => alert("Resume file attached: Alex_Rivers_Resume_2026.pdf")}
-                className="p-2.5 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors"
+                className="p-2 sm:p-2.5 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors touch-target flex-shrink-0"
                 title="Attach Resume / File"
+                aria-label="Attach Resume or File"
               >
-                <span className="material-symbols-outlined text-xl">attach_file</span>
+                <span className="material-symbols-outlined text-xl" aria-hidden="true">attach_file</span>
               </button>
 
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type a message to recruiter..."
-                className="flex-1 px-4 py-3 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Type a message..."
+                aria-label="Message input"
+                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-xs sm:text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
               />
 
               <button
                 type="submit"
-                className="p-3 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-all shadow-md active:scale-95 flex items-center justify-center"
+                aria-label="Send message"
+                className="p-2.5 sm:p-3 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-all shadow-xs active:scale-95 flex items-center justify-center touch-target flex-shrink-0"
               >
-                <span className="material-symbols-outlined text-lg">send</span>
+                <span className="material-symbols-outlined text-lg" aria-hidden="true">send</span>
               </button>
             </form>
           </section>

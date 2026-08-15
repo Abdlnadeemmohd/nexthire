@@ -157,16 +157,16 @@ export default function CompaniesDirectoryPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-outline-variant/20 flex items-center justify-between">
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-500/10 px-3 py-1 rounded-xl">
+                <div className="pt-4 border-t border-outline-variant/20 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-500/10 px-3 py-1 rounded-xl whitespace-nowrap">
                     {company.activeJobsCount} Active Jobs
                   </span>
                   <Link
                     href={`/companies/${company.id}`}
-                    className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1"
+                    className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1 touch-target whitespace-nowrap"
                   >
                     View Company
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    <span className="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
                   </Link>
                 </div>
               </div>

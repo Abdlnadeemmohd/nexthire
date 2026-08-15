@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { StatusBadge } from "@/components/ui/Badge";
 import { INITIAL_JOBS, INITIAL_APPLICATIONS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 
@@ -165,9 +166,7 @@ export default function SeekerDashboardPage() {
                         </div>
                       </div>
 
-                      <span className="px-3 py-1 bg-tertiary-container/20 text-tertiary font-label-sm font-bold text-[11px] rounded-full">
-                        {app.status}
-                      </span>
+                      <StatusBadge status={app.status} size="sm" />
                     </div>
                   ))}
                 </div>

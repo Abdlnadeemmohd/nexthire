@@ -186,15 +186,15 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
           </Link>
         </div>
 
-        {/* Center: Dynamic Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-8">
+        {/* Center: Dynamic Desktop & Tablet Navigation */}
+        <nav className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8">
           {navItems.map((item) => {
             const isActive = isItemActive(pathname, item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-xs font-label-md font-bold transition-all relative py-2 ${
+                className={`text-xs font-label-md font-bold transition-all relative py-2 whitespace-nowrap ${
                   isActive
                     ? "text-primary font-bold"
                     : "text-on-surface-variant hover:text-on-surface font-semibold"
@@ -210,7 +210,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
         </nav>
 
         {/* Right: Search, Notifications & Profile */}
-        <div className="flex items-center gap-2 relative">
+        <div className="flex items-center gap-2 relative flex-shrink-0">
           {!isMounted || !isAuthenticated || !user ? (
             <div className="flex items-center gap-2">
               <Link
@@ -233,12 +233,12 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
               </Link>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Desktop Wide Search Input & Attached Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="w-72 md:w-80 lg:w-[420px] px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target"
+                  className="w-40 sm:w-52 md:w-56 lg:w-72 xl:w-[420px] px-3 sm:px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target"
                   aria-label="Global search (Ctrl+K)"
                   title="Global Context-Aware Search (Ctrl+K)"
                 >

@@ -223,27 +223,27 @@ export default function ProfilePage() {
             </div>
 
             {/* Profile Header */}
-            <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6 relative">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="flex items-center gap-6">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md">
+            <div className="glass-card rounded-2xl p-4 sm:p-6 md:p-8 border border-outline-variant/20 space-y-6 relative">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md flex-shrink-0">
                     <img
                       src={user?.avatar || PROFILE_DATA.avatar}
                       alt={formData.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-3">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       {isEditing ? (
                         <input
                           type="text"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="font-display text-2xl font-bold text-on-surface bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none"
+                          className="font-display text-xl sm:text-2xl font-bold text-on-surface bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none w-full sm:w-auto"
                         />
                       ) : (
-                        <h1 className="font-display text-2xl md:text-3xl font-bold text-on-surface truncate">
+                        <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-on-surface truncate">
                           {formData.name}
                         </h1>
                       )}
@@ -258,20 +258,20 @@ export default function ProfilePage() {
                         className="text-on-surface-variant text-sm font-semibold w-full bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none"
                       />
                     ) : (
-                      <p className="text-on-surface-variant font-label-md text-sm font-semibold">
+                      <p className="text-on-surface-variant font-label-md text-xs sm:text-sm font-semibold">
                         {formData.headline}
                       </p>
                     )}
 
                     <p className="text-outline text-xs flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">location_on</span>
+                      <span className="material-symbols-outlined text-sm" aria-hidden="true">location_on</span>
                       {formData.city}, {formData.country}
                     </p>
                   </div>
                 </div>
 
                 {/* Edit & Action Controls */}
-                <div className="flex items-center gap-3 relative">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 relative w-full md:w-auto">
                   <button
                     onClick={() => {
                       if (isEditing) handleSaveProfile();

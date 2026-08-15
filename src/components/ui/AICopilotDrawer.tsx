@@ -28,9 +28,17 @@ export function AICopilotDrawer() {
       lastScrollY.current = currentScrollY;
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) setIsOpen(false);
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "msg-1",
@@ -76,28 +84,31 @@ export function AICopilotDrawer() {
 
   return (
     <>
-      {/* Minimized Floating Action Button (FAB) */}
+      {/* Minimized Floating Action Button (FAB) with Smooth Hide on Scroll */}
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 p-3.5 sm:p-4 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 group pb-safe ${
+        aria-label="Open NextHire AI Copilot"
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 p-3.5 sm:p-4 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 group pb-safe focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
           !isFabVisible || isOpen ? "opacity-0 pointer-events-none scale-75 translate-y-4" : "opacity-100 scale-100 translate-y-0"
         }`}
         title="Open NextHire AI Copilot"
       >
-        <span className="material-symbols-outlined text-xl sm:text-2xl group-hover:rotate-12 transition-transform">
+        <span className="material-symbols-outlined text-xl sm:text-2xl group-hover:rotate-12 transition-transform" aria-hidden="true">
           auto_awesome
         </span>
         <span className="font-bold text-xs pr-1 hidden sm:inline">AI Copilot</span>
-        <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+        <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" aria-hidden="true"></span>
       </button>
 
       {/* Right-Side Slide-Over Panel */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="NextHire AI Copilot">
           {/* Backdrop Overlay */}
           <div
             onClick={() => setIsOpen(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            aria-hidden="true"
           />
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
@@ -106,45 +117,50 @@ export function AICopilotDrawer() {
               <div className="p-5 border-b border-outline-variant/20 flex items-center justify-between bg-gradient-to-r from-primary/10 to-transparent">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-primary text-on-primary rounded-2xl shadow-xs">
-                    <span className="material-symbols-outlined text-xl">auto_awesome</span>
+                    <span className="material-symbols-outlined text-xl" aria-hidden="true">auto_awesome</span>
                   </div>
                   <div>
                     <h3 className="font-bold text-base text-on-surface">NextHire AI Copilot</h3>
-                    <p className="text-[11px] text-on-surface-variant font-mono">Talent Sourcing & ATS Assistant</p>
+                    <p className="text-[11px] text-on-surface-variant font-mono">Talent Sourcing &amp; ATS Assistant</p>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-outline hover:text-on-surface rounded-full hover:bg-surface-container transition-colors"
+                  aria-label="Close AI Copilot"
+                  className="p-2 text-outline hover:text-on-surface rounded-full hover:bg-surface-container transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
                 >
-                  <span className="material-symbols-outlined text-xl">close</span>
+                  <span className="material-symbols-outlined text-xl" aria-hidden="true">close</span>
                 </button>
               </div>
 
               {/* Quick AI Prompt Shortcuts */}
               <div className="p-3 bg-surface-container-low border-b border-outline-variant/20 flex items-center gap-2 overflow-x-auto text-[11px] scrollbar-none">
                 <button
+                  type="button"
                   onClick={() => {
                     setInput("Draft Job Description for Staff Engineer");
                   }}
-                  className="px-2.5 py-1 bg-surface border border-outline-variant/30 rounded-full font-bold text-on-surface hover:border-primary/50 flex-shrink-0"
+                  className="px-2.5 py-1 bg-surface border border-outline-variant/30 rounded-full font-bold text-on-surface hover:border-primary/50 flex-shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   + Draft Job Post
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setInput("Analyze candidate SLA risks");
                   }}
-                  className="px-2.5 py-1 bg-surface border border-outline-variant/30 rounded-full font-bold text-on-surface hover:border-primary/50 flex-shrink-0"
+                  className="px-2.5 py-1 bg-surface border border-outline-variant/30 rounded-full font-bold text-on-surface hover:border-primary/50 flex-shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   ⚡ Check SLA Alerts
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setInput("Find top AI match candidates");
                   }}
-                  className="px-2.5 py-1 bg-surface border border-outline-variant/30 rounded-full font-bold text-on-surface hover:border-primary/50 flex-shrink-0"
+                  className="px-2.5 py-1 bg-surface border border-outline-variant/30 rounded-full font-bold text-on-surface hover:border-primary/50 flex-shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   🎯 Top Candidates
                 </button>
@@ -179,13 +195,15 @@ export function AICopilotDrawer() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask Copilot to source candidates or draft emails..."
+                    aria-label="Ask AI Copilot"
                     className="w-full pl-4 pr-12 py-3 bg-surface-container-low border border-outline-variant/30 rounded-2xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="submit"
-                    className="absolute right-2 p-2 bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-colors shadow-xs"
+                    aria-label="Send message to AI Copilot"
+                    className="absolute right-2 p-2 bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-colors shadow-xs focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <span className="material-symbols-outlined text-base">send</span>
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">send</span>
                   </button>
                 </div>
               </form>

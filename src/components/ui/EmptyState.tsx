@@ -1,11 +1,13 @@
 import React from "react";
 
-interface EmptyStateProps {
+export interface EmptyStateProps {
   icon?: string;
   title: string;
   description: string;
   actionText?: string;
   onAction?: () => void;
+  actionHref?: string;
+  className?: string;
 }
 
 export function EmptyState({
@@ -14,25 +16,47 @@ export function EmptyState({
   description,
   actionText,
   onAction,
+  actionHref,
+  className = "",
 }: EmptyStateProps) {
   return (
-    <div className="glass-card rounded-2xl p-12 text-center space-y-4 border border-outline-variant/20 max-w-lg mx-auto my-8">
-      <div className="w-16 h-16 bg-primary-container/10 text-primary rounded-full flex items-center justify-center mx-auto text-3xl">
-        <span className="material-symbols-outlined text-4xl">{icon}</span>
+    <div
+      role="region"
+      aria-label={title}
+      className={`surface-card bg-surface-container-lowest rounded-2xl p-8 sm:p-12 text-center space-y-4 border border-outline-variant/40 max-w-lg mx-auto my-6 shadow-xs ${className}`}
+    >
+      <div className="w-14 h-14 bg-surface-container-low text-primary rounded-2xl flex items-center justify-center mx-auto text-2xl border border-outline-variant/30">
+        <span className="material-symbols-outlined text-3xl" aria-hidden="true">
+          {icon}
+        </span>
       </div>
-      <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-        {title}
-      </h3>
-      <p className="text-on-surface-variant text-xs font-body-sm leading-relaxed max-w-sm mx-auto">
-        {description}
-      </p>
-      {actionText && onAction && (
-        <button
-          onClick={onAction}
-          className="px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-md mt-2"
-        >
-          {actionText}
-        </button>
+      <div className="space-y-1.5">
+        <h3 className="font-headline-sm text-base sm:text-lg font-bold text-on-surface">
+          {title}
+        </h3>
+        <p className="text-on-surface-variant text-xs font-body-sm leading-relaxed max-w-sm mx-auto">
+          {description}
+        </p>
+      </div>
+      {actionText && (
+        <div className="pt-2">
+          {actionHref ? (
+            <a
+              href={actionHref}
+              className="inline-flex items-center justify-center px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-hover transition-all shadow-xs touch-target focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {actionText}
+            </a>
+          ) : onAction ? (
+            <button
+              type="button"
+              onClick={onAction}
+              className="inline-flex items-center justify-center px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-hover transition-all shadow-xs touch-target focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {actionText}
+            </button>
+          ) : null}
+        </div>
       )}
     </div>
   );
