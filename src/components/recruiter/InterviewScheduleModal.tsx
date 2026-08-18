@@ -37,15 +37,13 @@ export function InterviewScheduleModal({
 }: InterviewScheduleModalProps) {
   const { showToast } = useToast();
   const [interviewType, setInterviewType] = useState<ScheduledInterviewEvent["interviewType"]>("TECHNICAL");
-  const [interviewerName, setInterviewerName] = useState("Stage 1 Recruiter");
-  const [interviewerEmail, setInterviewerEmail] = useState("recruiter@nexthire.cloud");
-  const [date, setDate] = useState("2026-07-30");
-  const [time, setTime] = useState("15:00");
-  const [timezone, setTimezone] = useState("EST (UTC-5)");
+  const [interviewerName, setInterviewerName] = useState("");
+  const [interviewerEmail, setInterviewerEmail] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [time, setTime] = useState("10:00");
+  const [timezone, setTimezone] = useState("UTC");
   const [platform, setPlatform] = useState<ScheduledInterviewEvent["platform"]>("GOOGLE_MEET");
-  const [agendaNotes, setAgendaNotes] = useState(
-    "Focus on system design architecture, React performance optimization, and API protocol design."
-  );
+  const [agendaNotes, setAgendaNotes] = useState("");
 
   const generateMeetingUrl = (plat: ScheduledInterviewEvent["platform"]) => {
     const slug = candidateName.toLowerCase().replace(/\s+/g, "-");

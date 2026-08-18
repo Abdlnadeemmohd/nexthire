@@ -62,7 +62,7 @@ export async function GET(request: Request) {
           id: contact.id,
           name: contact.name,
           role: contact.role,
-          avatar: contact.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+          avatar: contact.avatar || null,
           lastMessage: msg.content,
           lastMessageAt: msg.createdAt,
           unread: !msg.read && msg.receiverId === authUser.id,

@@ -5,7 +5,7 @@ import { assertCompanyAccess } from "@/lib/auth/multiTenant";
 import { validateStatusTransition } from "@/lib/ats/stateMachine";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
 import { notificationService } from "@/lib/notifications/NotificationService";
-import { ApplicationStatus } from "@prisma/client";
+import { ApplicationStatus, RejectionReason } from "@prisma/client";
 
 export async function POST(
   request: Request,
@@ -23,7 +23,18 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { status, notes, rejectionReason, suggestions, closingMessage, interviewDate } = body;
+    const {
+      status,
+      notes,
+      rejectionReason,
+      recruiterComments,
+      missingSkills,
+      suggestedCertifications,
+      resumeImprovementAdvice,
+      suggestions,
+      closingMessage,
+      interviewDate,
+    } = body;
     const validStatus = status as ApplicationStatus;
 
     // 1. Fetch current application & enforce multi-tenant isolation using companyId UUID
@@ -32,12 +43,16 @@ export async function POST(
       include: { job: { include: { company: true } }, applicant: true },
     });
 
-    if (existingApp && existingApp.job?.companyId) {
+    if (!existingApp) {
+      return NextResponse.json({ success: false, error: "Application not found" }, { status: 404 });
+    }
+
+    if (existingApp.job?.companyId) {
       assertCompanyAccess(authUser, existingApp.job.companyId);
     }
 
     // 2. Validate State Machine transition
-    const currentStatusStr = existingApp ? existingApp.status : "SUBMITTED";
+    const currentStatusStr = existingApp.status;
     const transitionCheck = validateStatusTransition(currentStatusStr, validStatus, authUser.role);
     if (!transitionCheck.valid) {
       return NextResponse.json(
@@ -45,6 +60,12 @@ export async function POST(
         { status: 422 }
       );
     }
+
+    const eventType = validStatus === "REJECTED" ? "REJECTION_SUBMITTED" : "STATUS_CHANGED";
+    const eventNotes =
+      validStatus === "REJECTED"
+        ? `Application rejected by recruiter ${authUser.name}. Reason: ${rejectionReason || "OTHER"}`
+        : `Pipeline transition to '${validStatus}' by ${authUser.name}`;
 
     // 3. Update application in database
     const updatedApp = await prisma.application.update({
@@ -54,58 +75,74 @@ export async function POST(
         notes: notes || undefined,
         events: {
           create: {
-            type: "STATUS_CHANGED",
+            type: eventType,
             actorId: authUser.id,
-            notes: `Pipeline transition to '${status}' by ${authUser.name}`,
+            notes: eventNotes,
           },
         },
       },
+      include: {
+        job: { include: { company: true } },
+        applicant: { include: { profile: true } },
+        rejection: true,
+        events: { orderBy: { timestamp: "desc" } },
+      },
     });
 
-    // 4. Log Audit Event (including ADMIN_OVERRIDE check)
-    const isOverride = authUser.role === "PLATFORM_ADMIN";
-    await logAuditEvent(
-      authUser.id,
-      isOverride ? "ADMIN_OVERRIDE_STATUS_CHANGE" : "APPLICATION_STATUS_UPDATED",
-      "Application",
-      id,
-      {
-        previousStatus: currentStatusStr,
-        newStatus: validStatus,
-        isPlatformAdminOverride: isOverride,
-        companyId: existingApp?.job?.companyId,
-      }
-    );
+    // 4. Handle rejection feedback
+    if (validStatus === "REJECTED") {
+      const combinedSuggestions: string[] = Array.isArray(suggestions)
+        ? suggestions
+        : [
+            ...(Array.isArray(missingSkills) ? missingSkills.map((s: string) => `Missing skill: ${s}`) : []),
+            ...(Array.isArray(suggestedCertifications) ? suggestedCertifications.map((c: string) => `Recommended certification: ${c}`) : []),
+            ...(resumeImprovementAdvice ? [`Improvement advice: ${resumeImprovementAdvice}`] : []),
+          ].filter(Boolean);
 
-    // 5. Send Notification to candidate
-    if (existingApp) {
-      await notificationService.sendNotification({
-        userId: existingApp.applicantId,
-        title: `Application Update: ${existingApp.job.title}`,
-        body: `Your application status at ${existingApp.job.company.name} has been updated to ${validStatus.replace(/_/g, " ")}.`,
-        type: "APPLICATION_STATUS",
-      });
-    }
+      const effectiveClosingMessage =
+        closingMessage ||
+        recruiterComments ||
+        "Thank you for taking the time to apply with our hiring team.";
 
-    // 6. Handle rejection feedback
-    if (validStatus === "REJECTED" && rejectionReason) {
+      const effectiveReason = (rejectionReason as RejectionReason) || "OTHER";
+
       await prisma.rejection.upsert({
         where: { applicationId: id },
         create: {
           applicationId: id,
-          reason: rejectionReason || "OTHER",
-          suggestions: suggestions || ["Enhance project deliverables", "Practice technical interview systems"],
-          closingMessage: closingMessage || "Thank you for interviewing with NextHire network partner.",
+          reason: effectiveReason,
+          suggestions: combinedSuggestions,
+          closingMessage: effectiveClosingMessage,
         },
         update: {
-          reason: rejectionReason || "OTHER",
-          suggestions: suggestions || [],
-          closingMessage: closingMessage || "Updated rejection feedback.",
+          reason: effectiveReason,
+          suggestions: combinedSuggestions,
+          closingMessage: effectiveClosingMessage,
         },
+      });
+
+      // Send rejection notification with feedback link
+      await notificationService.sendNotification({
+        userId: existingApp.applicantId,
+        title: `Application Update: ${existingApp.job.title}`,
+        body: `Your application for "${existingApp.job.title}" at ${existingApp.job.company.name} has been updated to Rejected. Recruiter feedback is now available in your application dashboard.`,
+        type: "APPLICATION_STATUS",
+        ctaText: "View Feedback",
+        ctaUrl: `/applications/${id}/feedback`,
+      });
+    } else {
+      // 5. Send status change notification to candidate
+      await notificationService.sendNotification({
+        userId: existingApp.applicantId,
+        title: `Application Update: ${existingApp.job.title}`,
+        body: `Your application for "${existingApp.job.title}" at ${existingApp.job.company.name} has advanced to ${validStatus.replace(/_/g, " ")}.`,
+        type: "APPLICATION_STATUS",
+        ctaText: "View Application",
+        ctaUrl: "/applications",
       });
     }
 
-    // 7. Handle interview scheduling
+    // 6. Handle interview scheduling
     if ((validStatus === "INTERVIEW_SCHEDULED" || validStatus === "INTERVIEW_ROUND_1") && interviewDate) {
       await prisma.interview.create({
         data: {
@@ -120,6 +157,21 @@ export async function POST(
         },
       });
     }
+
+    // 7. Log Audit Event
+    const isOverride = authUser.role === "PLATFORM_ADMIN";
+    await logAuditEvent(
+      authUser.id,
+      isOverride ? "ADMIN_OVERRIDE_STATUS_CHANGE" : "APPLICATION_STATUS_UPDATED",
+      "Application",
+      id,
+      {
+        previousStatus: currentStatusStr,
+        newStatus: validStatus,
+        isPlatformAdminOverride: isOverride,
+        companyId: existingApp.job?.companyId,
+      }
+    );
 
     return NextResponse.json({
       success: true,

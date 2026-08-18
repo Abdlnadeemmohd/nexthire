@@ -66,18 +66,18 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
 
   // Extract raw token from cookie value (handles both structured JSON and plain token strings)
   let rawToken = cookieVal;
-  let parsedPayload: SessionPayload | null = null;
 
   try {
     const decoded = decodeURIComponent(cookieVal);
     const parsed = JSON.parse(decoded);
-    if (parsed && typeof parsed === "object") {
-      parsedPayload = parsed as SessionPayload;
-      if (parsed.token) rawToken = parsed.token;
+    if (parsed && typeof parsed === "object" && parsed.token) {
+      rawToken = parsed.token;
     }
   } catch {
     // If not JSON, rawToken is used directly
   }
+
+  if (!rawToken || typeof rawToken !== "string") return null;
 
   const tokenHash = hashToken(rawToken);
 
@@ -94,82 +94,54 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
       },
     });
 
-    if (dbSession && !dbSession.isRevoked && dbSession.expiresAt > new Date()) {
-      // Update lastUsedAt asynchronously
-      prisma.session
-        .update({
-          where: { id: dbSession.id },
-          data: { lastUsedAt: new Date() },
-        })
-        .catch(() => {});
-
-      const u = dbSession.user;
-      return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role as UserRole,
-        avatar:
-          u.avatar ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-        status: "VERIFIED",
-        companyId: u.companyId || u.company?.id || undefined,
-        companyName: u.company?.name,
-        headline: u.headline || undefined,
-        country: u.location || undefined,
-        bio: u.bio || undefined,
-      };
-    }
-  } catch (err) {
-    console.warn("Database lookup during session validation:", err);
-  }
-
-  // Graceful fallback if database session query could not execute
-  if (parsedPayload && parsedPayload.userId && parsedPayload.email && parsedPayload.role) {
-    try {
-      const u = await prisma.user.findUnique({
-        where: { id: parsedPayload.userId },
-        include: { company: true },
-      });
-      if (u) {
-        return {
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role as UserRole,
-          avatar:
-            u.avatar ||
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-          status: "VERIFIED",
-          companyId: u.companyId || u.company?.id || undefined,
-          companyName: u.company?.name,
-          headline: u.headline || undefined,
-        };
-      }
-    } catch {
-      // Fallback
+    if (!dbSession || dbSession.isRevoked || dbSession.expiresAt <= new Date()) {
+      return null;
     }
 
+    if (!dbSession.user) {
+      return null;
+    }
+
+    // Update lastUsedAt asynchronously
+    prisma.session
+      .update({
+        where: { id: dbSession.id },
+        data: { lastUsedAt: new Date() },
+      })
+      .catch(() => {});
+
+    const u = dbSession.user;
     return {
-      id: parsedPayload.userId,
-      name: parsedPayload.email.split("@")[0],
-      email: parsedPayload.email,
-      role: parsedPayload.role,
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role as UserRole,
       avatar:
+        u.avatar ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
       status: "VERIFIED",
+      companyId: u.companyId || u.company?.id || undefined,
+      companyName: u.company?.name,
+      headline: u.headline || undefined,
+      country: u.location || undefined,
+      bio: u.bio || undefined,
     };
+  } catch (err) {
+    console.error("[Session Auth Error]:", err);
+    return null;
   }
-
-  return null;
 }
 
 export async function revokeSession(token: string): Promise<void> {
+  if (!token) return;
+
   let rawToken = token;
   try {
     const decoded = decodeURIComponent(token);
     const parsed = JSON.parse(decoded);
-    if (parsed?.token) rawToken = parsed.token;
+    if (parsed && typeof parsed === "object" && parsed.token) {
+      rawToken = parsed.token;
+    }
   } catch {
     // Plain token
   }
@@ -180,7 +152,7 @@ export async function revokeSession(token: string): Promise<void> {
       where: { tokenHash },
       data: { isRevoked: true },
     });
-  } catch {
-    // Ignore if session record does not exist
+  } catch (err) {
+    console.error("[Session Revoke Error]:", err);
   }
 }

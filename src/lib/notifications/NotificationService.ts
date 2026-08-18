@@ -30,7 +30,7 @@ class NotificationService {
           params.title,
           params.body,
           params.ctaText || "View in NextHire",
-          params.ctaUrl || "https://www.nexthire.cloud/dashboard"
+          params.ctaUrl || "/dashboard"
         );
         sendEmail({
           to: params.userEmail,

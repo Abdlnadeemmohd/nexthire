@@ -21,12 +21,15 @@ function parseCloudinaryReference(urlStr: string) {
   try {
     const url = new URL(urlStr);
     const parts = url.pathname.split("/").filter(Boolean);
-    // Path structure: [cloud_name, resource_type, delivery_type, (optional v12345), ...public_id_parts]
+    // Path structure: [cloud_name, resource_type, delivery_type, (optional signature s--...--), (optional version v12345), ...public_id_parts]
     if (parts.length >= 3) {
       const resourceType: "raw" | "image" | "video" =
         parts[1] === "raw" ? "raw" : parts[1] === "video" ? "video" : "image";
       const deliveryType = parts[2] === "authenticated" ? "authenticated" : "upload";
       let remaining = parts.slice(3);
+      if (remaining[0] && /^s--[a-zA-Z0-9_-]+--$/.test(remaining[0])) {
+        remaining = remaining.slice(1);
+      }
       if (remaining[0] && /^v\d+$/.test(remaining[0])) {
         remaining = remaining.slice(1);
       }
@@ -94,7 +97,7 @@ export async function GET(request: Request) {
         return NextResponse.json(
           {
             success: false,
-            error: "Forbidden: You do not have permission to access this candidate document",
+            error: "You are not authorized to access this document.",
           },
           { status: 403, headers: { "Content-Type": "application/json" } }
         );
@@ -106,7 +109,7 @@ export async function GET(request: Request) {
       // Direct user document access (only self or platform admin)
       if (requestedUserId !== authUser.id && authUser.role !== "PLATFORM_ADMIN") {
         return NextResponse.json(
-          { success: false, error: "Forbidden: Cannot access another user's document." },
+          { success: false, error: "You are not authorized to access this document." },
           { status: 403, headers: { "Content-Type": "application/json" } }
         );
       }
@@ -129,7 +132,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "No verified resume document found on file.",
+          error: "Resume unavailable.",
         },
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
@@ -158,16 +161,15 @@ export async function GET(request: Request) {
           const durationSeconds = 15 * 60; // 15 minutes
           const expiresAtEpoch = Math.floor(Date.now() / 1000) + durationSeconds;
 
-          // Official Cloudinary private_download_url with real signature and expiry
-          secureDeliveryUrl = cloudinary.utils.private_download_url(
-            parsedRef.publicId,
-            parsedRef.format,
-            {
-              resource_type: parsedRef.resourceType,
-              type: parsedRef.deliveryType,
-              expires_at: expiresAtEpoch,
-            }
-          );
+          // Official Cloudinary signed delivery URL with true publicId
+          secureDeliveryUrl = cloudinary.url(parsedRef.publicId, {
+            resource_type: parsedRef.resourceType,
+            type: parsedRef.deliveryType,
+            sign_url: true,
+            secure: true,
+            format: parsedRef.format,
+            expires_at: expiresAtEpoch,
+          });
 
           actualExpiresAt = new Date(expiresAtEpoch * 1000).toISOString();
         } catch (genErr) {
@@ -192,7 +194,7 @@ export async function GET(request: Request) {
   } catch (err: any) {
     console.error("[Document Download Route Error]:", err);
     return NextResponse.json(
-      { success: false, error: "Document service unavailable" },
+      { success: false, error: "Unable to open resume. Please try again." },
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

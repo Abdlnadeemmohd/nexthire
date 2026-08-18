@@ -39,9 +39,7 @@ export async function GET() {
           jobId: a.jobId,
           jobTitle: a.job.title,
           companyName: a.job.company.name,
-          companyLogo:
-            a.job.company.logo ||
-            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
+          companyLogo: a.job.company.logo || null,
           candidateName: authUser.name,
           candidateAvatar: authUser.avatar,
           candidateTitle: authUser.headline || "Candidate Specialist",
@@ -172,7 +170,8 @@ export async function POST(request: Request) {
       where: { userId: authUser.id },
     });
 
-    const effectiveResumeUrl = resumeUrl || profile?.resumeUrl || null;
+    const candidateProfileResume = profile?.resumeUrl || null;
+    const effectiveResumeUrl = candidateProfileResume || resumeUrl || null;
 
     if (!effectiveResumeUrl) {
       return NextResponse.json(
@@ -185,19 +184,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Prevent duplicate active applications
-    const existingApp = await prisma.application.findFirst({
+    // Prevent duplicate active applications (allow re-application if previous is REJECTED or APPLICATION_CLOSED)
+    const existingActiveApp = await prisma.application.findFirst({
       where: {
         jobId,
         applicantId: authUser.id,
+        status: {
+          notIn: ["REJECTED", "APPLICATION_CLOSED"],
+        },
       },
     });
 
-    if (existingApp) {
+    if (existingActiveApp) {
       return NextResponse.json(
         {
           success: false,
-          error: "You have already submitted an application for this position.",
+          error: "You currently have an active application for this position.",
           category: "DUPLICATE_APPLICATION",
         },
         { status: 409 }
@@ -248,27 +250,35 @@ export async function POST(request: Request) {
       title: "Application Submitted Successfully",
       body: `Your application for "${job.title}" at ${job.company.name} was successfully submitted. The hiring team has a 7-day review target.`,
       type: "APPLICATION_STATUS",
-      ctaText: "Track Status",
+      ctaText: "View Application",
       ctaUrl: "/applications",
     });
 
-    // 3. Log Audit Trail
-    await logAuditEvent(authUser.id, "APPLICATION_CREATED", "Application", app.id, {
-      jobId: app.jobId,
-      jobTitle: job.title,
-      companyId: job.companyId,
-    });
+    // 3. Security Audit Logging
+    await logAuditEvent(
+      authUser.id,
+      "APPLICATION_SUBMITTED",
+      "Application",
+      app.id,
+      {
+        jobId,
+        companyId: job.companyId,
+      }
+    );
 
-    return NextResponse.json({ success: true, data: app }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Application submitted successfully to employer pipeline",
+        data: app,
+      },
+      { status: 201 }
+    );
   } catch (err: any) {
     console.error("[Applications POST Error]:", err);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to submit application due to database error.",
-        category: "DATABASE_UNAVAILABLE",
-      },
-      { status: 503 }
+      { success: false, error: "Failed to submit application to database" },
+      { status: 500 }
     );
   }
 }

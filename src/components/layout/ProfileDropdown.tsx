@@ -200,7 +200,10 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
         {/* Footer: Sign Out */}
         <div className="pt-1">
           <button
-            onClick={() => { logout(); handleClose(); }}
+            onClick={async () => {
+              handleClose();
+              await logout();
+            }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-error-container/20 text-error font-bold transition-colors text-left text-xs"
           >
             <span className="material-symbols-outlined text-base">logout</span>

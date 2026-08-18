@@ -9,19 +9,18 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { CandidateTimelineModal } from "@/components/recruiter/CandidateTimelineModal";
 import { StatusBadge } from "@/components/ui/Badge";
-import { AIMatchBadge } from "@/components/ui/AIMatchBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
+import { STAGE_LABELS, isTerminalStatus } from "@/lib/ats/stateMachine";
 
 const PIPELINE_STAGES = [
   { key: "SUBMITTED", label: "Submitted" },
-  { key: "REVIEW", label: "Review" },
-  { key: "SCREENING", label: "Screening" },
-  { key: "INTERVIEW", label: "Interview" },
-  { key: "TECHNICAL", label: "Technical Round" },
-  { key: "HR", label: "HR Round" },
-  { key: "OFFER", label: "Offer Letter" },
-  { key: "HIRED", label: "Hired" },
+  { key: "UNDER_REVIEW", label: "Under Review" },
+  { key: "INTERVIEW_SCHEDULED", label: "Interview" },
+  { key: "INTERVIEW_ROUND_1", label: "Round 1" },
+  { key: "INTERVIEW_ROUND_2", label: "Round 2" },
+  { key: "FINAL_DECISION", label: "Decision" },
+  { key: "OFFER_EXTENDED", label: "Offer" },
 ];
 
 export default function ApplicationTrackerPage() {
@@ -55,10 +54,20 @@ export default function ApplicationTrackerPage() {
     loadApplications();
   }, []);
 
-  const selectedApp = apps.find((a) => a.id === selectedAppId) || apps[0];
+  const [viewFilter, setViewFilter] = useState<"ACTIVE_15" | "ALL">("ACTIVE_15");
+
+  const filteredApps = apps.filter((app) => {
+    if (viewFilter === "ALL") return true;
+    const days = typeof app.daysAwaitingUpdate === "number"
+      ? app.daysAwaitingUpdate
+      : Math.floor((Date.now() - new Date(app.appliedAt).getTime()) / (1000 * 60 * 60 * 24));
+    return days <= 15 || !isTerminalStatus(app.status);
+  });
+
+  const selectedApp = filteredApps.find((a) => a.id === selectedAppId) || filteredApps[0] || apps[0];
 
   const getStageIndex = (status: string) => {
-    if (status === "REJECTED" || status === "APPLICATION_CLOSED" || status === "WITHDRAWN") return -1;
+    if (status === "REJECTED" || status === "APPLICATION_CLOSED") return -1;
     return PIPELINE_STAGES.findIndex((s) => s.key === status);
   };
 
@@ -83,6 +92,20 @@ export default function ApplicationTrackerPage() {
     }
   };
 
+  const handleDownloadResume = async (applicationId: string) => {
+    try {
+      const res = await fetch(`/api/documents/download?applicationId=${applicationId}`);
+      const data = await res.json();
+      if (res.ok && data.downloadUrl) {
+        window.open(data.downloadUrl, "_blank");
+      } else {
+        showToast(data.error || "Resume unavailable.", "info");
+      }
+    } catch {
+      showToast("Unable to open resume. Please try again.", "error");
+    }
+  };
+
   return (
     <ProtectedRoute requiredPortal="seeker">
       <TopAppBar />
@@ -104,7 +127,15 @@ export default function ApplicationTrackerPage() {
 
             {selectedApp && (
               <div className="flex items-center gap-3">
-                {selectedApp.status !== "APPLICATION_CLOSED" && selectedApp.status !== "HIRED" && (
+                <button
+                  onClick={() => setShowTimelineModal(true)}
+                  className="px-4 py-2 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold text-xs rounded-full flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base text-primary">history</span>
+                  Application History
+                </button>
+
+                {!isTerminalStatus(selectedApp.status) && (
                   <button
                     onClick={() => handleWithdraw(selectedApp.id, selectedApp.jobTitle)}
                     className="px-4 py-2 bg-error/10 hover:bg-error/20 text-error border border-error/30 font-bold text-xs rounded-full transition-colors"
@@ -118,18 +149,42 @@ export default function ApplicationTrackerPage() {
 
           {loading ? (
             <div className="py-16 text-center text-xs text-on-surface-variant">
-              Loading applications pipeline...
+              Loading applications pipeline from database...
             </div>
           ) : apps.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Applications List */}
               <div className="space-y-3">
-                <span className="text-xs font-bold text-outline uppercase tracking-wider">
-                  Submitted Applications ({apps.length})
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-outline uppercase tracking-wider">
+                    Applications ({filteredApps.length})
+                  </span>
+                  <div className="flex items-center gap-1 bg-surface-container-high p-1 rounded-xl text-[11px] font-bold">
+                    <button
+                      onClick={() => setViewFilter("ACTIVE_15")}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        viewFilter === "ACTIVE_15"
+                          ? "bg-primary text-on-primary shadow-xs"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      }`}
+                    >
+                      15-Day Pipeline
+                    </button>
+                    <button
+                      onClick={() => setViewFilter("ALL")}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        viewFilter === "ALL"
+                          ? "bg-primary text-on-primary shadow-xs"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      }`}
+                    >
+                      All History
+                    </button>
+                  </div>
+                </div>
 
                 <div className="space-y-2">
-                  {apps.map((app) => (
+                  {filteredApps.map((app) => (
                     <div
                       key={app.id}
                       onClick={() => setSelectedAppId(app.id)}
@@ -176,58 +231,105 @@ export default function ApplicationTrackerPage() {
                       <StatusBadge status={selectedApp.status} size="md" />
                     </div>
 
-                    {/* Progress Bar / Stage Indicator */}
-                    <div className="space-y-2 pt-4 border-t border-outline-variant/10">
-                      <span className="text-xs font-bold text-outline uppercase tracking-wider block">
-                        Pipeline Progression
-                      </span>
+                    {/* Terminal Rejection View */}
+                    {selectedApp.status === "REJECTED" ? (
+                      <div className="space-y-4 pt-4 border-t border-outline-variant/10">
+                        <div className="p-4 bg-error-container/20 border border-error-container/40 rounded-2xl space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-xs text-error uppercase tracking-wider flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-base">info</span>
+                              Application Status: REJECTED
+                            </span>
+                            <Link
+                              href={`/applications/${selectedApp.id}/feedback`}
+                              className="px-3 py-1 bg-error text-on-error font-bold text-xs rounded-xl hover:bg-error/90 transition-all flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-sm">reviews</span>
+                              Full Feedback Guide
+                            </Link>
+                          </div>
 
-                      <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 pt-2">
-                        {PIPELINE_STAGES.map((stage, idx) => {
-                          const isCompleted = currentStageIndex >= idx;
-                          const isCurrent = currentStageIndex === idx;
+                          <div>
+                            <span className="text-[11px] font-bold text-outline uppercase block">Rejection Reason:</span>
+                            <p className="text-sm font-bold text-on-surface pt-0.5">
+                              {selectedApp.rejection?.reason
+                                ? selectedApp.rejection.reason.replace(/_/g, " ")
+                                : "Profile / Skills Alignment"}
+                            </p>
+                          </div>
 
-                          return (
-                            <div key={stage.key} className="text-center space-y-1">
-                              <div
-                                className={`h-2 rounded-full transition-all ${
-                                  isCurrent
-                                    ? "bg-primary shadow-xs"
-                                    : isCompleted
-                                    ? "bg-primary/60"
-                                    : "bg-surface-container-high"
-                                }`}
-                              />
-                              <span
-                                className={`text-[10px] font-bold block truncate ${
-                                  isCurrent ? "text-primary font-bold" : "text-outline"
-                                }`}
-                              >
-                                {stage.label}
-                              </span>
+                          {selectedApp.rejection?.closingMessage && (
+                            <div>
+                              <span className="text-[11px] font-bold text-outline uppercase block">Recruiter Feedback:</span>
+                              <p className="text-xs text-on-surface leading-relaxed pt-1 bg-surface-container/60 p-3 rounded-xl">
+                                {selectedApp.rejection.closingMessage}
+                              </p>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                          )}
 
-                    {/* Resume Reference Section */}
-                    {selectedApp.resumeUrl && (
-                      <div className="p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-primary text-xl">description</span>
-                          <span className="text-xs font-bold text-on-surface">Attached Resume Document</span>
+                          {selectedApp.rejection?.suggestions && selectedApp.rejection.suggestions.length > 0 && (
+                            <div>
+                              <span className="text-[11px] font-bold text-outline uppercase block">Recommendations:</span>
+                              <ul className="list-disc list-inside text-xs text-on-surface-variant pt-1 space-y-0.5">
+                                {selectedApp.rejection.suggestions.map((s: string, idx: number) => (
+                                  <li key={idx}>{s}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
-                        <a
-                          href={selectedApp.resumeUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl"
-                        >
-                          View Document
-                        </a>
+                      </div>
+                    ) : (
+                      /* Progress Bar / Stage Indicator */
+                      <div className="space-y-2 pt-4 border-t border-outline-variant/10">
+                        <span className="text-xs font-bold text-outline uppercase tracking-wider block">
+                          Pipeline Progression
+                        </span>
+
+                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 pt-2">
+                          {PIPELINE_STAGES.map((stage, idx) => {
+                            const isCompleted = currentStageIndex >= idx;
+                            const isCurrent = currentStageIndex === idx;
+
+                            return (
+                              <div key={stage.key} className="text-center space-y-1">
+                                <div
+                                  className={`h-2 rounded-full transition-all ${
+                                    isCurrent
+                                      ? "bg-primary shadow-xs"
+                                      : isCompleted
+                                      ? "bg-primary/60"
+                                      : "bg-surface-container-high"
+                                  }`}
+                                />
+                                <span
+                                  className={`text-[10px] font-bold block truncate ${
+                                    isCurrent ? "text-primary font-bold" : "text-outline"
+                                  }`}
+                                >
+                                  {stage.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
+
+                    {/* Resume Reference Section */}
+                    <div className="p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-xl">description</span>
+                        <span className="text-xs font-bold text-on-surface">Attached Candidate Resume</span>
+                      </div>
+                      <button
+                        onClick={() => handleDownloadResume(selectedApp.id)}
+                        className="px-3.5 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-primary/90 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-sm">download</span>
+                        Download Resume
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -235,7 +337,7 @@ export default function ApplicationTrackerPage() {
           ) : (
             <EmptyState
               title="No applications submitted yet"
-              description="When you apply to open job positions, you can monitor your review status and interview schedules right here."
+              description="When you apply to open job positions, you can monitor your review status, recruiter feedback, and interview schedules right here."
               icon="assignment_late"
               actionLabel="Search Jobs"
               actionHref="/jobs"
@@ -243,6 +345,30 @@ export default function ApplicationTrackerPage() {
           )}
         </main>
       </div>
+
+      {/* Candidate History Timeline Modal */}
+      {selectedApp && (
+        <CandidateTimelineModal
+          isOpen={showTimelineModal}
+          onClose={() => setShowTimelineModal(false)}
+          candidateName={selectedApp.candidateName || "Candidate"}
+          jobTitle={selectedApp.jobTitle || "Job Requisition"}
+          events={(selectedApp.events || []).map((e: any) => ({
+            id: e.id,
+            timestamp: e.timestamp ? new Date(e.timestamp).toLocaleString() : "Recently",
+            stage: e.type || "STATUS_CHANGED",
+            actorName: e.actorId === selectedApp.candidateId ? "Candidate" : "Recruiter",
+            actorRole: "RECRUITER",
+            description: e.notes || e.type || "Application event logged",
+            badgeType:
+              e.type === "REJECTION_SUBMITTED"
+                ? "REJECTED"
+                : e.type === "INTERVIEW_SCHEDULED"
+                ? "INTERVIEW"
+                : "APPLIED",
+          }))}
+        />
+      )}
 
       <Footer />
     </ProtectedRoute>

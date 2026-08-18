@@ -57,14 +57,14 @@ export default function AccountSettingsPage() {
     exportToCSV(accountData, `NextHire_Account_Data_${user?.email}`);
   };
 
-  const handlePermanentDelete = (e: React.FormEvent) => {
+  const handlePermanentDelete = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deleteConfirmPassword) {
       setDeleteError("Password confirmation is required.");
       return;
     }
     setIsDeleteModalOpen(false);
-    logout();
+    await logout();
   };
 
   return (

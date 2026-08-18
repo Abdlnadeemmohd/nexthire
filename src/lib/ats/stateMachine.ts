@@ -13,10 +13,31 @@ export const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   APPLICATION_CLOSED: [], // Terminal state
 };
 
+export const STAGE_LABELS: Record<string, string> = {
+  SUBMITTED: "Submitted",
+  UNDER_REVIEW: "Under Review",
+  INTERVIEW_SCHEDULED: "Schedule Interview",
+  INTERVIEW_ROUND_1: "Interview Round 1",
+  INTERVIEW_ROUND_2: "Interview Round 2",
+  INTERVIEW_ROUND_3: "Interview Round 3",
+  FINAL_DECISION: "Final Decision",
+  OFFER_EXTENDED: "Extend Offer",
+  REJECTED: "Rejected",
+  APPLICATION_CLOSED: "Closed",
+};
+
+export function getAllowedTransitions(currentStatus: string): string[] {
+  return ALLOWED_TRANSITIONS[currentStatus] || [];
+}
+
+export function isTerminalStatus(status: string): boolean {
+  return status === "REJECTED" || status === "APPLICATION_CLOSED";
+}
+
 export function validateStatusTransition(
   currentStatus: string,
   targetStatus: string,
-  userRole: UserRole
+  userRole?: UserRole
 ): { valid: boolean; error?: string } {
   if (currentStatus === targetStatus) {
     return { valid: true };

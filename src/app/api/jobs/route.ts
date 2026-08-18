@@ -50,6 +50,7 @@ export async function GET(request: Request) {
         id: j.id,
         title: j.title,
         companyName: j.company?.name || "Hiring Partner",
+        companyId: j.companyId || j.company?.id || null,
         companyLogo: j.company?.logo || null,
         isCompanyVerified: j.company?.isVerified || false,
         location: j.location,

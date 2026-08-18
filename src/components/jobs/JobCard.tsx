@@ -26,7 +26,7 @@ export function JobCard({
   id,
   title,
   company,
-  companyId = "c-1",
+  companyId = "",
   logo,
   location,
   salary,

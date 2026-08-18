@@ -31,9 +31,7 @@ export async function GET() {
     const formatted = companies.map((c) => ({
       id: c.id,
       name: c.name,
-      logo:
-        c.logo ||
-        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
+      logo: c.logo || null,
       industry: c.industry,
       location: c.location,
       description: c.description,

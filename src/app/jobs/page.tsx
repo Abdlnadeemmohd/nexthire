@@ -324,7 +324,7 @@ function JobSearchContent() {
                         id={job.id}
                         title={job.title}
                         company={job.companyName}
-                        companyId="00000000-0000-0000-0000-000000000001"
+                        companyId={job.companyId || ""}
                         logo={job.companyLogo}
                         location={job.location}
                         salary={`$${Math.round(job.salaryMin / 1000)}k - $${Math.round(job.salaryMax / 1000)}k`}

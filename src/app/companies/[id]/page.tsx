@@ -14,33 +14,38 @@ import { EmptyState } from "@/components/ui/EmptyState";
 export default function PublicCompanyDetailPage({ params }: { params: { id: string } }) {
   const { isAuthenticated } = useAuth();
   const [selectedJobToApply, setSelectedJobToApply] = useState<Job | null>(null);
+  const [company, setCompany] = useState<any>(null);
   const [openJobs, setOpenJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCompanyJobs() {
+    async function loadCompanyDetails() {
       try {
         setLoading(true);
-        const res = await fetch("/api/jobs");
+        const res = await fetch(`/api/companies/${params.id}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.success && Array.isArray(data.data)) {
-            setOpenJobs(data.data);
+          if (data.success && data.data) {
+            setCompany(data.data);
+            setOpenJobs(data.data.jobs || []);
           }
         }
       } catch (err) {
-        console.error("Failed to load company jobs:", err);
+        console.error("Failed to load company details:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    loadCompanyJobs();
-  }, []);
+    if (params.id) {
+      loadCompanyDetails();
+    }
+  }, [params.id]);
 
-  const companyName = openJobs[0]?.companyName || "Employer Organization";
-  const companyLocation = openJobs[0]?.location || "Remote";
-  const companyDescription = openJobs[0]?.companyDescription || "Verified technology employer hiring on NextHire Cloud.";
+  const companyName = company?.name || "NextHire";
+  const companyLocation = company?.location || "Remote / Global";
+  const companyIndustry = company?.industry || "Technology / Recruitment Technology";
+  const companyDescription = company?.description || "AI-powered skill-first recruitment platform.";
 
   return (
     <>
@@ -56,7 +61,7 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
             </div>
             <p className="text-xs text-on-surface-variant flex items-center gap-3">
               <span>📍 {companyLocation}</span>
-              <span>• 🏢 Technology</span>
+              <span>• 🏢 {companyIndustry}</span>
             </p>
           </div>
         </div>

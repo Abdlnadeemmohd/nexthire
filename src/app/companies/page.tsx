@@ -28,7 +28,7 @@ export default function CompaniesDirectoryPage() {
     async function loadCompanies() {
       try {
         setLoading(true);
-        const res = await fetch("/api/admin/companies");
+        const res = await fetch("/api/companies");
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
@@ -41,7 +41,7 @@ export default function CompaniesDirectoryPage() {
                 location: c.location || "Location not specified",
                 description: c.description || "Hiring organization on NextHire.",
                 verified: Boolean(c.isVerified),
-                activeJobsCount: Array.isArray(c.jobs) ? c.jobs.length : 0,
+                activeJobsCount: typeof c.activeJobsCount === "number" ? c.activeJobsCount : 0,
               }))
             );
           }

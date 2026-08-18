@@ -5,6 +5,7 @@ import {
   reload,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signOut,
   GoogleAuthProvider,
   ActionCodeSettings,
 } from "firebase/auth";
@@ -312,13 +313,33 @@ class AuthService {
   }
 
   public async logout(): Promise<void> {
+    // 1. Invalidate server-side session and expire session cookie
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        keepalive: true,
+      });
     } catch {
-      // Ignore network failure
+      // In case of offline/network interruption, continue clearing client state
     }
+
+    // 2. Sign out Firebase client authentication
+    try {
+      await signOut(auth);
+    } catch (fbErr) {
+      console.warn("Firebase client sign-out notice:", fbErr);
+    }
+
+    // 3. Clear all client-side authentication storage & notifications cache
     if (typeof window !== "undefined") {
-      localStorage.removeItem(this.STORAGE_KEY);
+      try {
+        localStorage.removeItem(this.STORAGE_KEY);
+        localStorage.removeItem("nexthire_notifications");
+        sessionStorage.removeItem(this.STORAGE_KEY);
+        sessionStorage.removeItem("nexthire_auth_user_session");
+      } catch {}
     }
   }
 

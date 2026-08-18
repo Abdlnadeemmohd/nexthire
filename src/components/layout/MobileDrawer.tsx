@@ -219,9 +219,9 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
               </div>
 
               <button
-                onClick={() => {
+                onClick={async () => {
                   onClose();
-                  logout();
+                  await logout();
                 }}
                 className="w-full py-2.5 text-center text-xs font-bold bg-error/10 text-error hover:bg-error/20 border border-error/30 rounded-xl transition-colors flex items-center justify-center gap-2 touch-target"
               >
