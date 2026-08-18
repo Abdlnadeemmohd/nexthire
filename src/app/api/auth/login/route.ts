@@ -107,20 +107,37 @@ export async function POST(request: Request) {
           );
         }
 
-        const session = await createSession(preconfigured.id);
+        // Ensure user exists in database for preconfigured test credentials
+        let dbPreconfigured = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
+        });
+
+        if (!dbPreconfigured) {
+          dbPreconfigured = await prisma.user.create({
+            data: {
+              email: normalizedEmail,
+              name: preconfigured.name,
+              role: preconfigured.role,
+              headline: `${preconfigured.role.replace("_", " ")} Account`,
+              avatar: preconfigured.avatar,
+            },
+          });
+        }
+
+        const session = await createSession(dbPreconfigured.id);
         const cookieValue = formatSessionCookie({
           token: session.token,
-          userId: preconfigured.id,
-          email: preconfigured.email,
-          role: preconfigured.role,
+          userId: dbPreconfigured.id,
+          email: dbPreconfigured.email,
+          role: dbPreconfigured.role as UserRole,
         });
 
         const response = NextResponse.json(
-          { success: true, user: preconfigured },
+          { success: true, user: dbPreconfigured },
           { status: 200, headers: { "Content-Type": "application/json" } }
         );
         response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
-          httpOnly: false,
+          httpOnly: true,
           secure: false,
           sameSite: "lax",
           path: "/",
@@ -129,51 +146,17 @@ export async function POST(request: Request) {
 
         return response;
       }
-
-      // 3. Dynamic User Fallback for test credentials (Development Only)
-      const role: UserRole = requestedRole || "JOB_SEEKER";
-      const dynamicUser = {
-        id: `usr-${Date.now()}`,
-        name: email.split("@")[0] || "User",
-        email: normalizedEmail,
-        role,
-        avatar:
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-        status: "VERIFIED" as const,
-        headline: `${role.replace("_", " ")} Account`,
-      };
-
-      const session = await createSession(dynamicUser.id);
-      const cookieValue = formatSessionCookie({
-        token: session.token,
-        userId: dynamicUser.id,
-        email: dynamicUser.email,
-        role: dynamicUser.role,
-      });
-
-      const response = NextResponse.json(
-        { success: true, user: dynamicUser },
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-      response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
-        httpOnly: false,
-        secure: false,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60,
-      });
-
-      return response;
     }
 
-    // In production, reject unauthenticated user when not found in database
+    // In production or when credentials do not match database record, reject
     return NextResponse.json(
-      { success: false, error: "Invalid email or password" },
+      { success: false, error: "Invalid email or password", category: "INVALID_CREDENTIALS" },
       { status: 401, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {
+    console.error("[Login] Internal error:", err);
     return NextResponse.json(
-      { success: false, error: err?.message || "Internal server error" },
+      { success: false, error: err?.message || "Internal server error", category: "INTERNAL_SERVER_ERROR" },
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

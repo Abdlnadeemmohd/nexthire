@@ -1,10 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id               String         @id @default(uuid())
+  email            String         @unique
+  name             String
+  passwordHash     String?
+  role             UserRole       @default(JOB_SEEKER)
+  avatar           String?
+  headline         String?
+  bio              String?
+  location         String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  companyId        String?
+  firebaseUid      String?        @unique
+  applications     Application[]  @relation("SeekerApplications")
+  jobs             Job[]          @relation("RecruiterJobs")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  sentMessages     Message[]      @relation("SentMessages")
+  notifications    Notification[]
+  profile          Profile?
+  savedJobs        SavedJob[]
+  sessions         Session[]
+  company          Company?       @relation(fields: [companyId], references: [id])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  isRevoked  Boolean  @default(false)
+  userAgent  String?
+  ipHash     String?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+model Company {
+  id            String   @id @default(uuid())
+  name          String
+  logo          String?
+  industry      String
+  location      String
+  description   String
+  website       String?
+  isVerified    Boolean  @default(true)
+  slaDays       Int      @default(7)
+  autoCloseDays Int      @default(20)
+  createdAt     DateTime @default(now())
+  jobs          Job[]
+  users         User[]
+}
+
+model Job {
+  id               String         @id @default(uuid())
+  title            String
+  description      String
+  responsibilities String
+  requirements     String
+  benefits         String
+  location         String
+  country          String
+  salaryMin        Int
+  salaryMax        Int
+  employmentType   EmploymentType @default(FULL_TIME)
+  experienceLevel  String
+  category         String
+  isRemote         Boolean        @default(false)
+  skills           String
+  status           JobStatus      @default(ACTIVE)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  companyId        String
+  recruiterId      String
+  applications     Application[]
+  company          Company        @relation(fields: [companyId], references: [id])
+  recruiter        User           @relation("RecruiterJobs", fields: [recruiterId], references: [id])
+  savedBy          SavedJob[]
+
+  @@index([title])
+  @@index([location])
+  @@index([category])
+  @@index([isRemote])
+  @@index([status])
+}
+
+model Application {
+  id          String             @id @default(uuid())
+  status      ApplicationStatus  @default(SUBMITTED)
+  matchScore  Int                @default(85)
+  resumeUrl   String?
+  coverLetter String?
+  notes       String?
+  appliedAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  slaDeadline DateTime?
+  jobId       String
+  applicantId String
+  applicant   User               @relation("SeekerApplications", fields: [applicantId], references: [id], onDelete: Cascade)
+  job         Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  events      ApplicationEvent[]
+  interviews  Interview[]
+  offer       Offer?
+  rejection   Rejection?
+}
+
+model SavedJob {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  userId    String
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+model Interview {
+  id            String          @id @default(uuid())
+  round         Int
+  scheduledAt   DateTime
+  timezone      String
+  type          String
+  platform      String
+  meetingLink   String?
+  agenda        String?
+  panelMembers  String[]
+  documents     String[]
+  notes         String?
+  status        InterviewStatus @default(PENDING)
+  createdAt     DateTime        @default(now())
+  applicationId String
+  application   Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  attachment String?
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  senderId   String
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  body      String
+  type      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  skills      String
+  experience  String
+  education   String
+  portfolio   String
+  resumeUrl   String?
+  resumeScore Int      @default(92)
+  updatedAt   DateTime @updatedAt
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApplicationEvent {
+  id            String      @id @default(uuid())
+  applicationId String
+  type          EventType
+  timestamp     DateTime    @default(now())
+  actorId       String
+  notes         String?
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model Offer {
+  id            String      @id @default(uuid())
+  applicationId String      @unique
+  title         String
+  salary        Int
+  bonus         Int?
+  benefits      String?
+  joiningDate   DateTime
+  workModel     String
+  noticePeriod  String?
+  expiryDate    DateTime
+  letterUrl     String?
+  status        OfferStatus @default(PENDING)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model Rejection {
+  id             String          @id @default(uuid())
+  applicationId  String          @unique
+  reason         RejectionReason
+  suggestions    String[]
+  closingMessage String
+  application    Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id           String   @id @default(uuid())
+  actorId      String
+  action       String
+  resourceType String
+  resourceId   String?
+  metadata     String?
+  timestamp    DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([resourceType])
 }
 
 enum UserRole {
@@ -29,194 +253,6 @@ enum JobStatus {
   DRAFT
 }
 
-model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  name          String
-  passwordHash  String?
-  role          UserRole       @default(JOB_SEEKER)
-  avatar        String?
-  headline      String?
-  bio           String?
-  location      String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  companyId     String?
-  company       Company?       @relation(fields: [companyId], references: [id])
-
-  profile       Profile?
-  jobs          Job[]          @relation("RecruiterJobs")
-  applications  Application[]  @relation("SeekerApplications")
-  savedJobs     SavedJob[]
-  sentMessages     Message[]    @relation("SentMessages")
-  receivedMessages Message[]    @relation("ReceivedMessages")
-  notifications Notification[]
-  sessions      Session[]
-}
-
-model Session {
-  id          String   @id @default(uuid())
-  tokenHash   String   @unique
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-  lastUsedAt  DateTime @default(now())
-  isRevoked   Boolean  @default(false)
-  userAgent   String?
-  ipHash      String?
-
-  @@index([tokenHash])
-  @@index([userId])
-}
-
-model Company {
-  id            String   @id @default(uuid())
-  name          String
-  logo          String?
-  industry      String
-  location      String
-  description   String
-  website       String?
-  isVerified    Boolean  @default(true)
-  slaDays       Int      @default(7)
-  autoCloseDays Int      @default(20)
-  createdAt     DateTime @default(now())
-
-  users       User[]
-  jobs        Job[]
-}
-
-model Job {
-  id               String         @id @default(uuid())
-  title            String
-  description      String
-  responsibilities String
-  requirements     String
-  benefits         String
-  location         String
-  country          String
-  salaryMin        Int
-  salaryMax        Int
-  employmentType   EmploymentType @default(FULL_TIME)
-  experienceLevel  String
-  category         String
-  isRemote         Boolean        @default(false)
-  skills           String         // Comma separated or JSON string
-  status           JobStatus      @default(ACTIVE)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-
-  companyId        String
-  company          Company        @relation(fields: [companyId], references: [id])
-  recruiterId      String
-  recruiter        User           @relation("RecruiterJobs", fields: [recruiterId], references: [id])
-
-  applications     Application[]
-  savedBy          SavedJob[]
-
-  @@index([title])
-  @@index([location])
-  @@index([category])
-  @@index([isRemote])
-  @@index([status])
-}
-
-model Application {
-  id           String            @id @default(uuid())
-  status       ApplicationStatus @default(SUBMITTED)
-  matchScore   Int               @default(85)
-  resumeUrl    String?
-  coverLetter  String?
-  notes        String?
-  appliedAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  slaDeadline  DateTime?
-
-  jobId        String
-  job          Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  applicantId  String
-  applicant    User              @relation("SeekerApplications", fields: [applicantId], references: [id], onDelete: Cascade)
-
-  // Relations
-  events       ApplicationEvent[]
-  offer        Offer?
-  rejection    Rejection?
-  interviews   Interview[]
-}
-
-model SavedJob {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId     String
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, jobId])
-}
-
-model Interview {
-  id            String          @id @default(uuid())
-  round         Int
-  scheduledAt   DateTime
-  timezone      String
-  type          String
-  platform      String
-  meetingLink   String?
-  agenda        String?
-  panelMembers  String[]
-  documents     String[]
-  notes         String?
-  status        InterviewStatus @default(PENDING)
-  createdAt     DateTime        @default(now())
-
-  applicationId String
-  application   Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-}
-
-model Message {
-  id          String   @id @default(uuid())
-  content     String
-  attachment  String?
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now())
-
-  senderId    String
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiverId  String
-  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  title     String
-  body      String
-  type      String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Profile {
-  id          String   @id @default(uuid())
-  skills      String
-  experience  String
-  education   String
-  portfolio   String
-  resumeUrl   String?
-  resumeScore Int      @default(92)
-  updatedAt   DateTime @updatedAt
-
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// ---------- Enums ----------
 enum ApplicationStatus {
   SUBMITTED
   UNDER_REVIEW
@@ -264,54 +300,4 @@ enum RejectionReason {
   CULTURE_FIT
   POSITION_CANCELLED
   OTHER
-}
-
-// ---------- Additional Models ----------
-model ApplicationEvent {
-  id            String      @id @default(uuid())
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId String
-  type          EventType
-  timestamp     DateTime    @default(now())
-  actorId       String
-  notes         String?
-}
-
-model Offer {
-  id            String      @id @default(uuid())
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId String      @unique
-  title         String
-  salary        Int
-  bonus         Int?
-  benefits      String?
-  joiningDate   DateTime
-  workModel     String
-  noticePeriod  String?
-  expiryDate    DateTime
-  letterUrl     String?
-  status        OfferStatus @default(PENDING)
-}
-
-model Rejection {
-  id             String          @id @default(uuid())
-  application    Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId  String          @unique
-  reason         RejectionReason
-  suggestions    String[]
-  closingMessage String
-}
-
-model AuditEvent {
-  id           String   @id @default(uuid())
-  actorId      String
-  action       String
-  resourceType String
-  resourceId   String?
-  metadata     String?  // JSON string
-  timestamp    DateTime @default(now())
-
-  @@index([actorId])
-  @@index([action])
-  @@index([resourceType])
 }

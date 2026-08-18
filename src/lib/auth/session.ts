@@ -19,6 +19,7 @@ export interface SessionPayload {
 
 /**
  * Creates an authoritative database session record in PostgreSQL.
+ * Throws if the database is unavailable so phantom sessions are never issued.
  */
 export async function createSession(
   userId: string
@@ -27,17 +28,13 @@ export async function createSession(
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
-  try {
-    await prisma.session.create({
-      data: {
-        tokenHash,
-        userId,
-        expiresAt,
-      },
-    });
-  } catch (err) {
-    console.warn("Database session creation note (fallback enabled):", err);
-  }
+  await prisma.session.create({
+    data: {
+      tokenHash,
+      userId,
+      expiresAt,
+    },
+  });
 
   return { token: rawToken, expiresAt };
 }

@@ -4,6 +4,8 @@ import {
   sendEmailVerification,
   reload,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   ActionCodeSettings,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
@@ -23,22 +25,30 @@ class AuthService {
   }
 
   /**
-   * Safe parser for authentication API responses to prevent HTML parsing crashes.
+   * Safe parser for authentication API responses that prevents secondary parsing crashes,
+   * handles non-JSON HTML/text server errors, and provides user-friendly diagnostic messages.
    */
   private async parseApiResponse<T = any>(
     res: Response
-  ): Promise<{ success: boolean; data?: T; user?: AuthUser; error?: string }> {
-    const contentType = res.headers.get("content-type") || "";
+  ): Promise<{ success: boolean; data?: T; user?: AuthUser; error?: string; category?: string }> {
     let json: any = null;
 
-    if (contentType.includes("application/json")) {
-      try {
-        json = await res.json();
-      } catch {
-        json = null;
+    // 1. Attempt to parse response body as text first, then JSON
+    try {
+      const text = await res.text();
+      if (text && text.trim().length > 0) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // Response is unparseable plain text or HTML
+          json = null;
+        }
       }
+    } catch {
+      json = null;
     }
 
+    // 2. Structured JSON response handling
     if (json && typeof json === "object") {
       if (res.ok && json.success) {
         return { success: true, data: json, user: json.user };
@@ -46,13 +56,27 @@ class AuthService {
       return {
         success: false,
         error: json.error || `Authentication failed (${res.status} ${res.statusText}).`,
+        category: json.category,
       };
     }
 
-    // Non-JSON response (e.g. server infrastructure error or unexpected HTML)
+    // 3. User-friendly fallback messages for non-JSON or infrastructure errors
+    let fallbackMessage = `Authentication service error (${res.status}).`;
+    if (res.status === 500) {
+      fallbackMessage = "Authentication server temporarily encountered an internal error. Please try again or contact support.";
+    } else if (res.status === 503) {
+      fallbackMessage = "Authentication database or configuration service is temporarily unavailable. Please try again shortly.";
+    } else if (res.status === 401) {
+      fallbackMessage = "Invalid authentication credentials or expired token.";
+    } else if (res.status === 403) {
+      fallbackMessage = "Access denied for this resource.";
+    } else if (res.status === 404) {
+      fallbackMessage = "Authentication endpoint not found on server.";
+    }
+
     return {
       success: false,
-      error: `Authentication server returned unexpected response format (${res.status} ${res.statusText}).`,
+      error: fallbackMessage,
     };
   }
 
@@ -78,7 +102,6 @@ class AuthService {
         if (remember && typeof window !== "undefined") {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        this.setCookieSession(parsed.user);
         return { success: true, user: parsed.user };
       }
 
@@ -87,18 +110,6 @@ class AuthService {
         error: parsed.error || "Authentication failed. Please verify credentials.",
       };
     } catch {
-      // Offline / network fallback for preconfigured users (Development Only)
-      if (process.env.NODE_ENV !== "production") {
-        const normalized = email.toLowerCase().trim();
-        const found = PRECONFIGURED_USERS.find((u) => u.email.toLowerCase() === normalized);
-        if (found) {
-          if (remember && typeof window !== "undefined") {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(found));
-          }
-          this.setCookieSession(found);
-          return { success: true, user: found };
-        }
-      }
       return { success: false, error: "Network error during authentication." };
     }
   }
@@ -122,7 +133,6 @@ class AuthService {
         if (typeof window !== "undefined") {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        this.setCookieSession(parsed.user);
         return { success: true, user: parsed.user };
       }
 
@@ -139,29 +149,34 @@ class AuthService {
   }
 
   /**
-   * OAuth Single Sign-On (Google, Microsoft, LinkedIn, GitHub)
+   * OAuth Single Sign-On (Real Firebase Google SSO & Provider Guards)
    */
   public async loginWithOAuth(
     provider: "GOOGLE" | "MICROSOFT" | "LINKEDIN" | "GITHUB",
     role: UserRole = "JOB_SEEKER"
-  ): Promise<{ success: boolean; user: AuthUser }> {
-    await new Promise((res) => setTimeout(res, 400));
-    const oauthUser: AuthUser = {
-      id: `oauth-${provider.toLowerCase()}-${Date.now()}`,
-      name: `Verified ${provider.charAt(0) + provider.slice(1).toLowerCase()} User`,
-      email: `user.${provider.toLowerCase()}@nexthire.cloud`,
-      role: role,
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      status: "VERIFIED",
-      country: "United States",
-      headline: `Verified via ${provider} OAuth SSO`,
-    };
-    if (typeof window !== "undefined") {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(oauthUser));
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    if (provider === "GOOGLE") {
+      try {
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: "select_account" });
+        const cred = await signInWithPopup(auth, googleProvider);
+        if (cred.user) {
+          const idToken = await cred.user.getIdToken();
+          return await this.loginWithFirebase(idToken);
+        }
+        return { success: false, error: "Google Sign-In was cancelled or incomplete." };
+      } catch (err: any) {
+        if (err?.code === "auth/popup-closed-by-user") {
+          return { success: false, error: "Google Sign-In popup was closed before completion." };
+        }
+        return { success: false, error: err?.message || "Google authentication failed." };
+      }
     }
-    this.setCookieSession(oauthUser);
-    return { success: true, user: oauthUser };
+
+    return {
+      success: false,
+      error: `${provider.charAt(0) + provider.slice(1).toLowerCase()} Single Sign-On is not configured on this deployment. Please sign in with Google or Email.`,
+    };
   }
 
   public async registerSeeker(data: {
@@ -172,10 +187,13 @@ class AuthService {
     password: string;
   }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
     try {
+      let firebaseUid: string | undefined = undefined;
+
       // 1. Create Firebase Auth user & send verification email if Firebase client is ready
       try {
         const cred = await createUserWithEmailAndPassword(auth, data.email, data.password);
         if (cred.user) {
+          firebaseUid = cred.user.uid;
           await sendEmailVerification(cred.user, this.getActionCodeSettings("/verify-email"));
         }
       } catch (fbErr: any) {
@@ -188,11 +206,12 @@ class AuthService {
         }
       }
 
-      // 2. Register in NextHire PostgreSQL Database
+      // 2. Register in NextHire Neon PostgreSQL Database
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          firebaseUid,
           name: data.name,
           email: data.email,
           password: data.password,
@@ -207,7 +226,6 @@ class AuthService {
         if (typeof window !== "undefined") {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        this.setCookieSession(parsed.user);
         return { success: true, user: parsed.user };
       }
       return { success: false, error: parsed.error || "Registration failed" };
@@ -227,10 +245,13 @@ class AuthService {
     password: string;
   }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
     try {
+      let firebaseUid: string | undefined = undefined;
+
       // 1. Create Firebase Auth user & send verification email if Firebase client is ready
       try {
         const cred = await createUserWithEmailAndPassword(auth, data.email, data.password);
         if (cred.user) {
+          firebaseUid = cred.user.uid;
           await sendEmailVerification(cred.user, this.getActionCodeSettings("/verify-email"));
         }
       } catch (fbErr: any) {
@@ -243,11 +264,12 @@ class AuthService {
         }
       }
 
-      // 2. Register in NextHire PostgreSQL Database
+      // 2. Register in NextHire Neon PostgreSQL Database
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          firebaseUid,
           name: data.name,
           email: data.email,
           password: data.password,
@@ -264,28 +286,11 @@ class AuthService {
         if (typeof window !== "undefined") {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed.user));
         }
-        this.setCookieSession(parsed.user);
         return { success: true, user: parsed.user };
       }
       return { success: false, error: parsed.error || "Registration failed" };
     } catch (err: any) {
       return { success: false, error: err?.message || "Network error during registration." };
-    }
-  }
-
-  private setCookieSession(user: AuthUser | null) {
-    if (typeof window === "undefined") return;
-    if (user) {
-      const payload = {
-        token: user.id,
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      };
-      const value = encodeURIComponent(JSON.stringify(payload));
-      document.cookie = `nexthire_auth_session=${value}; path=/; max-age=604800; SameSite=Lax`;
-    } else {
-      document.cookie = "nexthire_auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
   }
 
@@ -303,7 +308,6 @@ class AuthService {
   public saveSessionUser(user: AuthUser): void {
     if (typeof window !== "undefined") {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
-      this.setCookieSession(user);
     }
   }
 
@@ -315,7 +319,6 @@ class AuthService {
     }
     if (typeof window !== "undefined") {
       localStorage.removeItem(this.STORAGE_KEY);
-      this.setCookieSession(null);
     }
   }
 

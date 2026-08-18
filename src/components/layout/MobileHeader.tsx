@@ -30,7 +30,7 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
 
           <Link
             href="/"
-            className="flex items-center gap-1.5 sm:gap-2 min-w-0 focus:outline-none focus:ring-2 focus:ring-primary rounded-xl p-0.5"
+            className="flex items-center gap-1.5 sm:gap-2 min-w-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all"
             aria-label="NextHire home"
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary text-on-primary rounded-lg sm:rounded-xl flex items-center justify-center font-bold font-display text-base sm:text-lg shadow-xs flex-shrink-0">

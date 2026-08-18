@@ -10,10 +10,10 @@ interface AuthHeaderProps {
 export function AuthHeader({ currentAction }: AuthHeaderProps) {
   return (
     <header className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-      {/* Brand Logo - Navigates to Homepage */}
+      {/* Brand Logo - Sole Navigation to Homepage */}
       <Link
         href="/"
-        className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-primary rounded-xl p-1"
+        className="flex items-center gap-2.5 group rounded-xl p-1 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all min-h-[44px] touch-target"
         aria-label="NextHire home"
       >
         <div className="w-9 h-9 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-xl shadow-xs group-hover:scale-105 transition-transform">
@@ -23,20 +23,6 @@ export function AuthHeader({ currentAction }: AuthHeaderProps) {
           Next<span className="text-primary">Hire</span>
         </span>
       </Link>
-
-      {/* Right Navigation: Home Action Link */}
-      <nav aria-label="Authentication Header Navigation" className="flex items-center gap-2">
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
-          aria-label="Return to NextHire Homepage"
-        >
-          <span className="material-symbols-outlined text-lg" aria-hidden="true">
-            home
-          </span>
-          <span>Home</span>
-        </Link>
-      </nav>
     </header>
   );
 }

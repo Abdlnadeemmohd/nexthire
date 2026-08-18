@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     }
 
     const {
+      firebaseUid,
       name,
       email,
       password,
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { success: false, error: "Name, email, and password are required" },
+        { success: false, error: "Name, email, and password are required", category: "INVALID_REQUEST" },
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -40,11 +41,19 @@ export async function POST(request: Request) {
 
     let newUser: any = null;
     try {
-      // Check existing
-      const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+      // Check existing by email or firebaseUid
+      const existing = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: normalizedEmail },
+            ...(firebaseUid ? [{ firebaseUid }] : []),
+          ],
+        },
+      });
+
       if (existing) {
         return NextResponse.json(
-          { success: false, error: "An account with this email already exists" },
+          { success: false, error: "An account with this email or identity already exists", category: "USER_ALREADY_EXISTS" },
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
@@ -64,6 +73,7 @@ export async function POST(request: Request) {
 
       newUser = await prisma.user.create({
         data: {
+          firebaseUid: firebaseUid || undefined,
           name,
           email: normalizedEmail,
           passwordHash,
@@ -74,26 +84,61 @@ export async function POST(request: Request) {
         },
         include: { company: true },
       });
-    } catch (err) {
-      console.warn("Database registration fallback:", err);
+    } catch (err: any) {
+      console.error("[Register] Neon PostgreSQL error:", err);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication database is temporarily unavailable.",
+          category: "DATABASE_UNAVAILABLE",
+        },
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    const userId = newUser ? newUser.id : `usr-${Date.now()}`;
-    const userRole: UserRole = (newUser ? newUser.role : role) as UserRole;
+    if (!newUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create user account.",
+          category: "USER_CREATION_FAILED",
+        },
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = newUser.id;
+    const userRole: UserRole = newUser.role as UserRole;
+
+    let session: { token: string; expiresAt: Date };
+    try {
+      session = await createSession(userId);
+    } catch (sessErr: any) {
+      console.error("[Register] Session creation error:", sessErr);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unable to create authentication session.",
+          category: "SESSION_CREATION_FAILED",
+        },
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     const authUser = {
       id: userId,
-      name: name,
+      firebaseUid: newUser.firebaseUid || undefined,
+      name: newUser.name,
       email: normalizedEmail,
       role: userRole,
       avatar:
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
       status: "VERIFIED" as const,
       companyName: companyName || undefined,
+      companyId: newUser.companyId || undefined,
       headline: headline || `${userRole.replace("_", " ")} Account`,
     };
 
-    const session = await createSession(userId);
     const cookieValue = formatSessionCookie({
       token: session.token,
       userId: authUser.id,
@@ -116,8 +161,9 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err: any) {
+    console.error("[Register] Internal error:", err);
     return NextResponse.json(
-      { success: false, error: err?.message || "Failed to register user" },
+      { success: false, error: err?.message || "Failed to register user", category: "INTERNAL_SERVER_ERROR" },
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

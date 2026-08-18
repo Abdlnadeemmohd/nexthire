@@ -68,6 +68,10 @@ function LoginFormContent() {
   };
 
 
+  const handleUnconfiguredOAuth = (providerName: string) => {
+    showToast(`${providerName} Sign-In is not currently enabled. Please use Google or Email.`, "info");
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
@@ -281,6 +285,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
+              onClick={() => handleUnconfiguredOAuth("LinkedIn")}
               className="py-2.5 bg-surface border border-outline-variant/30 hover:bg-surface-container rounded-xl flex items-center justify-center text-on-surface transition-colors shadow-xs"
               title="Sign in with LinkedIn"
               aria-label="Sign in with LinkedIn"
@@ -291,6 +296,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
+              onClick={() => handleUnconfiguredOAuth("Microsoft")}
               className="py-2.5 bg-surface border border-outline-variant/30 hover:bg-surface-container rounded-xl flex items-center justify-center text-on-surface transition-colors shadow-xs"
               title="Sign in with Microsoft"
               aria-label="Sign in with Microsoft"
@@ -304,6 +310,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
+              onClick={() => handleUnconfiguredOAuth("GitHub")}
               className="py-2.5 bg-surface border border-outline-variant/30 hover:bg-surface-container rounded-xl flex items-center justify-center text-on-surface transition-colors shadow-xs"
               title="Sign in with GitHub"
               aria-label="Sign in with GitHub"

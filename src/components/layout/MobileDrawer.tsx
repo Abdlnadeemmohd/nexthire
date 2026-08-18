@@ -42,7 +42,12 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
       <div className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-surface-container-lowest border-r border-outline-variant/30 shadow-2xl flex flex-col pt-safe pb-safe animate-slide-in">
         {/* Drawer Header */}
         <div className="p-4 border-b border-outline-variant/20 flex items-center justify-between">
-          <Link href="/" onClick={onClose} className="flex items-center gap-2" aria-label="NextHire home">
+          <Link
+            href="/"
+            onClick={onClose}
+            className="flex items-center gap-2 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all"
+            aria-label="NextHire home"
+          >
             <div className="w-8 h-8 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-lg">
               N
             </div>
