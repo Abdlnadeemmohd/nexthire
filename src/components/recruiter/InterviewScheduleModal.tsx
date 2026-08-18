@@ -37,8 +37,8 @@ export function InterviewScheduleModal({
 }: InterviewScheduleModalProps) {
   const { showToast } = useToast();
   const [interviewType, setInterviewType] = useState<ScheduledInterviewEvent["interviewType"]>("TECHNICAL");
-  const [interviewerName, setInterviewerName] = useState("Sarah Jenkins");
-  const [interviewerEmail, setInterviewerEmail] = useState("sarah.recruiter@stellarsystems.com");
+  const [interviewerName, setInterviewerName] = useState("Stage 1 Recruiter");
+  const [interviewerEmail, setInterviewerEmail] = useState("recruiter@nexthire.cloud");
   const [date, setDate] = useState("2026-07-30");
   const [time, setTime] = useState("15:00");
   const [timezone, setTimezone] = useState("EST (UTC-5)");

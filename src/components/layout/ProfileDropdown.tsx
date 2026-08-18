@@ -43,10 +43,10 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
           />
           <div className="min-w-0 flex-1 space-y-1">
             <h4 className="font-headline-sm text-xs font-bold text-on-surface truncate">
-              {user?.name || "Alex Rivers"}
+              {user?.name || "User"}
             </h4>
             <p className="text-[10px] text-on-surface-variant truncate">
-              {user?.email || "alex.rivers@gmail.com"}
+              {user?.email || "user@nexthire.cloud"}
             </p>
             <div>
               <VerifiedBadge role={user?.role} size="sm" />

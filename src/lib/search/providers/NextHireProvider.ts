@@ -1,6 +1,5 @@
 import { SearchProvider, SearchQueryParams, SearchResult, ProviderCapabilities, ProviderType } from "../types";
 import { prisma } from "@/lib/prisma";
-import { INITIAL_JOBS } from "@/lib/mockData";
 
 export class NextHireProvider implements SearchProvider {
   public providerName = "NextHire DB";
@@ -20,7 +19,7 @@ export class NextHireProvider implements SearchProvider {
       await prisma.$queryRaw`SELECT 1`;
       return true;
     } catch {
-      return true; // Soft fallback
+      return false;
     }
   }
 
@@ -64,7 +63,7 @@ export class NextHireProvider implements SearchProvider {
         return dbJobs.map((j) => ({
           id: `nh-${j.id}`,
           title: j.title,
-          company: j.company.name,
+          company: j.company?.name || "NextHire Partner",
           description: j.description,
           location: j.location,
           salary: `$${j.salaryMin.toLocaleString()} - $${j.salaryMax.toLocaleString()}`,
@@ -73,8 +72,10 @@ export class NextHireProvider implements SearchProvider {
           employmentType: j.employmentType,
           source: "NextHire Platform",
           sourceUrl: `/jobs/${j.id}`,
-          logo: j.company.logo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
-          skills: j.skills ? j.skills.split(",").map((s) => s.trim()) : [],
+          logo:
+            j.company?.logo ||
+            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
+          skills: j.skills ? j.skills.split(",").map((s) => s.trim()).filter(Boolean) : [],
           postedDate: j.createdAt.toISOString().split("T")[0],
           remote: j.isRemote,
           matchScore: 98,
@@ -82,47 +83,9 @@ export class NextHireProvider implements SearchProvider {
         }));
       }
     } catch (err) {
-      console.warn("Prisma query failed in NextHireProvider, using memory fallback:", err);
+      console.error("[NextHireProvider Database Query Error]:", err);
     }
 
-    // Memory fallback if database has not been seeded
-    let filtered = INITIAL_JOBS;
-    if (q) {
-      filtered = filtered.filter(
-        (j) =>
-          j.title.toLowerCase().includes(q) ||
-          j.description.toLowerCase().includes(q) ||
-          j.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    }
-    if (loc) {
-      filtered = filtered.filter((j) => j.location.toLowerCase().includes(loc));
-    }
-    if (params.remoteOnly) {
-      filtered = filtered.filter((j) => j.isRemote);
-    }
-    if (params.salaryMin) {
-      filtered = filtered.filter((j) => j.salaryMax >= params.salaryMin!);
-    }
-
-    return filtered.map((j) => ({
-      id: `nh-mem-${j.id}`,
-      title: j.title,
-      company: j.companyName,
-      description: j.description,
-      location: j.location,
-      salary: `$${j.salaryMin.toLocaleString()} - $${j.salaryMax.toLocaleString()}`,
-      salaryMin: j.salaryMin,
-      salaryMax: j.salaryMax,
-      employmentType: j.employmentType,
-      source: "NextHire Platform",
-      sourceUrl: `/jobs/${j.id}`,
-      logo: j.companyLogo,
-      skills: j.tags,
-      postedDate: j.postedAt,
-      remote: j.isRemote,
-      matchScore: j.matchScore || 95,
-      sourceType: "DIRECT",
-    }));
+    return [];
   }
 }

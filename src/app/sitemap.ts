@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { INITIAL_JOBS } from "@/lib/mockData";
+import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.nexthire.cloud";
@@ -15,12 +15,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/register`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  const jobRoutes: MetadataRoute.Sitemap = INITIAL_JOBS.map((j) => ({
-    url: `${baseUrl}/jobs/${j.id}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }));
+  try {
+    const activeJobs = await prisma.job.findMany({
+      where: { status: "ACTIVE" },
+      select: { id: true, updatedAt: true },
+      take: 100,
+    });
 
-  return [...publicRoutes, ...jobRoutes];
+    const jobRoutes: MetadataRoute.Sitemap = activeJobs.map((j) => ({
+      url: `${baseUrl}/jobs/${j.id}`,
+      lastModified: j.updatedAt || new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
+
+    return [...publicRoutes, ...jobRoutes];
+  } catch (error) {
+    console.error("[Sitemap Generation Error]:", error);
+    return publicRoutes;
+  }
 }

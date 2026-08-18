@@ -3,24 +3,20 @@
 import React, { useState } from "react";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
-import { INITIAL_MESSAGES, MessageItem } from "@/lib/mockData";
-
+import { MessageItem } from "@/lib/mockData";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
-import { MessagingService } from "@/services/messagingService";
 import { Modal } from "@/components/ui/Modal";
 
 export default function MessagingCentrePage() {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const [messages, setMessages] = useState<MessageItem[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showVideoCallModal, setShowVideoCallModal] = useState(false);
-  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
-  const [isPinned, setIsPinned] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("chat");
 
   const portalType =
     user?.role === "RECRUITER"
@@ -32,28 +28,25 @@ export default function MessagingCentrePage() {
   const activeContact =
     user?.role === "RECRUITER"
       ? {
-          name: "Alex Rivers",
-          company: "Job Candidate",
-          role: "Senior UX Specialist",
-          avatar:
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuCohtV2Z0aDLDnAjCiN9bVGyy23UBK2eUaFPXAmILSLmTWMtP5mNAQBOGNOKEumuaKYIrTbgg8HxYkR0BkzjQKbnZY6AomJue9dlrGeS7LUmBLE19pwl7THpOA-Q9SNXeNmKxubmdGOHk_odhKF4Bc4kTPkMK7ZBHYi-0CUCyvPmvlq7U6ACptlDENQxAUgJI34gc6pdN1Dvu6jkM7Iuzox9T9iAtNf-1nCFP2PYJ0woS8ZXB1QnfmjuwJbhNJc53KKfsCErff_c5F8",
+          name: "Job Candidate",
+          company: "Candidate Pipeline",
+          role: "Verified Job Seeker",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
           online: true,
         }
       : user?.role === "PLATFORM_ADMIN"
       ? {
-          name: "System Support & Moderation Desk",
-          company: "NextHire Platform",
+          name: "Platform Operations Desk",
+          company: "NextHire Cloud",
           role: "Super Administrator",
-          avatar:
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
           online: true,
         }
       : {
-          name: "Sarah Jenkins",
-          company: "Stellar Systems",
-          role: "Lead Tech Recruiter",
-          avatar:
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuC1D7dFdsnx2LAf_HxMUQf5KpCl5o2SHtRoQtxP7qjPB2D7KMODcDu0063TsqSLCewWg9M09otOoMbH-NfUzvBYL92WSEUJQDyw0W-Bmok-FvgZyL21HUitslBJkhfhVC2G8gAQ6LSZ_X8qMYN9F5R1R_kgZFA67hps92BfZKbel7Lmg6aApF7Nih5ph9jjS0S0rUr2W_p3a3L0hwTkNXDRL4DpAgeh-X1qCkE5OBpKsWx0JHS37gayqR4caP6y50K32RpNrJ5CHWlC",
+          name: "Recruitment Team",
+          company: "NextHire Simulation Corp",
+          role: "Hiring Manager",
+          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
           online: true,
         };
 
@@ -76,7 +69,7 @@ export default function MessagingCentrePage() {
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage("");
 
-    // Simulate reply
+    // Automated simulation response
     setTimeout(() => {
       setIsTyping(true);
       setTimeout(() => {
@@ -91,325 +84,179 @@ export default function MessagingCentrePage() {
             receiverId: user?.id || "user-curr",
             content:
               user?.role === "RECRUITER"
-                ? "Thanks for reaching out! I'm very interested in learning more about the opportunity."
+                ? "Thank you for reaching out! I look forward to discussing the role."
                 : user?.role === "PLATFORM_ADMIN"
-                ? "Your ticket has been logged and confirmed by Platform Operations."
-                : "Thanks! Got your message. I'll pass this directly to our hiring team.",
+                ? "Message logged in Platform Operations Desk."
+                : "Thank you for your message! Our recruiting team is reviewing your application.",
             timestamp: "Just now",
             read: true,
             isRecruiter: user?.role !== "RECRUITER",
           },
         ]);
       }, 1000);
-    }, 600);
+    }, 500);
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPortal={portalType}>
       <TopAppBar />
 
-      <div className="flex bg-surface h-[calc(100vh-64px)] mt-16 overflow-hidden">
+      <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal={portalType} />
 
-        <main className="flex-1 lg:pl-[270px] flex h-full w-full">
-          {/* Conversation List Column */}
-          <aside
-            className={`w-full md:w-80 lg:w-96 border-r border-outline-variant/20 bg-surface-container-lowest flex-col h-full ${
-              mobileView === "list" ? "flex" : "hidden md:flex"
-            }`}
-          >
-            <div className="p-4 border-b border-outline-variant/20 space-y-3">
-              <h2 className="font-display text-xl font-bold text-on-surface">
-                Messages
-              </h2>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg" aria-hidden="true">
-                  search
-                </span>
+        <div className="flex-1 lg:pl-[270px] flex flex-col h-[calc(100vh-4rem)]">
+          <div className="flex-1 flex overflow-hidden">
+            {/* Contacts Sidebar */}
+            <div className={`w-full sm:w-80 border-r border-outline-variant/20 bg-surface-container-lowest flex flex-col ${mobileView === "chat" ? "hidden sm:flex" : "flex"}`}>
+              <div className="p-4 border-b border-outline-variant/20">
+                <h2 className="font-bold text-base text-on-surface">Conversations</h2>
+              </div>
+
+              <div className="p-2">
+                <div
+                  onClick={() => setMobileView("chat")}
+                  className="p-3 rounded-2xl bg-surface-container-low border border-primary/30 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="relative">
+                    <img
+                      src={activeContact.avatar}
+                      alt={activeContact.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface"></div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-xs text-on-surface truncate">{activeContact.name}</h3>
+                    <p className="text-[11px] text-on-surface-variant truncate">{activeContact.company}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Conversation Area */}
+            <div className={`flex-1 flex flex-col bg-surface ${mobileView === "list" ? "hidden sm:flex" : "flex"}`}>
+              {/* Chat Header */}
+              <div className="p-4 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-lowest">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setMobileView("list")}
+                    className="sm:hidden p-1 rounded-lg text-on-surface-variant hover:bg-surface-container"
+                  >
+                    <span className="material-symbols-outlined text-lg">arrow_back</span>
+                  </button>
+                  <img
+                    src={activeContact.avatar}
+                    alt={activeContact.name}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                  <div>
+                    <h3 className="font-bold text-sm text-on-surface">{activeContact.name}</h3>
+                    <p className="text-[11px] text-on-surface-variant">{activeContact.role} • {activeContact.company}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowVideoCallModal(true)}
+                    className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors"
+                    title="Start Video Meeting"
+                  >
+                    <span className="material-symbols-outlined text-lg">videocam</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+                {messages.length > 0 ? (
+                  messages.map((msg) => {
+                    const isMe = msg.senderId === (user?.id || "user-curr");
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex gap-3 max-w-[80%] ${isMe ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+                      >
+                        <div
+                          className={`p-3.5 rounded-2xl text-xs leading-relaxed ${
+                            isMe
+                              ? "bg-primary text-on-primary rounded-br-xs"
+                              : "bg-surface-container-high text-on-surface rounded-bl-xs"
+                          }`}
+                        >
+                          <p>{msg.content}</p>
+                          <span
+                            className={`text-[9px] mt-1 block ${
+                              isMe ? "text-on-primary/70 text-right" : "text-outline text-left"
+                            }`}
+                          >
+                            {msg.timestamp}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-2">
+                    <span className="material-symbols-outlined text-4xl text-outline">chat_bubble_outline</span>
+                    <h4 className="font-bold text-sm text-on-surface">No messages yet</h4>
+                    <p className="text-xs text-on-surface-variant max-w-sm">
+                      Send a message to start direct communication with {activeContact.name}.
+                    </p>
+                  </div>
+                )}
+
+                {isTyping && (
+                  <div className="flex items-center gap-2 text-xs text-outline italic">
+                    <span>{activeContact.name} is typing...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Bar */}
+              <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Search conversations..."
-                  aria-label="Search conversations"
-                  className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder={`Message ${activeContact.name}...`}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  className="flex-1 px-4 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/10">
-              {/* Active Conversation Item */}
-              <div
-                onClick={() => setMobileView("chat")}
-                className="p-4 bg-secondary-container/20 border-l-4 border-primary flex items-center gap-3 cursor-pointer hover:bg-secondary-container/30 transition-colors"
-              >
-                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                  <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-tertiary rounded-full ring-2 ring-white"></span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-headline-sm text-sm font-bold text-on-surface truncate">
-                      {activeContact.name}
-                    </h4>
-                    <span className="text-[10px] text-outline font-mono">10:22 AM</span>
-                  </div>
-                  <p className="text-xs text-on-surface-variant font-label-md truncate">
-                    {activeContact.company} • {activeContact.role}
-                  </p>
-                  <p className="text-xs text-outline truncate pt-0.5">
-                    {messages[messages.length - 1]?.content}
-                  </p>
-                </div>
-              </div>
-
-              {/* Other Conversations */}
-              <div
-                onClick={() => setMobileView("chat")}
-                className="p-4 flex items-center gap-3 hover:bg-surface-container/50 cursor-pointer transition-colors"
-              >
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-container text-on-primary-container flex items-center justify-center font-bold flex-shrink-0">
-                  NS
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-headline-sm text-sm font-bold text-on-surface truncate">
-                      NeuralScale Talent Team
-                    </h4>
-                    <span className="text-[10px] text-outline font-mono">Yesterday</span>
-                  </div>
-                  <p className="text-xs text-on-surface-variant font-label-md">
-                    Lead AI Architect Position
-                  </p>
-                  <p className="text-xs text-outline truncate">
-                    Your profile has been shortlisted for technical review...
-                  </p>
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          {/* Main Chat Window */}
-          <section
-            className={`flex-1 flex-col h-full bg-surface-container-lowest ${
-              mobileView === "chat" ? "flex" : "hidden md:flex"
-            }`}
-          >
-            {/* Chat Thread Header */}
-            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-outline-variant/20 flex items-center justify-between bg-surface/80 backdrop-blur-xs gap-2">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <button
-                  type="button"
-                  onClick={() => setMobileView("list")}
-                  aria-label="Back to conversations"
-                  className="md:hidden p-2 text-on-surface hover:text-primary rounded-xl hover:bg-surface-container transition-colors touch-target"
+                  type="submit"
+                  disabled={!inputMessage.trim()}
+                  className="px-4 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-xs hover:bg-primary-container disabled:opacity-50 transition-colors flex items-center gap-1"
                 >
-                  <span className="material-symbols-outlined text-xl">arrow_back</span>
+                  <span>Send</span>
+                  <span className="material-symbols-outlined text-sm">send</span>
                 </button>
-
-                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
-                  <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-tertiary rounded-full ring-2 ring-white"></span>
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface truncate">
-                    {activeContact.name}
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-on-surface-variant font-label-md truncate">
-                    {activeContact.role} at <span className="font-bold text-primary">{activeContact.company}</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsPinned(!isPinned)}
-                  className={`p-2 rounded-full transition-colors touch-target ${
-                    isPinned ? "text-primary bg-primary/10" : "text-on-surface-variant hover:bg-surface-container"
-                  }`}
-                  title={isPinned ? "Unpin Conversation" : "Pin Conversation"}
-                  aria-label="Pin conversation"
-                >
-                  <span className="material-symbols-outlined text-lg">push_pin</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMuted(!isMuted);
-                    showToast(`Notifications ${!isMuted ? "muted" : "unmuted"} for this thread`, "info");
-                  }}
-                  className={`p-2 rounded-full transition-colors touch-target ${
-                    isMuted ? "text-error bg-error/10" : "text-on-surface-variant hover:bg-surface-container"
-                  }`}
-                  title={isMuted ? "Unmute Thread" : "Mute Thread"}
-                  aria-label="Mute thread"
-                >
-                  <span className="material-symbols-outlined text-lg">{isMuted ? "notifications_off" : "notifications"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowVideoCallModal(true)}
-                  className="px-2.5 sm:px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-xs touch-target"
-                  aria-label="Join video call"
-                >
-                  <span className="material-symbols-outlined text-base">videocam</span>
-                  <span className="hidden sm:inline">Join Call</span>
-                </button>
-              </div>
+              </form>
             </div>
-
-            {/* Chat Messages Stream */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
-              {messages.map((msg) => {
-                const isMe = !msg.isRecruiter;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex items-start gap-3 max-w-2xl ${
-                      isMe ? "ml-auto flex-row-reverse" : ""
-                    }`}
-                  >
-                    <img
-                      src={msg.senderAvatar}
-                      alt={msg.senderName}
-                      className="w-9 h-9 rounded-full object-cover shadow-xs flex-shrink-0"
-                    />
-                    <div className="space-y-1">
-                      <div
-                        className={`p-4 rounded-2xl text-sm leading-relaxed ${
-                          isMe
-                            ? "bg-primary text-on-primary rounded-tr-xs shadow-md"
-                            : "bg-surface-container-high text-on-surface rounded-tl-xs"
-                        }`}
-                      >
-                        <p>{msg.content}</p>
-
-                        {/* File Attachment Pill */}
-                        {msg.attachment && (
-                          <div className="mt-3 p-3 bg-white/20 rounded-xl flex items-center justify-between gap-3 border border-white/30">
-                            <div className="flex items-center gap-2">
-                              <span className="material-symbols-outlined text-xl">
-                                description
-                              </span>
-                              <div>
-                                <p className="font-bold text-xs">{msg.attachment.name}</p>
-                                <p className="text-[10px] opacity-80">{msg.attachment.size}</p>
-                              </div>
-                            </div>
-                            <span className="material-symbols-outlined text-base">download</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div
-                        className={`flex items-center gap-1 text-[10px] text-outline ${
-                          isMe ? "justify-end" : ""
-                        }`}
-                      >
-                        <span>{msg.timestamp}</span>
-                        {isMe && (
-                          <span className="material-symbols-outlined text-tertiary text-xs">
-                            done_all
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Typing Indicator */}
-              {isTyping && (
-                <div className="flex items-center gap-2 text-xs text-outline font-label-md pl-12 animate-pulse">
-                  <span>{activeContact.name} is typing...</span>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Message Input Bar */}
-            <form
-              onSubmit={handleSendMessage}
-              className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface flex items-center gap-2 sm:gap-3 pb-safe"
-            >
-              <button
-                type="button"
-                onClick={() => showToast("Document attachment dialog opened.", "info")}
-                className="p-2 sm:p-2.5 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors touch-target flex-shrink-0"
-                title="Attach Resume / File"
-                aria-label="Attach Resume or File"
-              >
-                <span className="material-symbols-outlined text-xl" aria-hidden="true">attach_file</span>
-              </button>
-
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type a message..."
-                aria-label="Message input"
-                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-xs sm:text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-
-              <button
-                type="submit"
-                aria-label="Send message"
-                className="p-2.5 sm:p-3 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-all shadow-xs active:scale-95 flex items-center justify-center touch-target flex-shrink-0"
-              >
-                <span className="material-symbols-outlined text-lg" aria-hidden="true">send</span>
-              </button>
-            </form>
-          </section>
-        </main>
-      </div>
-
-      <Modal
-        isOpen={showVideoCallModal}
-        onClose={() => setShowVideoCallModal(false)}
-        title="1-on-1 Enterprise Video Meeting"
-      >
-        <div className="space-y-4 text-xs font-body-md text-center">
-          <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center border border-outline-variant/30 shadow-inner">
-            <img
-              src={activeContact.avatar}
-              alt={activeContact.name}
-              className="w-24 h-24 rounded-full object-cover border-4 border-primary/50 animate-pulse"
-            />
-            <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-2 rounded-xl text-white text-left flex items-center justify-between text-xs font-bold">
-              <span>{activeContact.name} ({activeContact.role})</span>
-              <span className="flex items-center gap-1.5 text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                Live HD
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-4 pt-2">
-            <button
-              onClick={() => showToast("Microphone muted", "info")}
-              className="p-3 bg-surface-container-high rounded-full hover:bg-surface-container text-on-surface"
-              title="Mute Mic"
-            >
-              <span className="material-symbols-outlined text-xl">mic</span>
-            </button>
-            <button
-              onClick={() => showToast("Camera toggled", "info")}
-              className="p-3 bg-surface-container-high rounded-full hover:bg-surface-container text-on-surface"
-              title="Toggle Camera"
-            >
-              <span className="material-symbols-outlined text-xl">videocam</span>
-            </button>
-            <button
-              onClick={() => {
-                setShowVideoCallModal(false);
-                showToast("Video call ended", "info");
-              }}
-              className="p-3 bg-error text-on-error rounded-full hover:bg-error/90 shadow-md"
-              title="End Call"
-            >
-              <span className="material-symbols-outlined text-xl">call_end</span>
-            </button>
           </div>
         </div>
-      </Modal>
+      </div>
+
+      {showVideoCallModal && (
+        <Modal
+          isOpen={showVideoCallModal}
+          onClose={() => setShowVideoCallModal(false)}
+          title="Start Live Video Meeting"
+        >
+          <div className="space-y-4 text-xs">
+            <p className="text-on-surface-variant">
+              Generate an instant Google Meet room with {activeContact.name}.
+            </p>
+            <a
+              href="https://meet.google.com"
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setShowVideoCallModal(false)}
+              className="w-full text-center py-2.5 bg-primary text-on-primary font-bold rounded-xl block hover:bg-primary-container"
+            >
+              Launch Google Meet Call
+            </a>
+          </div>
+        </Modal>
+      )}
     </ProtectedRoute>
   );
 }

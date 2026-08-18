@@ -21,58 +21,7 @@ export interface NotificationItem {
   targetRole?: "JOB_SEEKER" | "RECRUITER" | "PLATFORM_ADMIN";
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "n-1",
-    title: "Application Status Update",
-    message: "Stripe moved your application for Senior Full-Stack Engineer to Technical Interview phase.",
-    timestamp: "10m ago",
-    timeGroup: "Today",
-    category: "application",
-    read: false,
-    targetRole: "JOB_SEEKER",
-  },
-  {
-    id: "n-2",
-    title: "New Candidate Application",
-    message: "Sarah Jenkins applied for Lead DevOps Engineer at Vercel.",
-    timestamp: "1h ago",
-    timeGroup: "Today",
-    category: "recruitment",
-    read: false,
-    targetRole: "RECRUITER",
-  },
-  {
-    id: "n-3",
-    title: "Platform Moderation Flagged",
-    message: "A new company profile 'Apex Labs' requires verification approval.",
-    timestamp: "3h ago",
-    timeGroup: "Today",
-    category: "system",
-    read: false,
-    targetRole: "PLATFORM_ADMIN",
-  },
-  {
-    id: "n-4",
-    title: "AI Skill Match High Confidence",
-    message: "Your resume matches 94% with Staff Frontend Engineer at Linear.",
-    timestamp: "1d ago",
-    timeGroup: "Yesterday",
-    category: "application",
-    read: true,
-    targetRole: "JOB_SEEKER",
-  },
-  {
-    id: "n-5",
-    title: "Subscription Renewal Confirmed",
-    message: "Your Enterprise Recruiter plan was successfully renewed for 2026.",
-    timestamp: "3d ago",
-    timeGroup: "Earlier",
-    category: "system",
-    read: true,
-    targetRole: "RECRUITER",
-  },
-];
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [];
 
 export function NotificationCenterPanel({ isOpen: externalIsOpen, onClose }: NotificationCenterPanelProps) {
   const { user } = useAuth();

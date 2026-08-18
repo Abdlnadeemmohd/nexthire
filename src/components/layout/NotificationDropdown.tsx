@@ -13,35 +13,7 @@ interface NotificationItem {
   link: string;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "n-1",
-    title: "Application Status Update",
-    body: "Stellar Systems updated your Senior Product Designer role to 'Interview Round'.",
-    type: "APPLICATION",
-    time: "10 mins ago",
-    read: false,
-    link: "/applications",
-  },
-  {
-    id: "n-2",
-    title: "New Recruiter Message",
-    body: "Sarah Jenkins sent you a meeting link for tomorrow's technical review.",
-    type: "MESSAGE",
-    time: "45 mins ago",
-    read: false,
-    link: "/messages",
-  },
-  {
-    id: "n-3",
-    title: "Interview Confirmed",
-    body: "Google Meet technical interview scheduled for 2:00 PM PST.",
-    type: "INTERVIEW",
-    time: "2 hours ago",
-    read: true,
-    link: "/dashboard",
-  },
-];
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [];
 
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);

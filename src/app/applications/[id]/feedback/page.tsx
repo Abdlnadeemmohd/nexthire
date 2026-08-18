@@ -11,15 +11,15 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo";
 export default function CandidateFeedbackPage({ params }: { params: { id: string } }) {
   const feedbackData = {
     jobTitle: "Senior Full Stack Engineer",
-    companyName: "Stellar Systems",
+    companyName: "NextHire Simulation Corp",
     companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
     status: "Feedback Received",
     primaryReason: "Skills gap in Cloud Infrastructure & System Design",
     missingSkills: ["AWS Solutions Architecture", "Docker Containerization", "Kubernetes", "GraphQL Caching"],
     experienceGap: "Candidate demonstrates high frontend competency. Additional hands-on production cloud architecture experience required.",
     suggestedCert: "AWS Certified Solutions Architect (Associate)",
-    recruiterNotes: "Alex, your background in React and Next.js is impressive. Strengthening your experience with AWS cloud infrastructure and containerization will make your profile extremely competitive for senior positions.",
-    dateUpdated: "July 24, 2026",
+    recruiterNotes: "Your background in React and Next.js is impressive. Strengthening your experience with AWS cloud infrastructure and containerization will make your profile extremely competitive for senior positions.",
+    dateUpdated: "August 18, 2026",
   };
 
   const aiRecommendations = [

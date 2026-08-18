@@ -16,32 +16,32 @@ export default function RecruiterCompanyProfilePage() {
   const [activeTab, setActiveTab] = useState<"about" | "recruiter" | "assets" | "culture">("about");
 
   const [companyInfo, setCompanyInfo] = useState({
-    name: "Stellar Systems Inc.",
-    tagline: "Building next-generation distributed cloud infrastructure and AI developer tools.",
+    name: "NextHire Simulation Corp",
+    tagline: "Enterprise cloud software and AI candidate matching platform.",
     industry: "Enterprise Software & Cloud Infrastructure",
-    size: "250 - 500 Employees",
+    size: "100 - 250 Employees",
     headquarters: "San Francisco, CA (Hybrid / Global Remote)",
-    founded: "2018",
-    website: "https://stellarsystems.io",
-    linkedin: "https://linkedin.com/company/stellar-systems",
-    email: "careers@stellarsystems.io",
+    founded: "2023",
+    website: "https://nexthire.cloud",
+    linkedin: "https://linkedin.com/company/nexthire-cloud",
+    email: "recruiter@nexthire.cloud",
     phone: "+1 (415) 890-2341",
-    brandScore: 96,
-    candidateResponseRate: "98.5%",
-    avgHireDays: "12 Days",
-    interviewRating: "4.9 / 5.0",
-    profileCompletion: "95%",
+    brandScore: 98,
+    candidateResponseRate: "99.2%",
+    avgHireDays: "10 Days",
+    interviewRating: "5.0 / 5.0",
+    profileCompletion: "100%",
     bannerUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80",
-    logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDUSY4HuOhQnp99RQGM7nj2qJaAWM49iI9uWz43APGGY9elmswm8Xhx8Hx3opdXODLdtZq0n-bxGcH7MRRbeOar3uNrgkHm1g4eL86ilUFWlHgKQHoc0-DqJsvor7xRNbZXRHP0WvFXR_dNDhMolXMQPnmQg4Jl_XDs_ssI9JsQ_WcIV4LJRpTCzOkZnd3pXcC9vurP6zcFOrmGm5bUwPACA1hF1P7gnmLUPkIZbbhMPh5kRmRcRFnUqsykv9lu5Rpjm64oHzTH_oyL",
-    about: "Stellar Systems is a premier cloud architecture pioneer creating automated resilience infrastructure for Fortune 500 enterprises. Founded in San Francisco in 2018, our engineering teams build high-throughput microservices, distributed AI databases, and developer observability tooling.",
-    mission: "To empower software teams worldwide to build scalable, fault-tolerant infrastructure effortlessly.",
-    techStack: ["Next.js", "TypeScript", "Python", "Go", "AWS", "Docker", "Kubernetes", "GraphQL", "PostgreSQL"],
+    logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+    about: "NextHire Simulation Corp is the reference employer organization for NextHire Cloud Stage 1 production simulation, showcasing end-to-end recruitment workflows, verified ATS pipelines, and Cloudinary-integrated candidate evaluation.",
+    mission: "To connect elite technology talent with world-class engineering organizations through seamless AI workflows.",
+    techStack: ["Next.js", "TypeScript", "Prisma", "Neon PostgreSQL", "Cloudinary", "Firebase Auth", "Tailwind CSS"],
     benefits: [
-      "Competitive Salary + Equity Options",
-      "Unlimited PTO & Flexible Work Hours",
-      "$3,000 Annual Learning & Conference Budget",
-      "100% Premium Health, Dental & Vision Coverage",
-      "Latest M3 Max MacBook Pro + 4K Monitor Setup",
+      "Competitive Compensation + Equity",
+      "Flexible Remote-First Work Policy",
+      "Annual Continuing Education Stipend",
+      "Comprehensive Health, Dental & Vision",
+      "Modern Engineering Hardware Kit",
     ],
     gallery: [
       "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
@@ -298,15 +298,15 @@ export default function RecruiterCompanyProfilePage() {
                     <div className="flex flex-col md:flex-row items-start gap-6">
                       <img
                         src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80"
-                        alt="Sarah Jenkins"
+                        alt="Stage 1 Recruiter"
                         className="w-24 h-24 rounded-3xl object-cover border-4 border-primary/30 shadow-md flex-shrink-0"
                       />
 
                       <div className="space-y-3 flex-1 min-w-0">
                         <div>
-                          <h4 className="font-display text-xl font-bold text-on-surface">Sarah Jenkins</h4>
-                          <p className="text-xs font-bold text-primary">Lead Technical Recruiter & Engineering Partner</p>
-                          <p className="text-xs text-on-surface-variant">Stellar Systems Inc. • Global Tech Talent Acquisition</p>
+                          <h4 className="font-display text-xl font-bold text-on-surface">Stage 1 Recruiter</h4>
+                          <p className="text-xs font-bold text-primary">Lead Technical Recruiter & Talent Partner</p>
+                          <p className="text-xs text-on-surface-variant">NextHire Simulation Corp • Global Tech Talent Acquisition</p>
                         </div>
 
                         <p className="text-xs text-on-surface-variant leading-relaxed bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/20 italic">

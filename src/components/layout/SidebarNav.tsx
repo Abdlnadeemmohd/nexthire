@@ -177,8 +177,8 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
               className="w-10 h-10 rounded-xl object-cover border border-outline-variant/40 flex-shrink-0"
             />
             <div className="min-w-0 flex-1">
-              <h4 className="font-bold text-xs text-on-surface truncate">{user?.name || "Alex Rivers"}</h4>
-              <p className="text-[10px] text-on-surface-variant truncate">{user?.email || "alex.rivers@gmail.com"}</p>
+              <h4 className="font-bold text-xs text-on-surface truncate">{user?.name || "User"}</h4>
+              <p className="text-[10px] text-on-surface-variant truncate">{user?.email || "user@nexthire.cloud"}</p>
             </div>
           </div>
 

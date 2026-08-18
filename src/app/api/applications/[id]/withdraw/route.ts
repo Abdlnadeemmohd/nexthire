@@ -45,10 +45,11 @@ export async function POST(
       message: "Application withdrawn successfully",
       data: updated,
     });
-  } catch {
-    return NextResponse.json({
-      success: true,
-      message: "Application withdrawn (memory update)",
-    });
+  } catch (err: any) {
+    console.error("[Application Withdraw DB Error]:", err);
+    return NextResponse.json(
+      { success: false, error: err.message || "Failed to withdraw application." },
+      { status: 500 }
+    );
   }
 }

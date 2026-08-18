@@ -5,6 +5,7 @@ export interface EmptyStateProps {
   title: string;
   description: string;
   actionText?: string;
+  actionLabel?: string;
   onAction?: () => void;
   actionHref?: string;
   className?: string;
@@ -15,10 +16,13 @@ export function EmptyState({
   title,
   description,
   actionText,
+  actionLabel,
   onAction,
   actionHref,
   className = "",
 }: EmptyStateProps) {
+  const label = actionLabel || actionText;
+
   return (
     <div
       role="region"
@@ -38,14 +42,14 @@ export function EmptyState({
           {description}
         </p>
       </div>
-      {actionText && (
+      {label && (
         <div className="pt-2">
           {actionHref ? (
             <a
               href={actionHref}
               className="inline-flex items-center justify-center px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-hover transition-all shadow-xs touch-target focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              {actionText}
+              {label}
             </a>
           ) : onAction ? (
             <button
@@ -53,7 +57,7 @@ export function EmptyState({
               onClick={onAction}
               className="inline-flex items-center justify-center px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-xl hover:bg-primary-hover transition-all shadow-xs touch-target focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              {actionText}
+              {label}
             </button>
           ) : null}
         </div>

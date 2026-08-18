@@ -9,25 +9,27 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MyRecruiterProfilePage() {
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
 
   const [recruiterData, setRecruiterData] = useState({
-    name: "Sarah Jenkins",
+    name: user?.name || "Stage 1 Recruiter",
     title: "Lead Technical Recruiter & Engineering Partner",
     department: "Global Tech Talent Acquisition",
-    company: "Stellar Systems Inc.",
-    email: "recruiter@nexthire.com",
-    phone: "+1 (555) 342-8900",
+    company: user?.companyName || "NextHire Simulation Corp",
+    email: user?.email || "recruiter@nexthire.cloud",
+    phone: "+1 (415) 890-2341",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
     yearsOfExperience: "10+ Years",
     availabilityStatus: "CURRENTLY_HIRING" as "CURRENTLY_HIRING" | "AVAILABLE_INTERVIEWS" | "ON_LEAVE",
     timeZone: "PST (UTC-8) • San Francisco, CA",
-    linkedinUrl: "https://linkedin.com/in/sarahjenkins-recruiter",
-    websiteUrl: "https://stellarsystems.io/careers",
-    bio: "Lead Talent Partner at Stellar Systems. Specialized in connecting Staff Systems Architects, AI/ML Infrastructure Engineers, and Engineering Directors with hyper-growth enterprise SaaS teams.",
+    linkedinUrl: "https://linkedin.com/company/nexthire-cloud",
+    websiteUrl: "https://nexthire.cloud",
+    bio: "Lead Talent Partner at NextHire Simulation Corp. Specialized in connecting Staff Systems Architects, AI/ML Infrastructure Engineers, and Engineering Directors with hyper-growth enterprise SaaS teams.",
     specialties: ["Cloud Infrastructure (AWS/GCP)", "AI & Machine Learning", "Full Stack Engineering", "Engineering Leadership"],
     languages: ["English (Native)", "Spanish (Professional)"],
     metrics: {

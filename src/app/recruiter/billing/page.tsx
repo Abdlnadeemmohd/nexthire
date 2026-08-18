@@ -18,32 +18,7 @@ interface Invoice {
   pdfUrl: string;
 }
 
-const INVOICE_HISTORY: Invoice[] = [
-  {
-    id: "INV-2026-004",
-    date: "2026-07-01",
-    amount: "$199.00",
-    status: "PAID",
-    plan: "Growth Plan (Monthly)",
-    pdfUrl: "#",
-  },
-  {
-    id: "INV-2026-003",
-    date: "2026-06-01",
-    amount: "$199.00",
-    status: "PAID",
-    plan: "Growth Plan (Monthly)",
-    pdfUrl: "#",
-  },
-  {
-    id: "INV-2026-002",
-    date: "2026-05-01",
-    amount: "$199.00",
-    status: "PAID",
-    plan: "Growth Plan (Monthly)",
-    pdfUrl: "#",
-  },
-];
+const INITIAL_INVOICE_HISTORY: Invoice[] = [];
 
 export default function RecruiterBillingPage() {
   const { showToast } = useToast();
@@ -272,78 +247,86 @@ export default function RecruiterBillingPage() {
               <span className="text-xs text-outline font-label-md">Showing last 3 invoices</span>
             </div>
 
-            {/* Desktop Invoice Table (MD+ screens) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px] font-label-md">
-                    <th className="py-3 px-4">Invoice ID</th>
-                    <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4">Description</th>
-                    <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Receipt</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/15 text-on-surface">
-                  {INVOICE_HISTORY.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-surface-container-low/50 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-bold">{inv.id}</td>
-                      <td className="py-3.5 px-4 text-on-surface-variant">{inv.date}</td>
-                      <td className="py-3.5 px-4 font-bold">{inv.plan}</td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-primary">{inv.amount}</td>
-                      <td className="py-3.5 px-4">
+            {INITIAL_INVOICE_HISTORY.length > 0 ? (
+              <>
+                {/* Desktop Invoice Table (MD+ screens) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-outline-variant/20 text-outline uppercase tracking-wider text-[10px] font-label-md">
+                        <th className="py-3 px-4">Invoice ID</th>
+                        <th className="py-3 px-4">Date</th>
+                        <th className="py-3 px-4">Description</th>
+                        <th className="py-3 px-4">Amount</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Receipt</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant/15 text-on-surface">
+                      {INITIAL_INVOICE_HISTORY.map((inv) => (
+                        <tr key={inv.id} className="hover:bg-surface-container-low/50 transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-bold">{inv.id}</td>
+                          <td className="py-3.5 px-4 text-on-surface-variant">{inv.date}</td>
+                          <td className="py-3.5 px-4 font-bold">{inv.plan}</td>
+                          <td className="py-3.5 px-4 font-mono font-bold text-primary">{inv.amount}</td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-700 font-bold rounded-full text-[10px]">
+                              {inv.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              onClick={() => handleDownloadInvoice(inv.id)}
+                              className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-lg transition-colors text-[11px] inline-flex items-center gap-1 touch-target"
+                            >
+                              <span className="material-symbols-outlined text-sm">download</span> PDF
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Invoice Stacked Cards (<MD screens) */}
+                <div className="md:hidden space-y-3">
+                  {INITIAL_INVOICE_HISTORY.map((inv) => (
+                    <div
+                      key={inv.id}
+                      className="bg-surface-container-low/60 border border-outline-variant/20 rounded-2xl p-4 space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-mono font-bold text-xs text-on-surface">{inv.id}</div>
+                          <div className="text-on-surface-variant text-[11px]">{inv.date}</div>
+                        </div>
                         <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-700 font-bold rounded-full text-[10px]">
                           {inv.status}
                         </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
+                      </div>
+
+                      <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] text-outline block">{inv.plan}</span>
+                          <span className="font-mono font-bold text-sm text-primary">{inv.amount}</span>
+                        </div>
+
                         <button
                           onClick={() => handleDownloadInvoice(inv.id)}
-                          className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-lg transition-colors text-[11px] inline-flex items-center gap-1 touch-target"
+                          className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-xl transition-colors text-xs flex items-center gap-1 touch-target"
                         >
-                          <span className="material-symbols-outlined text-sm">download</span> PDF
+                          <span className="material-symbols-outlined text-sm">download</span> Download PDF
                         </button>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Invoice Stacked Cards (<MD screens) */}
-            <div className="md:hidden space-y-3">
-              {INVOICE_HISTORY.map((inv) => (
-                <div
-                  key={inv.id}
-                  className="bg-surface-container-low/60 border border-outline-variant/20 rounded-2xl p-4 space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-mono font-bold text-xs text-on-surface">{inv.id}</div>
-                      <div className="text-on-surface-variant text-[11px]">{inv.date}</div>
-                    </div>
-                    <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-700 font-bold rounded-full text-[10px]">
-                      {inv.status}
-                    </span>
-                  </div>
-
-                  <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] text-outline block">{inv.plan}</span>
-                      <span className="font-mono font-bold text-sm text-primary">{inv.amount}</span>
-                    </div>
-
-                    <button
-                      onClick={() => handleDownloadInvoice(inv.id)}
-                      className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-primary font-bold rounded-xl transition-colors text-xs flex items-center gap-1 touch-target"
-                    >
-                      <span className="material-symbols-outlined text-sm">download</span> Download PDF
-                    </button>
-                  </div>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="py-8 text-center text-xs text-on-surface-variant">
+                No invoices or billing transactions generated yet. Active under Stage 1 simulation access.
+              </div>
+            )}
           </div>
         </main>
         <Footer />

@@ -265,10 +265,10 @@ export default function ResumeStudioPage() {
             {activeTab === "preview" && (
               <div className="surface-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl sm:rounded-3xl p-4 sm:p-8 max-w-4xl mx-auto space-y-6 shadow-md">
                 <div className="border-b border-outline-variant/20 pb-4 text-center space-y-1">
-                  <h2 className="text-xl sm:text-2xl font-bold text-on-surface">Alex Rivers</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-on-surface">{user?.name || "Candidate Name"}</h2>
                   <p className="text-xs text-primary font-bold">{targetRole}</p>
                   <p className="text-[11px] text-outline break-anywhere">
-                    alex.rivers@gmail.com • +1 (555) 234-5678 • San Francisco, CA • linkedin.com/in/alexrivers
+                    {user?.email || "candidate@nexthire.cloud"} • San Francisco, CA • linkedin.com
                   </p>
                 </div>
 

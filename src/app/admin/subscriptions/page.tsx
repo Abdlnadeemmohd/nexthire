@@ -27,9 +27,9 @@ const INITIAL_SAAS_PLANS: SaaSPlan[] = [
     name: "Starter Package",
     monthlyPrice: 79,
     annualPrice: 63,
-    activeCustomers: 1245,
-    growthRate: "+18%",
-    mrrContribution: "£98,355",
+    activeCustomers: 0,
+    growthRate: "0%",
+    mrrContribution: "$0",
     jobLimit: "5 Active Job Postings",
     aiAnalysisLimit: "100 AI Resume Analyses",
     seatLimit: "1 Recruiter Seat",
@@ -40,9 +40,9 @@ const INITIAL_SAAS_PLANS: SaaSPlan[] = [
     name: "Growth Package",
     monthlyPrice: 199,
     annualPrice: 159,
-    activeCustomers: 642,
-    growthRate: "+9%",
-    mrrContribution: "£127,758",
+    activeCustomers: 0,
+    growthRate: "0%",
+    mrrContribution: "$0",
     jobLimit: "20 Active Job Postings",
     aiAnalysisLimit: "1,000 AI Resume Analyses",
     seatLimit: "5 Recruiter Seats",
@@ -53,9 +53,9 @@ const INITIAL_SAAS_PLANS: SaaSPlan[] = [
     name: "Professional Package",
     monthlyPrice: 299,
     annualPrice: 239,
-    activeCustomers: 312,
-    growthRate: "+14%",
-    mrrContribution: "£93,288",
+    activeCustomers: 0,
+    growthRate: "0%",
+    mrrContribution: "$0",
     jobLimit: "50 Active Job Postings",
     aiAnalysisLimit: "5,000 AI Resume Analyses",
     seatLimit: "10 Recruiter Seats",
@@ -66,9 +66,9 @@ const INITIAL_SAAS_PLANS: SaaSPlan[] = [
     name: "Enterprise Custom",
     monthlyPrice: 499,
     annualPrice: 399,
-    activeCustomers: 89,
-    growthRate: "+22%",
-    mrrContribution: "£44,411",
+    activeCustomers: 0,
+    growthRate: "0%",
+    mrrContribution: "$0",
     jobLimit: "Unlimited Job Postings",
     aiAnalysisLimit: "Unlimited AI Analyses",
     seatLimit: "25+ Recruiter Seats",
@@ -84,29 +84,7 @@ interface ActivityLog {
   amount: string;
 }
 
-const RECENT_ACTIVITIES: ActivityLog[] = [
-  {
-    id: "act-1",
-    title: "Growth Package renewed by Vercel Inc.",
-    timestamp: "2 mins ago",
-    type: "RENEWAL",
-    amount: "+£199.00",
-  },
-  {
-    id: "act-2",
-    title: "Enterprise Custom upgraded by Stripe Tech",
-    timestamp: "Yesterday",
-    type: "UPGRADE",
-    amount: "+£499.00",
-  },
-  {
-    id: "act-3",
-    title: "Partial refund processed for Apex Labs",
-    timestamp: "3 days ago",
-    type: "REFUND",
-    amount: "-£45.00",
-  },
-];
+const RECENT_ACTIVITIES: ActivityLog[] = [];
 
 export default function AdminSubscriptionsPage() {
   const { showToast } = useToast();
@@ -340,42 +318,48 @@ export default function AdminSubscriptionsPage() {
                 <span className="text-xs text-outline font-label-md">Real-Time Webhook Feed</span>
               </div>
 
-              <div className="space-y-2">
-                {RECENT_ACTIVITIES.map((act) => (
-                  <div
-                    key={act.id}
-                    className="p-3 bg-surface-container-low rounded-2xl flex items-center justify-between border border-outline-variant/15 text-xs"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
-                          act.type === "RENEWAL"
-                            ? "bg-emerald-500/15 text-emerald-700"
-                            : act.type === "UPGRADE"
-                            ? "bg-primary-container text-primary"
-                            : "bg-rose-500/15 text-rose-700"
+              {RECENT_ACTIVITIES.length > 0 ? (
+                <div className="space-y-2">
+                  {RECENT_ACTIVITIES.map((act) => (
+                    <div
+                      key={act.id}
+                      className="p-3 bg-surface-container-low rounded-2xl flex items-center justify-between border border-outline-variant/15 text-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                            act.type === "RENEWAL"
+                              ? "bg-emerald-500/15 text-emerald-700"
+                              : act.type === "UPGRADE"
+                              ? "bg-primary-container text-primary"
+                              : "bg-rose-500/15 text-rose-700"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-base">
+                            {act.type === "RENEWAL" ? "autorenew" : act.type === "UPGRADE" ? "rocket_launch" : "history_toggle_off"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-on-surface block">{act.title}</span>
+                          <span className="text-[10px] text-outline">{act.timestamp}</span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`font-mono font-bold ${
+                          act.amount.startsWith("+") ? "text-emerald-700" : "text-rose-700"
                         }`}
                       >
-                        <span className="material-symbols-outlined text-base">
-                          {act.type === "RENEWAL" ? "autorenew" : act.type === "UPGRADE" ? "rocket_launch" : "history_toggle_off"}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-on-surface block">{act.title}</span>
-                        <span className="text-[10px] text-outline">{act.timestamp}</span>
-                      </div>
+                        {act.amount}
+                      </span>
                     </div>
-
-                    <span
-                      className={`font-mono font-bold ${
-                        act.amount.startsWith("+") ? "text-emerald-700" : "text-rose-700"
-                      }`}
-                    >
-                      {act.amount}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-xs text-on-surface-variant">
+                  No billing transactions or recurring payment events recorded yet.
+                </div>
+              )}
             </div>
           </main>
 

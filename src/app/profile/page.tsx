@@ -23,73 +23,31 @@ export default function ProfilePage() {
   const [showMoreActions, setShowMoreActions] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [showCertModal, setShowCertModal] = useState(false);
-  const [certs, setCerts] = useState<CertificateRecord[]>(RecruitmentEngine.getCertificates());
+  const [certs, setCerts] = useState<CertificateRecord[]>([]);
 
-  useEffect(() => {
-    const unsub = RecruitmentEngine.subscribe(() => {
-      setCerts([...RecruitmentEngine.getCertificates()]);
-    });
-    return unsub;
-  }, []);
-
-  // Editable Profile Form State initialized from Auth Context or fallback mock
+  // Editable Profile Form State initialized from Auth Context
   const [formData, setFormData] = useState({
-    name: user?.name || PROFILE_DATA.name,
-    headline: user?.headline || PROFILE_DATA.headline,
+    name: user?.name || "Stage 1 Candidate",
+    headline: user?.headline || "Senior Full-Stack Engineer",
     phone: user?.phone || "+1 (555) 890-1234",
     address: user?.address || "742 Market Street",
     city: user?.city || "San Francisco",
     country: user?.country || "United States",
-    bio: user?.bio || PROFILE_DATA.bio,
-    employmentStatus: (user?.employmentStatus || "ON_NOTICE_PERIOD") as EmploymentStatus,
+    bio: user?.bio || "Dedicated candidate profile on NextHire Cloud.",
+    employmentStatus: (user?.employmentStatus || "OPEN_TO_OPPORTUNITIES") as EmploymentStatus,
     portfolioLinks: {
-      linkedin: user?.portfolioLinks?.linkedin || "https://linkedin.com/in/alexrivers",
-      github: user?.portfolioLinks?.github || "https://github.com/alexrivers",
-      website: user?.portfolioLinks?.website || "https://alexrivers.dev",
+      linkedin: user?.portfolioLinks?.linkedin || "https://linkedin.com",
+      github: user?.portfolioLinks?.github || "https://github.com",
+      website: user?.portfolioLinks?.website || "",
       behance: user?.portfolioLinks?.behance || "",
       dribbble: user?.portfolioLinks?.dribbble || "",
     },
   });
 
   // Experience, Education & Certification Items State
-  const [experiences, setExperiences] = useState<UserExperience[]>(
-    user?.experience || [
-      {
-        id: "exp-1",
-        company: "Vortex Labs",
-        role: "Senior Systems Architect",
-        startDate: "2022-03",
-        endDate: "Present",
-        description: "Led migration of microservices architecture to Kubernetes, improving uptime to 99.99%.",
-      },
-    ]
-  );
-
-  const [educations, setEducations] = useState<UserEducation[]>(
-    user?.education || [
-      {
-        id: "edu-1",
-        institution: "Stanford University",
-        degree: "B.S.",
-        fieldOfStudy: "Computer Science",
-        graduationYear: "2020",
-      },
-    ]
-  );
-
-  const [certifications, setCertifications] = useState<UserCertification[]>(
-    user?.certifications || [
-      {
-        id: "cert-1",
-        name: "AWS Certified Solutions Architect",
-        issuer: "Amazon Web Services",
-        issueDate: "2024-01-15",
-        expiryDate: "2027-01-15",
-        verificationLink: "https://aws.amazon.com/verify/CERT-9902",
-        certificateFileUrl: "/certs/aws_solutions_architect.pdf",
-      },
-    ]
-  );
+  const [experiences, setExperiences] = useState<UserExperience[]>(user?.experience || []);
+  const [educations, setEducations] = useState<UserEducation[]>(user?.education || []);
+  const [certifications, setCertifications] = useState<UserCertification[]>(user?.certifications || []);
 
   // Resume State
   const [resumeUrl, setResumeUrl] = useState<string | null>(user?.resumeUrl || null);

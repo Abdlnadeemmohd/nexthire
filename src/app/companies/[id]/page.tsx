@@ -1,71 +1,76 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
-import { JobAuthModal } from "@/components/jobs/JobAuthModal";
-import { INITIAL_JOBS, Job } from "@/lib/mockData";
+import { Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function PublicCompanyDetailPage({ params }: { params: { id: string } }) {
   const { isAuthenticated } = useAuth();
   const [selectedJobToApply, setSelectedJobToApply] = useState<Job | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [targetJobForAuth, setTargetJobForAuth] = useState<{ id: string; title: string }>({ id: "", title: "" });
+  const [openJobs, setOpenJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const company = {
-    name: "Stellar Systems Inc.",
-    tagline: "Building next-generation distributed cloud infrastructure and AI developer tools.",
+    name: "NextHire Simulation Corp",
+    tagline: "Enterprise cloud software and AI candidate matching platform.",
     industry: "Enterprise Software & Cloud Infrastructure",
-    size: "250 - 500 Employees",
+    size: "100 - 250 Employees",
     headquarters: "San Francisco, CA (Hybrid / Global Remote)",
-    founded: "2018",
-    website: "https://stellarsystems.io",
-    linkedin: "https://linkedin.com/company/stellar-systems",
-    brandScore: 96,
-    candidateResponseRate: "98.5%",
-    avgHireDays: "12 Days",
+    founded: "2023",
+    website: "https://nexthire.cloud",
+    linkedin: "https://linkedin.com/company/nexthire-cloud",
+    brandScore: 98,
+    candidateResponseRate: "99.2%",
+    avgHireDays: "10 Days",
     bannerUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80",
     logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
-    about: "Stellar Systems is a premier cloud architecture pioneer creating automated resilience infrastructure for Fortune 500 enterprises. Founded in San Francisco in 2018, our engineering teams build high-throughput microservices, distributed AI databases, and developer observability tooling.",
-    mission: "To empower software teams worldwide to build scalable, fault-tolerant infrastructure effortlessly.",
-    techStack: ["Next.js", "TypeScript", "Python", "Go", "AWS", "Docker", "Kubernetes", "GraphQL", "PostgreSQL"],
+    about: "NextHire Simulation Corp is the reference employer organization for NextHire Cloud Stage 1 production simulation, showcasing end-to-end recruitment workflows, verified ATS pipelines, and Cloudinary-integrated candidate evaluation.",
+    mission: "To connect elite technology talent with world-class engineering organizations through seamless AI workflows.",
+    techStack: ["Next.js", "TypeScript", "Prisma", "Neon PostgreSQL", "Cloudinary", "Firebase Auth", "Tailwind CSS"],
     benefits: [
-      "Competitive Salary + Equity Options",
-      "Unlimited PTO & Flexible Work Hours",
-      "$3,000 Annual Learning & Conference Budget",
-      "100% Premium Health, Dental & Vision Coverage",
-      "Latest M3 Max MacBook Pro + 4K Monitor Setup",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&auto=format&fit=crop&q=80",
+      "Competitive Compensation + Equity",
+      "Flexible Remote-First Work Policy",
+      "Annual Continuing Education Stipend",
+      "Comprehensive Health, Dental & Vision",
+      "Modern Engineering Hardware Kit",
     ],
   };
 
-  const handleApplyClick = (job: Job) => {
-    if (!isAuthenticated) {
-      setTargetJobForAuth({ id: job.id, title: job.title });
-      setShowAuthModal(true);
-    } else {
-      setSelectedJobToApply(job);
+  useEffect(() => {
+    async function loadCompanyJobs() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/jobs");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.data)) {
+            setOpenJobs(data.data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load company jobs:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
 
-  const openJobs = INITIAL_JOBS.slice(0, 3);
+    loadCompanyJobs();
+  }, []);
 
   return (
     <>
       <TopAppBar />
 
       <main className="pt-16 pb-20 bg-surface min-h-screen">
-        {/* 1. Hero Cover Banner Section */}
+        {/* Hero Cover Banner Section */}
         <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900">
           <img
             src={company.bannerUrl}
@@ -97,154 +102,59 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
                 </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-              <div className="text-center">
-                <span className="font-display font-bold text-2xl text-tertiary">{company.brandScore}</span>
-                <span className="block text-[10px] uppercase font-bold text-slate-300">Employer Score</span>
-              </div>
-              <div className="h-8 w-px bg-white/20"></div>
-              <div className="text-center">
-                <span className="font-display font-bold text-2xl text-white">{openJobs.length}</span>
-                <span className="block text-[10px] uppercase font-bold text-slate-300">Open Jobs</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* 2. Main 70/30 Balanced Layout Container */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Column (70%) */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Company */}
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <h2 className="font-headline-sm text-xl font-bold text-on-surface">About {company.name}</h2>
-              <p className="text-xs text-on-surface-variant leading-relaxed">{company.about}</p>
-              <div className="p-4 bg-primary-container/20 border-l-4 border-primary rounded-xl space-y-1">
-                <h3 className="font-bold text-xs text-primary uppercase">Our Mission</h3>
-                <p className="text-xs text-on-surface italic font-semibold">{company.mission}</p>
-              </div>
-            </div>
+        {/* Content Section */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12">
+          {/* About Company */}
+          <section className="glass-card rounded-2xl p-6 sm:p-8 border border-outline-variant/20 space-y-4">
+            <h2 className="font-display text-xl font-bold text-on-surface">About {company.name}</h2>
+            <p className="text-sm text-on-surface-variant leading-relaxed">{company.about}</p>
+          </section>
 
-            {/* Primary Engineering Stack */}
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <h2 className="font-headline-sm text-xl font-bold text-on-surface">Tech Stack & Tools</h2>
-              <div className="flex flex-wrap gap-2">
-                {company.techStack.map((tech) => (
-                  <span key={tech} className="px-3 py-1.5 bg-surface-container-high text-on-surface font-label-md font-bold text-xs rounded-xl border border-outline-variant/30">
-                    ⚡ {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Benefits & Culture */}
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <h2 className="font-headline-sm text-xl font-bold text-on-surface">Employee Benefits & Perks</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {company.benefits.map((b, i) => (
-                  <div key={i} className="p-3 bg-surface rounded-xl border border-outline-variant/20 text-xs font-semibold text-on-surface flex items-center gap-2">
-                    <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-                    {b}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Workplace Culture Gallery */}
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <h2 className="font-headline-sm text-xl font-bold text-on-surface">Workplace & Office Culture</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {company.gallery.map((img, idx) => (
-                  <div key={idx} className="h-44 rounded-2xl overflow-hidden border border-outline-variant/30 group">
-                    <img src={img} alt="Office Culture" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Open Roles Listing */}
-            <div className="space-y-4 pt-4">
-              <h2 className="font-headline-sm text-xl font-bold text-on-surface">
-                Open Positions at {company.name} ({openJobs.length})
+          {/* Open Positions */}
+          <section className="space-y-6">
+            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
+              <h2 className="font-display text-2xl font-bold text-on-surface">
+                Open Positions at {company.name}
               </h2>
-              <div className="space-y-4">
+              <span className="text-xs font-bold text-primary">{openJobs.length} Available</span>
+            </div>
+
+            {loading ? (
+              <div className="py-12 text-center text-xs text-on-surface-variant">
+                Loading job openings...
+              </div>
+            ) : openJobs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {openJobs.map((job) => (
                   <JobCard
                     key={job.id}
                     id={job.id}
                     title={job.title}
                     company={job.companyName}
-                    companyId={params.id || "c-1"}
+                    companyId="00000000-0000-0000-0000-000000000001"
                     logo={job.companyLogo}
                     location={job.location}
-                    salary={`$${(job.salaryMin / 1000).toFixed(0)}k–$${(job.salaryMax / 1000).toFixed(0)}k/yr`}
-                    type={job.employmentType.replace("_", " ")}
-                    tags={job.tags || []}
-                    description={job.description || ""}
+                    salary={`$${Math.round(job.salaryMin / 1000)}k - $${Math.round(job.salaryMax / 1000)}k`}
+                    type={job.employmentType}
+                    tags={job.tags}
+                    description={job.description}
+                    aiMatchScore={95}
                   />
                 ))}
               </div>
-            </div>
-          </div>
-
-          {/* Sidebar Column (30%) */}
-          <div className="space-y-6">
-            {/* Employer Trust Score Card */}
-            <div className="glass-card rounded-3xl p-6 border border-tertiary/30 bg-tertiary-container/10 space-y-3">
-              <div className="flex items-center gap-2 text-tertiary font-bold text-xs uppercase tracking-wider">
-                <span className="material-symbols-outlined text-base">verified_user</span>
-                Verified Employer Snapshot
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="font-display font-bold text-4xl text-on-surface">{company.brandScore}</span>
-                <span className="text-xs text-on-surface-variant font-bold">/ 100 Grade A+</span>
-              </div>
-              <ul className="space-y-2 text-xs text-on-surface-variant pt-2 border-t border-outline-variant/10">
-                <li className="flex justify-between">
-                  <span>Candidate Response:</span>
-                  <span className="font-bold text-tertiary">{company.candidateResponseRate}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Avg Hiring Speed:</span>
-                  <span className="font-bold text-on-surface">{company.avgHireDays}</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company Info Breakdown */}
-            <div className="glass-card rounded-3xl p-6 border border-outline-variant/20 space-y-4 text-xs">
-              <h3 className="font-bold text-on-surface uppercase tracking-wider text-outline text-[11px]">
-                Company Details
-              </h3>
-              <ul className="space-y-3 text-on-surface-variant">
-                <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                  <span className="text-outline">Website:</span>
-                  <a href={company.website} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">
-                    stellarsystems.io
-                  </a>
-                </li>
-                <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                  <span className="text-outline">LinkedIn:</span>
-                  <a href={company.linkedin} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">
-                    View Profile
-                  </a>
-                </li>
-                <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                  <span className="text-outline">Headquarters:</span>
-                  <span className="font-bold text-on-surface">San Francisco</span>
-                </li>
-                <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                  <span className="text-outline">Founded:</span>
-                  <span className="font-bold text-on-surface">{company.founded}</span>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span className="text-outline">Company Size:</span>
-                  <span className="font-bold text-on-surface">{company.size}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+            ) : (
+              <EmptyState
+                title="No open positions currently available"
+                description="This company does not have any active job postings at this moment."
+                icon="work_off"
+                actionLabel="Browse Other Jobs"
+                actionHref="/jobs"
+              />
+            )}
+          </section>
         </div>
       </main>
 
@@ -253,15 +163,9 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
       <JobApplyModal
         jobId={selectedJobToApply?.id || ""}
         jobTitle={selectedJobToApply?.title || ""}
-        companyName={selectedJobToApply?.companyName || company.name}
+        companyName={selectedJobToApply?.companyName || ""}
         isOpen={!!selectedJobToApply}
         onClose={() => setSelectedJobToApply(null)}
-      />
-
-      <JobAuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        jobTitle={targetJobForAuth?.title || "this role"}
       />
     </>
   );
