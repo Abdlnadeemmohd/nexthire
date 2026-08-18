@@ -65,11 +65,13 @@ export function AICopilotDrawer() {
 
     // Simulate AI Copilot response
     setTimeout(() => {
-      let aiResponseText = "I'm analyzing your candidate pipeline. David Chen and Alex Rivers are top match candidates for Senior Systems Architect based on AWS and Kubernetes competencies.";
+      let aiResponseText = "I can assist you in evaluating candidate qualifications, drafting job requirements, or reviewing active application pipelines.";
       if (currentInput.toLowerCase().includes("job") || currentInput.toLowerCase().includes("description")) {
-        aiResponseText = "Here is a suggested job description outline: 'We are seeking a Staff Full-Stack Engineer to scale our distributed React/Node microservices infrastructure to 1M+ active users.'";
+        aiResponseText = "Here is a suggested job description outline: 'We are seeking an experienced engineer to build and scale secure cloud services, collaborate with product stakeholders, and maintain code quality.'";
       } else if (currentInput.toLowerCase().includes("sla") || currentInput.toLowerCase().includes("alert")) {
-        aiResponseText = "SLA Alert: 1 candidate (David Chen) has been in 'Screening' stage for 7 days. I recommend scheduling an interview to maintain your <2 hour SLA response rating.";
+        aiResponseText = "SLA Monitoring: Review candidate applications within the target 7-day review window to maintain a positive employer response rating.";
+      } else if (currentInput.toLowerCase().includes("candidate") || currentInput.toLowerCase().includes("talent")) {
+        aiResponseText = "No matching live candidate recommendations are currently generated. Please use the Candidate Search page to explore registered talent directly.";
       }
 
       const aiMsg: ChatMessage = {

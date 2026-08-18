@@ -4,43 +4,83 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
+import { useToast } from "@/components/ui/Toast";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function PostJobPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Design");
-  const [location, setLocation] = useState("San Francisco, CA");
+  const [category, setCategory] = useState("Engineering");
+  const [location, setLocation] = useState("");
   const [country, setCountry] = useState("United States");
-  const [salaryMin, setSalaryMin] = useState(160000);
-  const [salaryMax, setSalaryMax] = useState(220000);
+  const [salaryMin, setSalaryMin] = useState<string | number>("");
+  const [salaryMax, setSalaryMax] = useState<string | number>("");
   const [employmentType, setEmploymentType] = useState("FULL_TIME");
-  const [experienceLevel, setExperienceLevel] = useState("Senior");
-  const [isRemote, setIsRemote] = useState(true);
+  const [experienceLevel, setExperienceLevel] = useState("Mid-Senior");
+  const [isRemote, setIsRemote] = useState(false);
   const [description, setDescription] = useState("");
-  const [skills, setSkills] = useState("Figma, Design Systems, Next.js, AI UX");
+  const [skills, setSkills] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      router.push("/recruiter");
-    }, 1200);
+    if (!title.trim() || !description.trim()) {
+      showToast("Please fill in the job title and description.", "error");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/recruiter/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          category,
+          location: location.trim() || (isRemote ? "Remote" : "Not specified"),
+          country,
+          salaryMin: salaryMin ? Number(salaryMin) : 0,
+          salaryMax: salaryMax ? Number(salaryMax) : 0,
+          employmentType,
+          experienceLevel,
+          isRemote,
+          description: description.trim(),
+          skills: skills.trim(),
+          responsibilities: [],
+          requirements: [],
+          benefits: [],
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSubmitted(true);
+        showToast("Job opening published successfully to Neon PostgreSQL!", "success");
+        setTimeout(() => {
+          router.push("/recruiter");
+        }, 1200);
+      } else {
+        showToast(data.error || "Failed to create job posting", "error");
+      }
+    } catch (err) {
+      showToast("Network error publishing job", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <>
+    <ProtectedRoute requiredPortal="recruiter">
       <TopAppBar />
 
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="recruiter" />
 
-        <main className="flex-1 lg:ml-72 p-6 md:p-10 space-y-8 max-w-4xl">
-          <div className="flex items-center gap-2 text-xs font-label-md text-on-surface-variant">
-            <span>Employer Suite</span>
-            <span>/</span>
-            <span className="text-primary font-bold">Post a New Job</span>
-          </div>
+        <main className="flex-1 lg:pl-[270px] p-6 md:p-10 space-y-8 max-w-4xl">
+          <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Post a New Job" }]} />
 
           <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6">
             <div>
@@ -48,13 +88,13 @@ export default function PostJobPage() {
                 Create & Publish Job Opening
               </h1>
               <p className="text-on-surface-variant text-sm font-body-md">
-                Publishing to NextHire AI Match Engine reaches over 250,000 verified tech talent candidates.
+                Publishing to NextHire saves the position directly into Neon PostgreSQL.
               </p>
             </div>
 
             {submitted ? (
               <div className="text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-tertiary-fixed text-on-tertiary-fixed rounded-full flex items-center justify-center mx-auto text-3xl animate-bounce">
+                <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-3xl animate-bounce">
                   <span className="material-symbols-outlined text-4xl">check_circle</span>
                 </div>
                 <h3 className="font-headline-md text-2xl text-on-surface font-bold">
@@ -69,12 +109,12 @@ export default function PostJobPage() {
                 {/* Title */}
                 <div className="space-y-2">
                   <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                    Job Role Title
+                    Job Role Title *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Senior Product Designer, Lead AI Engineer"
+                    placeholder="e.g. Senior Full-Stack Engineer, Lead Cloud Architect"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
@@ -92,10 +132,10 @@ export default function PostJobPage() {
                       onChange={(e) => setCategory(e.target.value)}
                       className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                      <option value="Design">Design</option>
                       <option value="Engineering">Engineering</option>
-                      <option value="Product">Product</option>
                       <option value="AI/ML">AI / Machine Learning</option>
+                      <option value="Design">Design</option>
+                      <option value="Product">Product</option>
                       <option value="Operations">Operations</option>
                     </select>
                   </div>
@@ -126,8 +166,9 @@ export default function PostJobPage() {
                     <input
                       type="number"
                       step={5000}
+                      placeholder="e.g. 120000"
                       value={salaryMin}
-                      onChange={(e) => setSalaryMin(Number(e.target.value))}
+                      onChange={(e) => setSalaryMin(e.target.value)}
                       className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -139,8 +180,9 @@ export default function PostJobPage() {
                     <input
                       type="number"
                       step={5000}
+                      placeholder="e.g. 160000"
                       value={salaryMax}
-                      onChange={(e) => setSalaryMax(Number(e.target.value))}
+                      onChange={(e) => setSalaryMax(e.target.value)}
                       className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -178,6 +220,20 @@ export default function PostJobPage() {
                   </div>
                 </div>
 
+                {/* Location */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                    Job Location
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Austin, TX or Remote"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
                 {/* Tags */}
                 <div className="space-y-2">
                   <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
@@ -185,6 +241,7 @@ export default function PostJobPage() {
                   </label>
                   <input
                     type="text"
+                    placeholder="e.g. TypeScript, React, Node.js, PostgreSQL"
                     value={skills}
                     onChange={(e) => setSkills(e.target.value)}
                     className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
@@ -194,7 +251,7 @@ export default function PostJobPage() {
                 {/* Role Description */}
                 <div className="space-y-2">
                   <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                    Job Description & Expectations
+                    Job Description & Expectations *
                   </label>
                   <textarea
                     rows={5}
@@ -216,9 +273,10 @@ export default function PostJobPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-8 py-3 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold hover:bg-primary-container transition-all shadow-md"
+                    disabled={isSubmitting}
+                    className="px-8 py-3 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold hover:bg-primary-container transition-all shadow-md disabled:opacity-50"
                   >
-                    Publish Opening Now
+                    {isSubmitting ? "Publishing to Neon..." : "Publish Opening Now"}
                   </button>
                 </div>
               </form>
@@ -226,6 +284,6 @@ export default function PostJobPage() {
           </div>
         </main>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

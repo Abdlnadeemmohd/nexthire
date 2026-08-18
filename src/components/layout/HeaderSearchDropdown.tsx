@@ -28,7 +28,7 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
 
   useEffect(() => {
     if (role === "JOB_SEEKER") {
-      setRecentSearches(["Next.js Engineer", "NextHire Simulation Corp", "Resume Studio", "Remote Jobs"]);
+      setRecentSearches(["Next.js Engineer", "Full Stack Developer", "Resume Studio", "Remote Jobs"]);
     } else if (role === "RECRUITER") {
       setRecentSearches(["Full-Stack Candidate", "Candidate Pipeline", "Post New Job", "Billing"]);
     } else {
@@ -66,7 +66,7 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
         { id: "act-s2", title: "Browse Live Tech Jobs", subtitle: "Filter jobs by salary, location & remote", category: "ACTIONS", href: "/jobs", icon: "search" },
         { id: "act-s3", title: "Track Active Applications", subtitle: "View submitted application statuses", category: "ACTIONS", href: "/applications", icon: "assignment" },
         { id: "act-s4", title: "Candidate Profile & Skills", subtitle: "Edit work experience and certifications", category: "ACTIONS", href: "/profile", icon: "person" },
-        { id: "comp-1", title: "NextHire Simulation Corp", subtitle: "Enterprise Cloud Infrastructure • Verified Employer", category: "COMPANIES", href: "/companies/c-1", icon: "business" },
+        { id: "comp-1", title: "Companies Directory", subtitle: "Explore verified employer organizations", category: "COMPANIES", href: "/companies", icon: "business" },
         { id: "help-1", title: "Help Centre & ATS FAQs", subtitle: "Learn how AI skill matching works", category: "HELP", href: "/help", icon: "help" },
         { id: "set-1", title: "Account & Data Privacy", subtitle: "Settings, security, and notification preferences", category: "SETTINGS", href: "/settings", icon: "settings" },
       ];
@@ -78,7 +78,7 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
         { id: "act-r2", title: "Candidate Recruitment Pipeline", subtitle: "Review Kanban stages & schedule interviews", category: "ACTIONS", href: "/recruiter/applicants", icon: "view_kanban" },
         { id: "act-r3", title: "Search Candidates Database", subtitle: "Source verified engineering talent", category: "ACTIONS", href: "/recruiter/candidates", icon: "badge" },
         { id: "act-r4", title: "Billing & Subscription Plans", subtitle: "Manage employer tier & invoice receipts", category: "ACTIONS", href: "/recruiter/billing", icon: "credit_card" },
-        { id: "comp-rec", title: "NextHire Simulation Corp Profile", subtitle: "Manage company brand and open jobs", category: "COMPANY", href: "/recruiter/company", icon: "business" },
+        { id: "comp-rec", title: "Employer Company Profile", subtitle: "Manage company brand and open jobs", category: "COMPANY", href: "/recruiter/company", icon: "business" },
         { id: "help-rec", title: "Employer Verification Help", subtitle: "Submit verification documents or contact support", category: "HELP", href: "/help", icon: "help" },
       ];
     }

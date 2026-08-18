@@ -1,29 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface NotificationItem {
   id: string;
   title: string;
   body: string;
-  type: "APPLICATION" | "MESSAGE" | "INTERVIEW" | "SYSTEM";
+  type: string;
   time: string;
   read: boolean;
   link: string;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [];
-
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [filter, setFilter] = useState<"ALL" | "UNREAD">("ALL");
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const loadNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setNotifications(data.data);
+          setUnreadCount(data.unreadCount || 0);
+        }
+      }
+    } catch (err) {
+      // Graceful fallback on network error
+    }
+  };
 
-  const markAllRead = () => {
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadCount(0);
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    }
+  };
+
+  const markSingleRead = async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId: id }),
+      });
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
   };
 
   const filtered = notifications.filter((n) =>
@@ -33,14 +77,17 @@ export function NotificationDropdown() {
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          if (!isOpen) loadNotifications();
+        }}
         className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all relative block"
         title="Notifications"
       >
         <span className="material-symbols-outlined text-xl">notifications</span>
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-error text-on-error rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface">
-            {unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
@@ -99,11 +146,9 @@ export function NotificationDropdown() {
               filtered.map((item) => (
                 <Link
                   key={item.id}
-                  href={item.link}
+                  href={item.link || "#"}
                   onClick={() => {
-                    setNotifications((prev) =>
-                      prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
-                    );
+                    markSingleRead(item.id);
                     setIsOpen(false);
                   }}
                   className={`p-4 flex items-start gap-3 hover:bg-surface-container/50 transition-colors block ${
@@ -112,7 +157,7 @@ export function NotificationDropdown() {
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm ${
-                      item.type === "APPLICATION"
+                      item.type === "APPLICATION_STATUS" || item.type === "APPLICATION"
                         ? "bg-tertiary-container/20 text-tertiary"
                         : item.type === "MESSAGE"
                         ? "bg-primary-container/20 text-primary"
@@ -120,11 +165,13 @@ export function NotificationDropdown() {
                     }`}
                   >
                     <span className="material-symbols-outlined text-base">
-                      {item.type === "APPLICATION"
+                      {item.type === "APPLICATION_STATUS" || item.type === "APPLICATION"
                         ? "fact_check"
                         : item.type === "MESSAGE"
                         ? "chat"
-                        : "event"}
+                        : item.type === "INTERVIEW"
+                        ? "event"
+                        : "info"}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">

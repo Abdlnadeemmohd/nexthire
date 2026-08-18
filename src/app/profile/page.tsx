@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
-import { PROFILE_DATA } from "@/lib/mockData";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -27,22 +26,47 @@ export default function ProfilePage() {
 
   // Editable Profile Form State initialized from Auth Context
   const [formData, setFormData] = useState({
-    name: user?.name || "Stage 1 Candidate",
-    headline: user?.headline || "Senior Full-Stack Engineer",
-    phone: user?.phone || "+1 (555) 890-1234",
-    address: user?.address || "742 Market Street",
-    city: user?.city || "San Francisco",
-    country: user?.country || "United States",
-    bio: user?.bio || "Dedicated candidate profile on NextHire Cloud.",
+    name: user?.name || "",
+    headline: user?.headline || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+    city: user?.city || "",
+    country: user?.country || "",
+    bio: user?.bio || "",
     employmentStatus: (user?.employmentStatus || "OPEN_TO_OPPORTUNITIES") as EmploymentStatus,
     portfolioLinks: {
-      linkedin: user?.portfolioLinks?.linkedin || "https://linkedin.com",
-      github: user?.portfolioLinks?.github || "https://github.com",
+      linkedin: user?.portfolioLinks?.linkedin || "",
+      github: user?.portfolioLinks?.github || "",
       website: user?.portfolioLinks?.website || "",
       behance: user?.portfolioLinks?.behance || "",
       dribbble: user?.portfolioLinks?.dribbble || "",
     },
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        headline: user.headline || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        city: user.city || "",
+        country: user.country || "",
+        bio: user.bio || "",
+        employmentStatus: (user.employmentStatus || "OPEN_TO_OPPORTUNITIES") as EmploymentStatus,
+        portfolioLinks: {
+          linkedin: user.portfolioLinks?.linkedin || "",
+          github: user.portfolioLinks?.github || "",
+          website: user.portfolioLinks?.website || "",
+          behance: user.portfolioLinks?.behance || "",
+          dribbble: user.portfolioLinks?.dribbble || "",
+        },
+      });
+      if (user.experience) setExperiences(user.experience);
+      if (user.education) setEducations(user.education);
+      if (user.certifications) setCertifications(user.certifications);
+    }
+  }, [user]);
 
   // Experience, Education & Certification Items State
   const [experiences, setExperiences] = useState<UserExperience[]>(user?.experience || []);
@@ -300,7 +324,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
                   <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md flex-shrink-0">
                     <img
-                      src={user?.avatar || PROFILE_DATA.avatar}
+                      src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"}
                       alt={formData.name}
                       className="w-full h-full object-cover"
                     />

@@ -6,7 +6,7 @@ export interface SendNotificationParams {
   userEmail?: string;
   title: string;
   body: string;
-  type: "APPLICATION_STATUS" | "INTERVIEW" | "OFFER" | "REJECTION" | "SLA_WARNING" | "SYSTEM";
+  type: "APPLICATION_STATUS" | "INTERVIEW" | "OFFER" | "REJECTION" | "SLA_WARNING" | "SYSTEM" | "MESSAGE";
   ctaText?: string;
   ctaUrl?: string;
 }

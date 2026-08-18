@@ -6,13 +6,18 @@ export type EmailPayload = {
 };
 
 /**
- * Sends transactional email via Resend API or logs gracefully in development/fallback mode.
+ * Sends transactional email via Resend API or returns clearly typed unconfigured status.
  */
-export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; status: number; id?: string }> {
+export async function sendEmail(payload: EmailPayload): Promise<{
+  success: boolean;
+  status: number;
+  id?: string;
+  error?: string;
+}> {
   const { to, subject, html, from = process.env.FROM_EMAIL || "notifications@nexthire.cloud" } = payload;
   const apiKey = process.env.RESEND_API_KEY;
 
-  if (apiKey && !apiKey.startsWith("re_placeholder")) {
+  if (apiKey && !apiKey.startsWith("re_placeholder") && apiKey.trim() !== "") {
     try {
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -31,19 +36,35 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       if (response.ok) {
         const data = await response.json();
         return { success: true, status: 200, id: data?.id };
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          status: response.status,
+          error: errData?.message || "Email provider rejected message",
+        };
       }
-    } catch (err) {
-      console.warn("Resend API dispatch failed, logging fallback:", err);
+    } catch (err: any) {
+      console.warn("Resend API dispatch failed:", err?.message || err);
+      return {
+        success: false,
+        status: 502,
+        error: err?.message || "Email provider connection failed",
+      };
     }
   }
 
-  // Development / sandbox fallback
-  console.log("[NextHire Email Service] Simulated Transactional Email:");
+  // Fallback when Resend email provider is not configured
+  console.log("[NextHire Email Service] Provider not configured in environment variables:");
   console.log("  To      :", to);
   console.log("  Subject :", subject);
   console.log("  From    :", from);
 
-  return { success: true, status: 202, id: `mock-${Date.now()}` };
+  return {
+    success: false,
+    status: 503,
+    error: "EMAIL_PROVIDER_NOT_CONFIGURED",
+  };
 }
 
 /**

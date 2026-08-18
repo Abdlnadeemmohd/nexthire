@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
@@ -8,52 +8,103 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
-import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function RecruiterCompanyProfilePage() {
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"about" | "recruiter" | "assets" | "culture">("about");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [hasCompany, setHasCompany] = useState(true);
 
   const [companyInfo, setCompanyInfo] = useState({
-    name: "NextHire Simulation Corp",
-    tagline: "Enterprise cloud software and AI candidate matching platform.",
-    industry: "Enterprise Software & Cloud Infrastructure",
-    size: "100 - 250 Employees",
-    headquarters: "San Francisco, CA (Hybrid / Global Remote)",
-    founded: "2023",
-    website: "https://nexthire.cloud",
-    linkedin: "https://linkedin.com/company/nexthire-cloud",
-    email: "recruiter@nexthire.cloud",
-    phone: "+1 (415) 890-2341",
-    brandScore: 98,
-    candidateResponseRate: "99.2%",
-    avgHireDays: "10 Days",
-    interviewRating: "5.0 / 5.0",
-    profileCompletion: "100%",
-    bannerUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80",
-    logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
-    about: "NextHire Simulation Corp is the reference employer organization for NextHire Cloud Stage 1 production simulation, showcasing end-to-end recruitment workflows, verified ATS pipelines, and Cloudinary-integrated candidate evaluation.",
-    mission: "To connect elite technology talent with world-class engineering organizations through seamless AI workflows.",
-    techStack: ["Next.js", "TypeScript", "Prisma", "Neon PostgreSQL", "Cloudinary", "Firebase Auth", "Tailwind CSS"],
-    benefits: [
-      "Competitive Compensation + Equity",
-      "Flexible Remote-First Work Policy",
-      "Annual Continuing Education Stipend",
-      "Comprehensive Health, Dental & Vision",
-      "Modern Engineering Hardware Kit",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&auto=format&fit=crop&q=80",
-    ],
+    id: "",
+    name: "",
+    industry: "",
+    headquarters: "",
+    website: "",
+    about: "",
+    logoUrl: "",
+    isVerified: false,
+    activeRoles: 0,
+    totalApplicants: 0,
   });
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const loadCompanyData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/recruiter/company");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) {
+          setHasCompany(true);
+          setCompanyInfo({
+            id: data.data.id || "",
+            name: data.data.name || "",
+            industry: data.data.industry || "",
+            headquarters: data.data.location || data.data.headquarters || "",
+            about: data.data.description || data.data.about || "",
+            website: data.data.website || "",
+            logoUrl: data.data.logoUrl || data.data.logo || "",
+            isVerified: data.data.isVerified || false,
+            activeRoles: data.data.activeRoles ?? 0,
+            totalApplicants: data.data.totalApplicants ?? 0,
+          });
+        } else {
+          setHasCompany(false);
+        }
+      } else if (res.status === 404) {
+        setHasCompany(false);
+      }
+    } catch (err) {
+      console.error("Failed to load company info:", err);
+      setHasCompany(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCompanyData();
+  }, []);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsEditing(false);
-    showToast("Employer brand profile updated successfully!", "success");
+    try {
+      setSaving(true);
+      const res = await fetch("/api/recruiter/company", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyId: companyInfo.id || undefined,
+          name: companyInfo.name,
+          industry: companyInfo.industry,
+          location: companyInfo.headquarters,
+          description: companyInfo.about,
+          website: companyInfo.website,
+          logo: companyInfo.logoUrl || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(
+          hasCompany
+            ? "Company profile updated successfully in Neon PostgreSQL!"
+            : "Company profile created successfully in Neon PostgreSQL!",
+          "success"
+        );
+        setIsEditing(false);
+        setHasCompany(true);
+        loadCompanyData();
+      } else {
+        showToast(data.error || "Failed to save company profile", "error");
+      }
+    } catch (err) {
+      showToast("Network error saving company profile", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -65,439 +116,222 @@ export default function RecruiterCompanyProfilePage() {
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 p-6 md:p-10 space-y-8 max-w-[1600px] w-full">
-          {/* Header & Quick Action Triggers */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="font-display text-3xl font-bold text-on-surface">
-                Employer Brand & Company Profile
-              </h1>
-              <p className="text-on-surface-variant text-sm font-body-md">
-                Manage your public employer brand, company culture, and recruiter management tools.
-              </p>
-            </div>
+            <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Company Profile" }]} />
 
-            <div className="flex items-center gap-3">
-              <Link
-                href="/companies/c-1"
-                target="_blank"
-                className="px-4 py-2.5 bg-surface-container-high hover:bg-primary-container/20 text-primary font-label-md font-bold text-xs rounded-full transition-all flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">visibility</span>
-                Preview Candidate View
-              </Link>
-
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-md flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">{isEditing ? "close" : "edit"}</span>
-                {isEditing ? "Cancel Edit" : "Edit Profile"}
-              </button>
-            </div>
-          </div>
-
-          {/* 1. Structured Hero & Cover Banner Section */}
-          <div className="glass-card rounded-3xl overflow-hidden border border-outline-variant/20 shadow-xl space-y-0 relative">
-            <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900">
-              <img
-                src={companyInfo.bannerUrl}
-                alt="Company Cover Banner"
-                className="w-full h-full object-cover opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
-
-              <button
-                onClick={() => showToast("Banner upload dialog opened", "info")}
-                className="absolute top-4 right-4 px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white backdrop-blur-md rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
-              >
-                <span className="material-symbols-outlined text-sm">photo_camera</span>
-                Change Banner
-              </button>
-
-              <div className="absolute bottom-6 left-6 right-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-white z-10">
-                <div className="flex items-end gap-5">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-3 shadow-2xl border-4 border-white flex-shrink-0 flex items-center justify-center">
-                    <img src={companyInfo.logoUrl} alt={companyInfo.name} className="w-full h-full object-contain" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-display text-2xl sm:text-3xl font-bold">{companyInfo.name}</h1>
-                      <VerifiedBadge role="RECRUITER" customLabel="Verified Employer" size="md" />
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-200">{companyInfo.tagline}</p>
-                    <p className="text-xs text-slate-300 flex items-center gap-3 pt-1">
-                      <span>📍 {companyInfo.headquarters}</span>
-                      <span>• 👥 {companyInfo.size}</span>
-                      <span>• 🏢 {companyInfo.industry}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-                  <div className="text-center">
-                    <span className="font-display font-bold text-2xl text-tertiary">{companyInfo.brandScore}</span>
-                    <span className="block text-[10px] uppercase font-bold text-slate-300">Brand Score</span>
-                  </div>
-                  <div className="h-8 w-px bg-white/20"></div>
-                  <div className="text-center">
-                    <span className="font-display font-bold text-2xl text-white">12</span>
-                    <span className="block text-[10px] uppercase font-bold text-slate-300">Active Roles</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Recruiter Analytics Dashboard KPI Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
-              <span className="text-xs font-label-md text-outline uppercase font-bold">Total Applicants</span>
-              <h3 className="font-display text-2xl font-bold text-on-surface">348 Candidates</h3>
-              <p className="text-[11px] text-tertiary font-bold">+18% this month</p>
-            </div>
-
-            <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
-              <span className="text-xs font-label-md text-outline uppercase font-bold">Response Rate</span>
-              <h3 className="font-display text-2xl font-bold text-tertiary">{companyInfo.candidateResponseRate}</h3>
-              <p className="text-[11px] text-on-surface-variant font-semibold">Avg reply within 24h</p>
-            </div>
-
-            <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
-              <span className="text-xs font-label-md text-outline uppercase font-bold">Average Time to Hire</span>
-              <h3 className="font-display text-2xl font-bold text-primary">{companyInfo.avgHireDays}</h3>
-              <p className="text-[11px] text-on-surface-variant font-semibold">Fast-track interview workflow</p>
-            </div>
-
-            <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
-              <span className="text-xs font-label-md text-outline uppercase font-bold">Candidate Rating</span>
-              <h3 className="font-display text-2xl font-bold text-on-surface">{companyInfo.interviewRating}</h3>
-              <p className="text-[11px] text-tertiary font-bold">Based on 64 reviews</p>
-            </div>
-          </div>
-
-          {/* 3. Balanced 70 / 30 Layout Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content Column (70%) */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Tab Selector */}
-              <MobileScrollableChips
-                items={[
-                  { id: "about", label: "Company Overview", icon: "domain" },
-                  { id: "recruiter", label: "Hiring Recruiter Profile", icon: "badge" },
-                  { id: "assets", label: "Branding Assets Gallery", icon: "photo_library" },
-                  { id: "culture", label: "Culture & Benefits", icon: "groups" },
-                ]}
-                activeId={activeTab}
-                onChange={(id) => setActiveTab(id as any)}
-                ariaLabel="Company profile tabs"
-              />
-
-              {/* Tab 1: About & Culture */}
-              {activeTab === "about" && (
-                <div className="space-y-8">
-                  {isEditing ? (
-                    <form onSubmit={handleSaveProfile} className="glass-card rounded-3xl p-8 border border-primary/30 space-y-4 text-xs font-body-sm">
-                      <h3 className="font-bold text-lg text-on-surface border-b pb-2">Edit Employer Profile</h3>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block font-bold text-outline uppercase pb-1">Company Name</label>
-                          <input
-                            type="text"
-                            value={companyInfo.name}
-                            onChange={(e) => setCompanyInfo({ ...companyInfo, name: e.target.value })}
-                            className="w-full p-2.5 bg-surface border rounded-xl"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-outline uppercase pb-1">Tagline</label>
-                          <input
-                            type="text"
-                            value={companyInfo.tagline}
-                            onChange={(e) => setCompanyInfo({ ...companyInfo, tagline: e.target.value })}
-                            className="w-full p-2.5 bg-surface border rounded-xl"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-outline uppercase pb-1">Company Mission</label>
-                        <textarea
-                          rows={2}
-                          value={companyInfo.mission}
-                          onChange={(e) => setCompanyInfo({ ...companyInfo, mission: e.target.value })}
-                          className="w-full p-2.5 bg-surface border rounded-xl"
-                        />
-                      </div>
-
-                      <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-on-surface-variant font-bold">
-                          Cancel
-                        </button>
-                        <button type="submit" className="px-6 py-2 bg-primary text-on-primary font-bold rounded-full shadow-md">
-                          Save Changes
-                        </button>
-                      </div>
-                    </form>
-                  ) : null}
-
-                  {/* Overview Card */}
-                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-                    <h3 className="font-headline-sm text-lg font-bold text-on-surface">Company Overview</h3>
-                    <p className="text-xs text-on-surface-variant leading-relaxed">{companyInfo.about}</p>
-                    <div className="p-4 bg-primary-container/20 border-l-4 border-primary rounded-xl space-y-1">
-                      <h4 className="font-bold text-xs text-primary uppercase">Our Mission</h4>
-                      <p className="text-xs text-on-surface italic font-semibold">{companyInfo.mission}</p>
-                    </div>
-                  </div>
-
-                  {/* Technology Stack */}
-                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-                    <h3 className="font-headline-sm text-lg font-bold text-on-surface">Primary Engineering Stack</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {companyInfo.techStack.map((tech) => (
-                        <span key={tech} className="px-3 py-1.5 bg-surface-container-high text-on-surface font-label-md font-bold text-xs rounded-xl border border-outline-variant/30">
-                          ⚡ {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Benefits & Perks */}
-                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-                    <h3 className="font-headline-sm text-lg font-bold text-on-surface">Benefits & Employee Perks</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {companyInfo.benefits.map((b, i) => (
-                        <div key={i} className="p-3 bg-surface rounded-xl border border-outline-variant/20 text-xs font-semibold text-on-surface flex items-center gap-2">
-                          <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-                          {b}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 2: Dedicated Hiring Recruiter Personal Profile */}
-              {activeTab === "recruiter" && (
-                <div className="space-y-6">
-                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant/20 pb-4">
-                      <div>
-                        <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-                          Hiring Recruiter Identity
-                        </h3>
-                        <p className="text-xs text-on-surface-variant font-body-md">
-                          Personal recruiter identity displayed on job postings to build candidate trust.
-                        </p>
-                      </div>
-                      <VerifiedBadge role="RECRUITER" size="md" />
-                    </div>
-
-                    <div className="flex flex-col md:flex-row items-start gap-6">
-                      <img
-                        src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80"
-                        alt="Stage 1 Recruiter"
-                        className="w-24 h-24 rounded-3xl object-cover border-4 border-primary/30 shadow-md flex-shrink-0"
-                      />
-
-                      <div className="space-y-3 flex-1 min-w-0">
-                        <div>
-                          <h4 className="font-display text-xl font-bold text-on-surface">Stage 1 Recruiter</h4>
-                          <p className="text-xs font-bold text-primary">Lead Technical Recruiter & Talent Partner</p>
-                          <p className="text-xs text-on-surface-variant">NextHire Simulation Corp • Global Tech Talent Acquisition</p>
-                        </div>
-
-                        <p className="text-xs text-on-surface-variant leading-relaxed bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/20 italic">
-                          "10+ years connecting elite Staff Full-Stack, AI/ML, and DevOps Engineers with high-growth enterprise SaaS teams."
-                        </p>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
-                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
-                            <span className="text-[10px] font-bold text-outline uppercase block">Active Jobs</span>
-                            <span className="font-bold text-on-surface font-mono">4 Open Roles</span>
-                          </div>
-                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
-                            <span className="text-[10px] font-bold text-outline uppercase block">Candidates Hired</span>
-                            <span className="font-bold text-primary font-mono">148 Hired</span>
-                          </div>
-                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
-                            <span className="text-[10px] font-bold text-outline uppercase block">Response SLA</span>
-                            <span className="font-bold text-emerald-700 font-mono">&lt; 2 Hours</span>
-                          </div>
-                          <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/20 text-center">
-                            <span className="text-[10px] font-bold text-outline uppercase block">Candidate Rating</span>
-                            <span className="font-bold text-amber-500 font-mono">★ 4.9 / 5.0</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 3: Branding Assets Manager */}
-              {activeTab === "assets" && (
-                <div className="space-y-6">
-                  <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-6">
-                    <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-                      <div>
-                        <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-                          Company Branding & Asset Manager
-                        </h3>
-                        <p className="text-xs text-on-surface-variant font-body-md">
-                          Manage official corporate logos, cover banners, office photos, and brand guidelines.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => showToast("Branding asset upload modal opened", "info")}
-                        className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container shadow-xs flex items-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-sm">upload</span>
-                        Upload Brand Asset
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/30 space-y-2">
-                        <span className="font-bold text-outline uppercase text-[10px]">Official Company Logo</span>
-                        <div className="h-28 bg-surface rounded-xl p-4 flex items-center justify-center border border-outline-variant/20">
-                          <img src={companyInfo.logoUrl} alt="Logo" className="max-h-full object-contain" />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-1">
-                          <button onClick={() => showToast("Logo upload opened", "info")} className="px-3 py-1 bg-surface-container-high font-bold text-[11px] rounded-lg">
-                            Replace Logo
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/30 space-y-2">
-                        <span className="font-bold text-outline uppercase text-[10px]">Careers Cover Banner</span>
-                        <div className="h-28 bg-surface rounded-xl overflow-hidden border border-outline-variant/20">
-                          <img src={companyInfo.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-1">
-                          <button onClick={() => showToast("Banner upload opened", "info")} className="px-3 py-1 bg-surface-container-high font-bold text-[11px] rounded-lg">
-                            Replace Banner
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-2">
-                      <h4 className="font-bold text-sm text-on-surface">Workplace & Office Culture Gallery ({companyInfo.gallery.length})</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {companyInfo.gallery.map((img, idx) => (
-                          <div key={idx} className="h-36 rounded-2xl overflow-hidden border border-outline-variant/30 relative group">
-                            <img src={img} alt="Office Culture" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <button
-                              onClick={() => showToast("Removed image from gallery", "info")}
-                              className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <span className="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Sidebar Column (30%) */}
-            <div className="space-y-6">
-              {/* Recruiter Quick Actions Panel */}
-              <div className="glass-card rounded-3xl p-6 border border-outline-variant/20 space-y-3">
-                <h4 className="font-bold text-xs text-on-surface uppercase tracking-wider text-outline">
-                  Recruiter Quick Actions
-                </h4>
-                <div className="space-y-2 text-xs font-semibold">
-                  <Link
-                    href="/recruiter/jobs/new"
-                    className="w-full p-3 bg-primary text-on-primary rounded-xl text-center block font-bold shadow-sm hover:bg-primary-container"
-                  >
-                    + Post New Job Opening
-                  </Link>
-                  <Link
-                    href="/recruiter/applicants"
-                    className="w-full p-3 bg-surface-container-high text-on-surface rounded-xl text-center block hover:bg-surface-container"
-                  >
-                    View Active Candidates
-                  </Link>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="w-full p-3 bg-surface border border-outline-variant/30 text-on-surface rounded-xl text-center block hover:bg-surface-container"
-                  >
-                    Edit Employer Profile
-                  </button>
-                  <Link
-                    href="/admin/subscriptions"
-                    className="w-full p-3 bg-surface border border-outline-variant/30 text-on-surface rounded-xl text-center block hover:bg-surface-container"
-                  >
-                    Manage Billing & Subscription
-                  </Link>
-                </div>
-              </div>
-
-              {/* Employer Brand Score Card */}
-              <div className="glass-card rounded-3xl p-6 border border-tertiary/30 bg-tertiary-container/10 space-y-3">
-                <div className="flex items-center gap-2 text-tertiary font-bold text-xs uppercase tracking-wider">
-                  <span className="material-symbols-outlined text-base">military_tech</span>
-                  Employer Trust Score
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display font-bold text-4xl text-on-surface">{companyInfo.brandScore}</span>
-                  <span className="text-xs text-on-surface-variant font-bold">/ 100 Grade A+</span>
-                </div>
-                <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                  Verified employer badge active. Responding quickly to candidate inquiries increases candidate match quality by 40%.
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-6">
+              <div>
+                <h1 className="font-display text-3xl font-bold text-on-surface">
+                  Company Profile
+                </h1>
+                <p className="text-on-surface-variant text-sm font-body-md">
+                  Manage your verified employer identity, company information, and job postings on NextHire Cloud.
                 </p>
               </div>
 
-              {/* Company Info Breakdown */}
-              <div className="glass-card rounded-3xl p-6 border border-outline-variant/20 space-y-3 text-xs">
-                <h4 className="font-bold text-on-surface uppercase tracking-wider text-outline text-[11px]">
-                  Company Details
-                </h4>
-                <ul className="space-y-2.5 text-on-surface-variant">
-                  <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                    <span className="text-outline">Website:</span>
-                    <a href={companyInfo.website} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">
-                      stellarsystems.io
-                    </a>
-                  </li>
-                  <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                    <span className="text-outline">LinkedIn:</span>
-                    <a href={companyInfo.linkedin} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">
-                      View Profile
-                    </a>
-                  </li>
-                  <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                    <span className="text-outline">Headquarters:</span>
-                    <span className="font-bold text-on-surface">San Francisco</span>
-                  </li>
-                  <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                    <span className="text-outline">Founded:</span>
-                    <span className="font-bold text-on-surface">{companyInfo.founded}</span>
-                  </li>
-                  <li className="flex items-center justify-between border-b border-outline-variant/10 pb-2">
-                    <span className="text-outline">Company Size:</span>
-                    <span className="font-bold text-on-surface">{companyInfo.size}</span>
-                  </li>
-                  <li className="flex items-center justify-between">
-                    <span className="text-outline">Recruiter Contact:</span>
-                    <span className="font-bold text-on-surface">{companyInfo.email}</span>
-                  </li>
-                </ul>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/companies"
+                  className="px-4 py-2.5 bg-surface-container-high hover:bg-primary-container/20 text-primary font-label-md font-bold text-xs rounded-full transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">visibility</span>
+                  View Directory
+                </Link>
+
+                {hasCompany && (
+                  <button
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-md flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-base">{isEditing ? "close" : "edit"}</span>
+                    {isEditing ? "Cancel Edit" : "Edit Profile"}
+                  </button>
+                )}
               </div>
             </div>
-          </div>
-        </main>
-        <Footer />
+
+            {loading ? (
+              <div className="py-20 text-center text-xs text-on-surface-variant">
+                Loading company profile from database...
+              </div>
+            ) : !hasCompany || isEditing ? (
+              /* Create / Edit Company Form */
+              <div className="glass-card rounded-3xl p-8 border border-outline-variant/30 shadow-xl max-w-3xl space-y-6">
+                <div>
+                  <h2 className="font-display text-2xl font-bold text-on-surface">
+                    {hasCompany ? "Edit Company Profile" : "Create Employer Company Profile"}
+                  </h2>
+                  <p className="text-xs text-on-surface-variant pt-1">
+                    {hasCompany
+                      ? "Update your organization details in Neon PostgreSQL."
+                      : "Register your hiring company organization to publish jobs and manage applicants on NextHire."}
+                  </p>
+                </div>
+
+                <form onSubmit={handleSaveProfile} className="space-y-4 text-xs font-body-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-outline uppercase pb-1">Company Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Acme Cloud Corp"
+                        value={companyInfo.name}
+                        onChange={(e) => setCompanyInfo({ ...companyInfo, name: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/40 rounded-xl text-on-surface"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-outline uppercase pb-1">Industry *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Software & Cloud Infrastructure"
+                        value={companyInfo.industry}
+                        onChange={(e) => setCompanyInfo({ ...companyInfo, industry: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/40 rounded-xl text-on-surface"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-outline uppercase pb-1">Location / Headquarters *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Austin, TX (or Remote)"
+                        value={companyInfo.headquarters}
+                        onChange={(e) => setCompanyInfo({ ...companyInfo, headquarters: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/40 rounded-xl text-on-surface"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-outline uppercase pb-1">Website URL</label>
+                      <input
+                        type="url"
+                        placeholder="https://acme.example.com"
+                        value={companyInfo.website}
+                        onChange={(e) => setCompanyInfo({ ...companyInfo, website: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/40 rounded-xl text-on-surface"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-outline uppercase pb-1">Company Description *</label>
+                    <textarea
+                      rows={4}
+                      required
+                      placeholder="Describe your organization's mission, engineering focus, and hiring culture..."
+                      value={companyInfo.about}
+                      onChange={(e) => setCompanyInfo({ ...companyInfo, about: e.target.value })}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/40 rounded-xl text-on-surface"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    {hasCompany && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 text-on-surface-variant font-bold hover:bg-surface-container rounded-xl"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="px-6 py-2.5 bg-primary text-on-primary font-bold rounded-full shadow-md hover:bg-primary-container disabled:opacity-50"
+                    >
+                      {saving ? "Saving to Database..." : hasCompany ? "Save Changes" : "Create Company Profile"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              /* View Company State */
+              <div className="space-y-8">
+                {/* Metrics Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
+                    <span className="text-xs font-label-md text-outline uppercase font-bold">Active Roles</span>
+                    <h3 className="font-display text-2xl font-bold text-on-surface">{companyInfo.activeRoles} Openings</h3>
+                    <p className="text-[11px] text-primary font-bold">Published in database</p>
+                  </div>
+
+                  <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
+                    <span className="text-xs font-label-md text-outline uppercase font-bold">Total Applicants</span>
+                    <h3 className="font-display text-2xl font-bold text-tertiary">{companyInfo.totalApplicants} Candidates</h3>
+                    <p className="text-[11px] text-on-surface-variant font-semibold">Live database submissions</p>
+                  </div>
+
+                  <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
+                    <span className="text-xs font-label-md text-outline uppercase font-bold">Review Target</span>
+                    <h3 className="font-display text-2xl font-bold text-primary">7-Day SLA</h3>
+                    <p className="text-[11px] text-on-surface-variant font-semibold">Standard review target</p>
+                  </div>
+
+                  <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
+                    <span className="text-xs font-label-md text-outline uppercase font-bold">Verification Status</span>
+                    <h3 className="font-display text-2xl font-bold text-emerald-600">
+                      {companyInfo.isVerified ? "Verified" : "Pending Verification"}
+                    </h3>
+                    <p className="text-[11px] text-emerald-700 font-bold">Organization Status</p>
+                  </div>
+                </div>
+
+                {/* Overview Card */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-display text-2xl font-bold text-on-surface">{companyInfo.name}</h2>
+                      {companyInfo.isVerified && (
+                        <VerifiedBadge role="RECRUITER" customLabel="Verified Employer" size="sm" />
+                      )}
+                    </div>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      {companyInfo.about || "No company description provided yet."}
+                    </p>
+                  </div>
+
+                  <div className="glass-card rounded-3xl p-6 border border-outline-variant/20 space-y-4 text-xs">
+                    <h3 className="font-bold text-sm text-on-surface uppercase tracking-wider text-outline">
+                      Company Details
+                    </h3>
+                    <div className="space-y-3 divide-y divide-outline-variant/10 text-on-surface">
+                      <div className="pt-2 flex justify-between">
+                        <span className="text-on-surface-variant">Industry</span>
+                        <span className="font-bold">{companyInfo.industry || "Not specified"}</span>
+                      </div>
+                      <div className="pt-2 flex justify-between">
+                        <span className="text-on-surface-variant">Location</span>
+                        <span className="font-bold">{companyInfo.headquarters || "Not specified"}</span>
+                      </div>
+                      {companyInfo.website && (
+                        <div className="pt-2 flex justify-between">
+                          <span className="text-on-surface-variant">Website</span>
+                          <a
+                            href={companyInfo.website}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary font-bold hover:underline"
+                          >
+                            {companyInfo.website.replace(/^https?:\/\//, "")}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          <Footer />
+        </div>
       </div>
-    </div>
     </ProtectedRoute>
   );
 }

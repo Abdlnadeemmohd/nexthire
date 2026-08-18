@@ -5,16 +5,14 @@ import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
-import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface CompanyItem {
   id: string;
   name: string;
-  logo: string;
+  logo: string | null;
   industry: string;
   location: string;
-  size: string;
   description: string;
   verified: boolean;
   activeJobsCount: number;
@@ -23,163 +21,137 @@ interface CompanyItem {
 export default function CompaniesDirectoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("ALL");
-  const [companies, setCompanies] = useState<CompanyItem[]>([
-    {
-      id: "00000000-0000-0000-0000-000000000001",
-      name: "NextHire Simulation Corp",
-      logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
-      industry: "Enterprise SaaS & AI Recruitment",
-      location: "San Francisco, CA",
-      size: "100 - 250 Employees",
-      description: "Official Stage 1 employer simulation corporation on NextHire Cloud.",
-      verified: true,
-      activeJobsCount: 1,
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [companies, setCompanies] = useState<CompanyItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadCompanies() {
       try {
+        setLoading(true);
         const res = await fetch("/api/admin/companies");
         if (res.ok) {
           const data = await res.json();
-          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          if (data.success && Array.isArray(data.data)) {
             setCompanies(
               data.data.map((c: any) => ({
                 id: c.id,
                 name: c.name,
-                logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
+                logo: c.logo || null,
                 industry: c.industry || "Technology",
-                location: c.location || "San Francisco, CA",
-                size: "100 - 250 Employees",
-                description: c.description || "Verified technology employer on NextHire.",
-                verified: c.isVerified,
-                activeJobsCount: c.jobs?.length || 0,
+                location: c.location || "Location not specified",
+                description: c.description || "Hiring organization on NextHire.",
+                verified: Boolean(c.isVerified),
+                activeJobsCount: Array.isArray(c.jobs) ? c.jobs.length : 0,
               }))
             );
           }
         }
       } catch (err) {
-        console.error("Failed to load companies:", err);
+        console.error("Failed to load companies directory:", err);
+      } finally {
+        setLoading(false);
       }
     }
 
     loadCompanies();
   }, []);
 
-  const filteredCompanies = companies.filter((company: CompanyItem) => {
-    const matchesSearch =
-      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.location.toLowerCase().includes(searchQuery.toLowerCase());
-
+  const filteredCompanies = companies.filter((c) => {
+    const q = searchQuery.toLowerCase();
+    const matchesQuery =
+      c.name.toLowerCase().includes(q) ||
+      c.description.toLowerCase().includes(q) ||
+      c.location.toLowerCase().includes(q);
     const matchesIndustry =
-      selectedIndustry === "ALL" || company.industry === selectedIndustry;
+      selectedIndustry === "ALL" ||
+      c.industry.toLowerCase().includes(selectedIndustry.toLowerCase());
 
-    return matchesSearch && matchesIndustry;
+    return matchesQuery && matchesIndustry;
   });
 
   return (
     <>
       <TopAppBar />
 
-      <div className="min-h-screen bg-surface pt-16 flex flex-col">
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-8">
-          {/* Header */}
-          <div className="border-b border-outline-variant/20 pb-6 space-y-2">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-              Featured Employers & Companies
+      <main className="pt-16 flex-1 min-h-screen bg-surface">
+        {/* Header */}
+        <section className="bg-mesh py-12 px-4 sm:px-6 lg:px-8 border-b border-outline-variant/20">
+          <div className="max-w-5xl mx-auto space-y-4 text-center">
+            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm uppercase font-bold text-xs">
+              Verified Organizations
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-on-surface">
+              Explore Hiring Companies
             </h1>
-            <p className="text-on-surface-variant text-xs sm:text-sm">
-              Discover top verified technology companies hiring talent on NextHire.
+            <p className="text-sm sm:text-base text-on-surface-variant max-w-2xl mx-auto font-body-md">
+              Discover verified technology employers actively hiring engineering talent on NextHire Cloud.
             </p>
-          </div>
 
-          {/* Search & Filter Bar */}
-          <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Search Input */}
+            <div className="max-w-2xl mx-auto pt-4">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3.5 top-3 text-outline text-lg">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-xl">
                   search
                 </span>
                 <input
                   type="text"
+                  placeholder="Search by company name, technology, or location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by company name, industry, or location..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-11 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/40 rounded-2xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-xs"
                 />
-              </div>
-
-              <div>
-                <select
-                  value={selectedIndustry}
-                  onChange={(e) => setSelectedIndustry(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-medium"
-                >
-                  <option value="ALL">All Industries</option>
-                  <option value="Enterprise SaaS & AI Recruitment">Enterprise SaaS & AI Recruitment</option>
-                  <option value="Enterprise SaaS">Enterprise SaaS</option>
-                  <option value="Artificial Intelligence">Artificial Intelligence</option>
-                  <option value="Cloud Infrastructure">Cloud Infrastructure</option>
-                  <option value="Fintech">Fintech</option>
-                </select>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Companies Grid */}
-          {filteredCompanies.length > 0 ? (
+        {/* Directory Grid */}
+        <section className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          {loading ? (
+            <div className="py-20 text-center text-xs text-on-surface-variant">
+              Loading company directory from database...
+            </div>
+          ) : filteredCompanies.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCompanies.map((company: CompanyItem) => (
+              {filteredCompanies.map((comp) => (
                 <div
-                  key={company.id}
-                  className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 flex flex-col justify-between space-y-5 hover:border-primary/40 transition-all shadow-xs"
+                  key={comp.id}
+                  className="glass-card rounded-2xl p-6 border border-outline-variant/20 hover:border-primary/40 transition-all flex flex-col justify-between space-y-4"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <CompanyLogo
-                        src={company.logo}
-                        name={company.name}
-                        size="md"
-                        rounded="2xl"
-                      />
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-sm text-on-surface">{company.name}</h3>
-                          {company.verified && <VerifiedBadge role="RECRUITER" size="sm" />}
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-4">
+                      {comp.logo ? (
+                        <img src={comp.logo} alt={comp.name} className="w-14 h-14 rounded-2xl object-cover" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-2xl bg-surface-container-high flex items-center justify-center font-bold text-primary text-xl">
+                          {comp.name.charAt(0).toUpperCase()}
                         </div>
-                        <p className="text-xs text-primary font-medium">{company.industry}</p>
+                      )}
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-bold text-base text-on-surface truncate">{comp.name}</h3>
+                          {comp.verified && <VerifiedBadge role="RECRUITER" size="sm" />}
+                        </div>
+                        <p className="text-xs text-primary font-bold">{comp.industry}</p>
+                        <p className="text-[11px] text-on-surface-variant">📍 {comp.location}</p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed">
-                      {company.description}
+                    <p className="text-xs text-on-surface-variant line-clamp-3">
+                      {comp.description}
                     </p>
-
-                    <div className="flex items-center gap-4 text-[11px] text-outline pt-1">
-                      <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">location_on</span>
-                        {company.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">group</span>
-                        {company.size}
-                      </span>
-                    </div>
                   </div>
 
-                  <div className="pt-4 border-t border-outline-variant/20 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-500/10 px-3 py-1 rounded-xl whitespace-nowrap">
-                      {company.activeJobsCount} Active Jobs
+                  <div className="pt-3 border-t border-outline-variant/10 flex items-center justify-between">
+                    <span className="text-xs font-bold text-primary">
+                      {comp.activeJobsCount > 0 ? `${comp.activeJobsCount} Open Positions` : "Registered Partner"}
                     </span>
+
                     <Link
-                      href={`/companies/${company.id}`}
-                      className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1 touch-target whitespace-nowrap"
+                      href={`/companies/${comp.id}`}
+                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
                     >
-                      View Company
-                      <span className="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
+                      View Profile <span className="material-symbols-outlined text-sm">arrow_forward</span>
                     </Link>
                   </div>
                 </div>
@@ -188,19 +160,20 @@ export default function CompaniesDirectoryPage() {
           ) : (
             <EmptyState
               title="No companies found"
-              description="Try adjusting your search filters to discover more employer organizations."
+              description={
+                searchQuery
+                  ? `No hiring partners matched "${searchQuery}".`
+                  : "No employer organizations have been registered yet."
+              }
               icon="domain_disabled"
-              actionLabel="Reset Search"
-              onAction={() => {
-                setSearchQuery("");
-                setSelectedIndustry("ALL");
-              }}
+              actionLabel={searchQuery ? "Clear Search" : undefined}
+              onAction={searchQuery ? () => setSearchQuery("") : undefined}
             />
           )}
-        </main>
+        </section>
+      </main>
 
-        <Footer />
-      </div>
+      <Footer />
     </>
   );
 }

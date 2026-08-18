@@ -24,46 +24,7 @@ interface SupportTicket {
   replyText?: string;
 }
 
-const INITIAL_SUPPORT_TICKETS: SupportTicket[] = [
-  {
-    id: "TICK-901",
-    submitterName: "David Chen",
-    submitterEmail: "david.chen@cybershield.sec",
-    submitterRole: "RECRUITER",
-    subject: "Employer Tax ID Document Verification Pending",
-    category: "VERIFICATION",
-    priority: "P1_HIGH",
-    status: "OPEN",
-    submittedAt: "2026-07-26 09:14 AM",
-    description: "Uploaded W9 tax certificate and domain validation for CyberShield Sec. Requesting expedited verification badge approval.",
-  },
-  {
-    id: "TICK-899",
-    submitterName: "Stage 1 Candidate",
-    submitterEmail: "jobseeker@nexthire.cloud",
-    submitterRole: "JOB_SEEKER",
-    subject: "AI Resume ATS Score Match Query for Senior UX Role",
-    category: "TECHNICAL",
-    priority: "P2_NORMAL",
-    status: "IN_PROGRESS",
-    submittedAt: "2026-08-15 04:30 PM",
-    description: "Resume Studio ATS parser calculated 95% match. Wanted to confirm if recruiter sees exact keyword breakdown.",
-    replyText: "NextHire AI Operations: Yes, recruiters receive full match breakdowns in candidate view.",
-  },
-  {
-    id: "TICK-884",
-    submitterName: "Stage 1 Recruiter",
-    submitterEmail: "recruiter@nexthire.cloud",
-    submitterRole: "RECRUITER",
-    subject: "Monthly Growth Plan Invoice Receipt",
-    category: "BILLING",
-    priority: "P2_NORMAL",
-    status: "RESOLVED",
-    submittedAt: "2026-08-14 11:05 AM",
-    description: "Needed tax invoice with VAT identification number for annual accounting audit.",
-    replyText: "Resolved by Billing Desk: Updated invoice PDF with company VAT ID dispatched to email.",
-  },
-];
+const INITIAL_SUPPORT_TICKETS: SupportTicket[] = [];
 
 interface FaqItem {
   id: string;

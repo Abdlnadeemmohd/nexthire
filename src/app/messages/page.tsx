@@ -1,21 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
-import { MessageItem } from "@/lib/mockData";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
-import { Modal } from "@/components/ui/Modal";
+import { EmptyState } from "@/components/ui/EmptyState";
 
-export default function MessagingCentrePage() {
+interface Contact {
+  id: string;
+  name: string;
+  role: string;
+  avatar?: string;
+  lastMessage?: string;
+  lastMessageAt?: string;
+  unread?: boolean;
+}
+
+interface MessageItem {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string;
+  read: boolean;
+  sender: { id: string; name: string; avatar?: string; role: string };
+  receiver: { id: string; name: string; avatar?: string; role: string };
+}
+
+function MessagingCentreContent() {
+  const searchParams = useSearchParams();
+  const initialContactId = searchParams?.get("contactId") || null;
   const { user } = useAuth();
   const { showToast } = useToast();
+
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(initialContactId);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("chat");
 
   const portalType =
@@ -25,77 +51,110 @@ export default function MessagingCentrePage() {
       ? "admin"
       : "seeker";
 
-  const activeContact =
-    user?.role === "RECRUITER"
-      ? {
-          name: "Job Candidate",
-          company: "Candidate Pipeline",
-          role: "Verified Job Seeker",
-          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-          online: true,
+  // 1. Load active conversations and contacts
+  const loadContactsAndMessages = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/messages");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          const fetchedContacts: Contact[] = data.contacts || [];
+          setContacts(fetchedContacts);
+
+          // If initial contact parameter passed and not in contacts list, fetch candidate info
+          if (initialContactId && !fetchedContacts.some((c) => c.id === initialContactId)) {
+            try {
+              const uRes = await fetch(`/api/recruiter/candidates?q=`);
+              if (uRes.ok) {
+                const uData = await uRes.json();
+                const matched = uData.data?.find((cand: any) => cand.id === initialContactId);
+                if (matched) {
+                  const newContact: Contact = {
+                    id: matched.id,
+                    name: matched.name,
+                    role: "JOB_SEEKER",
+                    avatar: matched.avatar,
+                    lastMessage: "Started new conversation",
+                  };
+                  setContacts((prev) => [newContact, ...prev]);
+                  setSelectedContactId(newContact.id);
+                }
+              }
+            } catch (err) {
+              console.error("Failed to load initial contact info:", err);
+            }
+          } else if (!selectedContactId && fetchedContacts.length > 0) {
+            setSelectedContactId(fetchedContacts[0].id);
+          }
         }
-      : user?.role === "PLATFORM_ADMIN"
-      ? {
-          name: "Platform Operations Desk",
-          company: "NextHire Cloud",
-          role: "Super Administrator",
-          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-          online: true,
-        }
-      : {
-          name: "Recruitment Team",
-          company: "NextHire Simulation Corp",
-          role: "Hiring Manager",
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
-          online: true,
-        };
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim()) return;
-
-    const newMessage: MessageItem = {
-      id: `msg-${Date.now()}`,
-      senderId: user?.id || "user-curr",
-      senderName: user?.name || "User",
-      senderAvatar: user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-      receiverId: "contact-1",
-      content: inputMessage,
-      timestamp: "Just now",
-      read: true,
-      isRecruiter: user?.role === "RECRUITER",
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-    setInputMessage("");
-
-    // Automated simulation response
-    setTimeout(() => {
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg-reply-${Date.now()}`,
-            senderId: "contact-1",
-            senderName: activeContact.name,
-            senderAvatar: activeContact.avatar,
-            receiverId: user?.id || "user-curr",
-            content:
-              user?.role === "RECRUITER"
-                ? "Thank you for reaching out! I look forward to discussing the role."
-                : user?.role === "PLATFORM_ADMIN"
-                ? "Message logged in Platform Operations Desk."
-                : "Thank you for your message! Our recruiting team is reviewing your application.",
-            timestamp: "Just now",
-            read: true,
-            isRecruiter: user?.role !== "RECRUITER",
-          },
-        ]);
-      }, 1000);
-    }, 500);
+      }
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    loadContactsAndMessages();
+  }, []);
+
+  // 2. Load conversation messages for selected contact
+  useEffect(() => {
+    if (!selectedContactId) return;
+
+    async function loadThread() {
+      try {
+        const res = await fetch(`/api/messages?contactId=${selectedContactId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.data)) {
+            setMessages(data.data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load thread:", err);
+      }
+    }
+
+    loadThread();
+    const interval = setInterval(loadThread, 5000);
+    return () => clearInterval(interval);
+  }, [selectedContactId]);
+
+  // 3. Send message handler
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || !selectedContactId) return;
+
+    try {
+      setSending(true);
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          receiverId: selectedContactId,
+          content: inputMessage.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessages((prev) => [...prev, data.data]);
+        setInputMessage("");
+        loadContactsAndMessages();
+      } else {
+        showToast(data.error || "Failed to send message", "error");
+      }
+    } catch (err) {
+      showToast("Network error sending message", "error");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const activeContact = contacts.find((c) => c.id === selectedContactId);
 
   return (
     <ProtectedRoute requiredPortal={portalType}>
@@ -107,156 +166,171 @@ export default function MessagingCentrePage() {
         <div className="flex-1 lg:pl-[270px] flex flex-col h-[calc(100vh-4rem)]">
           <div className="flex-1 flex overflow-hidden">
             {/* Contacts Sidebar */}
-            <div className={`w-full sm:w-80 border-r border-outline-variant/20 bg-surface-container-lowest flex flex-col ${mobileView === "chat" ? "hidden sm:flex" : "flex"}`}>
-              <div className="p-4 border-b border-outline-variant/20">
-                <h2 className="font-bold text-base text-on-surface">Conversations</h2>
+            <div
+              className={`w-full sm:w-80 border-r border-outline-variant/20 bg-surface-container-lowest flex flex-col ${
+                mobileView === "chat" ? "hidden sm:flex" : "flex"
+              }`}
+            >
+              <div className="p-4 border-b border-outline-variant/20 flex justify-between items-center">
+                <h2 className="font-bold text-base text-on-surface">Messages</h2>
+                <span className="text-xs text-primary font-bold">{contacts.length} Contacts</span>
               </div>
 
-              <div className="p-2">
-                <div
-                  onClick={() => setMobileView("chat")}
-                  className="p-3 rounded-2xl bg-surface-container-low border border-primary/30 flex items-center gap-3 cursor-pointer"
-                >
-                  <div className="relative">
-                    <img
-                      src={activeContact.avatar}
-                      alt={activeContact.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface"></div>
+              <div className="p-2 overflow-y-auto flex-1 space-y-1">
+                {contacts.length > 0 ? (
+                  contacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      onClick={() => {
+                        setSelectedContactId(contact.id);
+                        setMobileView("chat");
+                      }}
+                      className={`p-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-colors ${
+                        selectedContactId === contact.id
+                          ? "bg-primary-container/20 border border-primary/30"
+                          : "hover:bg-surface-container-low"
+                      }`}
+                    >
+                      <img
+                        src={contact.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
+                        alt={contact.name}
+                        className="w-10 h-10 rounded-full object-cover border border-outline-variant/30"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-bold text-xs text-on-surface truncate">{contact.name}</h4>
+                          <span className="text-[10px] text-outline font-bold">
+                            {contact.role === "RECRUITER" ? "Recruiter" : "Candidate"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-on-surface-variant truncate">
+                          {contact.lastMessage || "No messages yet"}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-xs text-on-surface-variant">
+                    No active conversations. Reach out to candidates from the Candidate Search page.
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-xs text-on-surface truncate">{activeContact.name}</h3>
-                    <p className="text-[11px] text-on-surface-variant truncate">{activeContact.company}</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Chat Conversation Area */}
-            <div className={`flex-1 flex flex-col bg-surface ${mobileView === "list" ? "hidden sm:flex" : "flex"}`}>
-              {/* Chat Header */}
-              <div className="p-4 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-lowest">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setMobileView("list")}
-                    className="sm:hidden p-1 rounded-lg text-on-surface-variant hover:bg-surface-container"
-                  >
-                    <span className="material-symbols-outlined text-lg">arrow_back</span>
-                  </button>
-                  <img
-                    src={activeContact.avatar}
-                    alt={activeContact.name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="font-bold text-sm text-on-surface">{activeContact.name}</h3>
-                    <p className="text-[11px] text-on-surface-variant">{activeContact.role} • {activeContact.company}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowVideoCallModal(true)}
-                    className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors"
-                    title="Start Video Meeting"
-                  >
-                    <span className="material-symbols-outlined text-lg">videocam</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Chat Messages */}
-              <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
-                {messages.length > 0 ? (
-                  messages.map((msg) => {
-                    const isMe = msg.senderId === (user?.id || "user-curr");
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex gap-3 max-w-[80%] ${isMe ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+            {/* Active Conversation Chat Window */}
+            <div
+              className={`flex-1 flex flex-col bg-surface ${
+                mobileView === "list" ? "hidden sm:flex" : "flex"
+              }`}
+            >
+              {activeContact ? (
+                <>
+                  {/* Chat Header */}
+                  <div className="p-4 border-b border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setMobileView("list")}
+                        className="sm:hidden p-1 text-on-surface-variant"
                       >
-                        <div
-                          className={`p-3.5 rounded-2xl text-xs leading-relaxed ${
-                            isMe
-                              ? "bg-primary text-on-primary rounded-br-xs"
-                              : "bg-surface-container-high text-on-surface rounded-bl-xs"
-                          }`}
-                        >
-                          <p>{msg.content}</p>
-                          <span
-                            className={`text-[9px] mt-1 block ${
-                              isMe ? "text-on-primary/70 text-right" : "text-outline text-left"
-                            }`}
-                          >
-                            {msg.timestamp}
-                          </span>
-                        </div>
+                        <span className="material-symbols-outlined">arrow_back</span>
+                      </button>
+                      <img
+                        src={activeContact.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
+                        alt={activeContact.name}
+                        className="w-10 h-10 rounded-full object-cover border border-primary/30"
+                      />
+                      <div>
+                        <h3 className="font-bold text-sm text-on-surface">{activeContact.name}</h3>
+                        <p className="text-[11px] text-emerald-700 font-bold">● Active on NextHire Cloud</p>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-2">
-                    <span className="material-symbols-outlined text-4xl text-outline">chat_bubble_outline</span>
-                    <h4 className="font-bold text-sm text-on-surface">No messages yet</h4>
-                    <p className="text-xs text-on-surface-variant max-w-sm">
-                      Send a message to start direct communication with {activeContact.name}.
-                    </p>
+                    </div>
                   </div>
-                )}
 
-                {isTyping && (
-                  <div className="flex items-center gap-2 text-xs text-outline italic">
-                    <span>{activeContact.name} is typing...</span>
+                  {/* Messages Scroll Area */}
+                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+                    {messages.length > 0 ? (
+                      messages.map((msg) => {
+                        const isSelf = msg.senderId === user?.id;
+                        return (
+                          <div
+                            key={msg.id}
+                            className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}
+                          >
+                            <div
+                              className={`max-w-md px-4 py-3 rounded-2xl text-xs sm:text-sm font-body-sm shadow-xs ${
+                                isSelf
+                                  ? "bg-primary text-on-primary rounded-br-none"
+                                  : "bg-surface-container-high text-on-surface rounded-bl-none border border-outline-variant/20"
+                              }`}
+                            >
+                              {msg.content}
+                            </div>
+                            <span className="text-[10px] text-outline pt-1 px-1">
+                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="py-20 text-center space-y-2">
+                        <div className="material-symbols-outlined text-4xl text-outline">chat_bubble_outline</div>
+                        <p className="text-xs text-on-surface-variant">
+                          No messages in this conversation yet. Send a greeting to start communicating!
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Chat Input Bar */}
-              <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder={`Message ${activeContact.name}...`}
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  className="flex-1 px-4 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <button
-                  type="submit"
-                  disabled={!inputMessage.trim()}
-                  className="px-4 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-xs hover:bg-primary-container disabled:opacity-50 transition-colors flex items-center gap-1"
-                >
-                  <span>Send</span>
-                  <span className="material-symbols-outlined text-sm">send</span>
-                </button>
-              </form>
+                  {/* Message Input Form */}
+                  <form
+                    onSubmit={handleSendMessage}
+                    className="p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-3"
+                  >
+                    <input
+                      type="text"
+                      placeholder={`Message ${activeContact.name}...`}
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <button
+                      type="submit"
+                      disabled={sending || !inputMessage.trim()}
+                      className="p-3 bg-primary text-on-primary rounded-full hover:bg-primary-container transition-colors disabled:opacity-50 flex items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined text-lg">send</span>
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <EmptyState
+                    title="No conversations yet"
+                    description="Candidate communications will appear here when messaging begins. Select candidate from Candidate Search to reach out."
+                    icon="forum"
+                    actionLabel="Search Candidates"
+                    actionHref="/recruiter/candidates"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      {showVideoCallModal && (
-        <Modal
-          isOpen={showVideoCallModal}
-          onClose={() => setShowVideoCallModal(false)}
-          title="Start Live Video Meeting"
-        >
-          <div className="space-y-4 text-xs">
-            <p className="text-on-surface-variant">
-              Generate an instant Google Meet room with {activeContact.name}.
-            </p>
-            <a
-              href="https://meet.google.com"
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setShowVideoCallModal(false)}
-              className="w-full text-center py-2.5 bg-primary text-on-primary font-bold rounded-xl block hover:bg-primary-container"
-            >
-              Launch Google Meet Call
-            </a>
-          </div>
-        </Modal>
-      )}
     </ProtectedRoute>
+  );
+}
+
+export default function MessagingCentrePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-surface">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <MessagingCentreContent />
+    </Suspense>
   );
 }

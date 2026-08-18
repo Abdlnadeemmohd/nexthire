@@ -31,17 +31,23 @@ export function AICopilotModal() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const [messages, setMessages] = useState<Array<{ sender: "user" | "copilot"; text: string }>>([
-    {
-      sender: "copilot",
-      text:
-        user?.role === "RECRUITER"
-          ? "Hello Sarah! I'm NextHire Copilot. I can draft Job Descriptions, summarize candidate resumes, or generate technical interview questions."
-          : user?.role === "PLATFORM_ADMIN"
-          ? "Welcome System Administrator! NextHire Copilot can analyze monthly MRR growth, evaluate employer verification documents, or summarize open support queues."
-          : "Hi Alex! NextHire Copilot is ready to analyze your resume keywords, recommend top matching roles, or provide interview coaching.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Array<{ sender: "user" | "copilot"; text: string }>>([]);
+
+  useEffect(() => {
+    if (user) {
+      setMessages([
+        {
+          sender: "copilot",
+          text:
+            user.role === "RECRUITER"
+              ? `Hello ${user.name || "Recruiter"}! I'm NextHire Copilot. I can assist in formatting job requirements, evaluating candidate qualifications, or structuring interview questions.`
+              : user.role === "PLATFORM_ADMIN"
+              ? `Welcome ${user.name || "Administrator"}! NextHire Copilot can assist with platform operations and audit summaries.`
+              : `Hi ${user.name || "there"}! NextHire Copilot is ready to assist with skill alignment, resume review tips, or application preparation.`,
+        },
+      ]);
+    }
+  }, [user]);
 
   if (!isMounted || !isAuthenticated || !user) return null;
 
@@ -54,25 +60,25 @@ export function AICopilotModal() {
     setQuery("");
 
     setTimeout(() => {
-      let reply = "I'm analyzing platform data to provide optimal recommendations.";
+      let reply = "I can help you navigate platform features and provide guidance based on your real active workflows.";
       if (user.role === "JOB_SEEKER") {
         if (userText.toLowerCase().includes("resume") || userText.toLowerCase().includes("ats")) {
-          reply = "Your resume currently achieves a 98% ATS match score for Senior UX Engineer roles. Consider emphasizing 'Design Tokens' and 'Micro-Frontends' in your experience section.";
+          reply = "NextHire AI evaluates your uploaded resume against real database job requirements. To improve alignment, ensure your profile highlights specific technologies, frameworks, and project impact.";
         } else {
-          reply = "Found 14 matching High-Growth Enterprise roles in San Francisco & Remote matching your salary expectation ($160k+).";
+          reply = "Explore live positions on the Jobs page to find active roles matching your skillset and location preferences.";
         }
       } else if (user.role === "RECRUITER") {
         if (userText.toLowerCase().includes("job") || userText.toLowerCase().includes("description")) {
-          reply = "Generated Draft Job Description for Senior Full-Stack Engineer with Next.js & TypeScript requirements. Click 'Use in Job Poster' to copy.";
+          reply = "To draft an effective job description, include specific technology proficiencies, core team deliverables, and explicit salary ranges in the Post Job form.";
         } else {
-          reply = "Analyzed top candidates: Alex Rivers (98% match) and David Chen (92% match) are highly recommended for technical interview scheduling.";
+          reply = "No matching live candidate recommendations are currently generated. Please use the Candidate Search page to explore registered talent directly.";
         }
       } else if (user.role === "PLATFORM_ADMIN") {
-        reply = "Platform Health Audit: MRR is $14,850 (+12.4% MoM). 3 Employer Verification applications pending audit in queue.";
+        reply = "Platform operational metrics and live database audit trails are accessible directly in the Admin Management Portal.";
       }
 
       setMessages((prev) => [...prev, { sender: "copilot", text: reply }]);
-    }, 800);
+    }, 600);
   };
 
   return (
@@ -101,7 +107,7 @@ export function AICopilotModal() {
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
               <div>
                 <h4 className="font-bold text-xs">NextHire AI Copilot</h4>
-                <p className="text-[10px] opacity-80">Enterprise Intelligence Assistant</p>
+                <p className="text-[10px] opacity-80">Platform Intelligence Assistant</p>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full touch-target">
@@ -135,7 +141,7 @@ export function AICopilotModal() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask Copilot for tips, descriptions..."
+              placeholder="Ask Copilot for advice, tips, or guidance..."
               className="flex-1 px-3.5 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
             />
             <button

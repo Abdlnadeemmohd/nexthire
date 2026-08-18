@@ -153,7 +153,7 @@ class RecruitmentEngineService {
       message: `New certificate '${cert.name}' submitted for verification.`,
       type: "VERIFICATION",
     });
-    this.addAuditLog("Alex Rivers", "JOB_SEEKER", "UPLOAD_CERTIFICATE", cert.name, "Submitted for verification.");
+    this.addAuditLog("Candidate", "JOB_SEEKER", "UPLOAD_CERTIFICATE", cert.name, "Submitted for verification.");
     this.notify();
   }
 
@@ -181,7 +181,7 @@ class RecruitmentEngineService {
     const job = this.jobs.find((j) => j.id === jobId);
     if (job) {
       job.status = "PAUSED";
-      this.addAuditLog("Sarah Jenkins", "RECRUITER", "PAUSE_JOB", job.title, "Job hiring paused.");
+      this.addAuditLog("Recruiter", "RECRUITER", "PAUSE_JOB", job.title, "Job hiring paused.");
       this.notify();
       return true;
     }
@@ -192,7 +192,7 @@ class RecruitmentEngineService {
     const job = this.jobs.find((j) => j.id === jobId);
     if (job) {
       job.status = "OPEN";
-      this.addAuditLog("Sarah Jenkins", "RECRUITER", "REOPEN_JOB", job.title, "Job hiring reopened.");
+      this.addAuditLog("Recruiter", "RECRUITER", "REOPEN_JOB", job.title, "Job hiring reopened.");
       this.notify();
       return true;
     }
@@ -211,14 +211,14 @@ class RecruitmentEngineService {
         status: "OPEN",
       };
       this.jobs.unshift(copy);
-      this.addAuditLog("Sarah Jenkins", "RECRUITER", "DUPLICATE_JOB", copy.title, "Job duplicated.");
+      this.addAuditLog("Recruiter", "RECRUITER", "DUPLICATE_JOB", copy.title, "Job duplicated.");
       this.notify();
       return copy;
     }
     return null;
   }
 
-  public deleteJob(jobId: string, recruiterName = "Sarah Jenkins"): boolean {
+  public deleteJob(jobId: string, recruiterName = "Recruiter"): boolean {
     const jobIndex = this.jobs.findIndex((j) => j.id === jobId);
     if (jobIndex !== -1) {
       const job = this.jobs[jobIndex];
@@ -285,7 +285,7 @@ class RecruitmentEngineService {
       aiMatchScore: 94,
       resumeScore: 92,
       experience: "6+ years",
-      location: candidate.name === "Alex Rivers" ? "San Francisco, CA" : "Remote",
+      location: "Remote",
       availability: "Immediate",
       salaryExpectation: job.salary,
       skills: job.requirements,
@@ -322,7 +322,7 @@ class RecruitmentEngineService {
   }
 
   // --- WORKFLOW ACTION: UPDATE STAGE ---
-  public updateApplicationStage(appId: string, newStage: ApplicationStage, recruiterName = "Sarah Jenkins"): boolean {
+  public updateApplicationStage(appId: string, newStage: ApplicationStage, recruiterName = "Recruiter"): boolean {
     const app = this.applications.find((a) => a.id === appId);
     if (!app || app.stage === "WITHDRAWN") return false;
 
@@ -357,7 +357,7 @@ class RecruitmentEngineService {
   }
 
   // --- WORKFLOW ACTION: HIRE CANDIDATE & AUTO-CLOSE JOB ---
-  public hireCandidate(appId: string, recruiterName = "Sarah Jenkins"): boolean {
+  public hireCandidate(appId: string, recruiterName = "Recruiter"): boolean {
     const app = this.applications.find((a) => a.id === appId);
     if (!app) return false;
 
@@ -421,7 +421,7 @@ class RecruitmentEngineService {
   }
 
   // --- WORKFLOW ACTION: WITHDRAW APPLICATION (CANDIDATE ONLY) ---
-  public withdrawApplication(appId: string, candidateName = "Alex Rivers"): boolean {
+  public withdrawApplication(appId: string, candidateName = "Candidate"): boolean {
     const app = this.applications.find((a) => a.id === appId);
     if (!app) return false;
 

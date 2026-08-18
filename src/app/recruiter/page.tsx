@@ -42,26 +42,71 @@ export default function RecruiterDashboardPage() {
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  useEffect(() => {
-    async function loadRecruiterJobs() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/recruiter/jobs");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && Array.isArray(data.data)) {
-            setJobs(data.data);
-          }
+  const loadRecruiterJobs = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/recruiter/jobs");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setJobs(data.data);
         }
-      } catch (err) {
-        console.error("Failed to load recruiter jobs:", err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error("Failed to load recruiter jobs:", err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadRecruiterJobs();
   }, []);
+
+  const handleToggleJobStatus = async (jobId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    try {
+      const res = await fetch("/api/recruiter/jobs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: jobId, status: nextStatus }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`Job status updated to ${nextStatus}!`, "success");
+        loadRecruiterJobs();
+      } else {
+        showToast(data.error || "Failed to update job status", "error");
+      }
+    } catch (err) {
+      showToast("Network error updating job", "error");
+    } finally {
+      setActiveDropdownJobId(null);
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete the job posting "${title}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/recruiter/jobs?id=${jobId}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`Job "${title}" deleted from database.`, "success");
+        loadRecruiterJobs();
+      } else {
+        showToast(data.error || "Failed to delete job", "error");
+      }
+    } catch (err) {
+      showToast("Network error deleting job", "error");
+    } finally {
+      setActiveDropdownJobId(null);
+    }
+  };
 
   const totalApplicants = jobs.reduce((acc, j) => acc + (j.applications?.length || 0), 0);
   const activeJobsCount = jobs.filter((j) => j.status === "ACTIVE").length;
@@ -84,7 +129,7 @@ export default function RecruiterDashboardPage() {
                   Employer Dashboard
                 </h1>
                 <p className="text-on-surface-variant text-sm font-body-md">
-                  {user?.companyName || "NextHire Simulation Corp"} • Talent Acquisition Suite
+                  {user?.companyName || "Employer Workspace"} • Talent Acquisition Suite
                 </p>
               </div>
 
@@ -155,8 +200,12 @@ export default function RecruiterDashboardPage() {
                 </Link>
               </div>
 
-              {jobs.length > 0 ? (
-                <div className="overflow-x-auto">
+              {loading ? (
+                <div className="py-12 text-center text-xs text-on-surface-variant">
+                  Loading company jobs from database...
+                </div>
+              ) : jobs.length > 0 ? (
+                <div className="overflow-visible">
                   <table className="w-full text-left text-xs font-body-sm">
                     <thead>
                       <tr className="border-b border-outline-variant/20 text-outline uppercase font-label-md font-semibold">
@@ -186,7 +235,13 @@ export default function RecruiterDashboardPage() {
                             </span>
                           </td>
                           <td className="py-4 px-4">
-                            <span className="px-2.5 py-1 bg-primary/10 text-primary font-label-sm font-bold rounded-full">
+                            <span
+                              className={`px-2.5 py-1 font-label-sm font-bold rounded-full ${
+                                job.status === "ACTIVE"
+                                  ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
+                                  : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
+                              }`}
+                            >
                               {job.status}
                             </span>
                           </td>
@@ -198,13 +253,15 @@ export default function RecruiterDashboardPage() {
                                 className="px-3.5 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-xs rounded-xl border border-outline-variant/30 transition-all flex items-center gap-1.5 shadow-xs"
                               >
                                 Actions
-                                <span className="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                <span className="material-symbols-outlined text-sm">
+                                  {activeDropdownJobId === job.id ? "arrow_drop_up" : "arrow_drop_down"}
+                                </span>
                               </button>
 
                               {activeDropdownJobId === job.id && (
                                 <div
                                   onClick={(e) => e.stopPropagation()}
-                                  className="absolute right-0 mt-2 w-48 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-2xl py-2 z-50 text-xs font-body-md text-on-surface space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+                                  className="absolute right-0 top-full mt-1 w-52 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-2xl py-2 z-50 text-xs font-body-md text-on-surface space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
                                 >
                                   <Link
                                     href="/recruiter/applicants"
@@ -221,6 +278,28 @@ export default function RecruiterDashboardPage() {
                                     <span className="material-symbols-outlined text-base">visibility</span>
                                     View Job Details
                                   </Link>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleJobStatus(job.id, job.status)}
+                                    className="w-full px-3.5 py-2 hover:bg-surface-container-low flex items-center gap-2 font-medium text-amber-700 transition-colors text-left"
+                                  >
+                                    <span className="material-symbols-outlined text-base">
+                                      {job.status === "ACTIVE" ? "pause_circle" : "play_circle"}
+                                    </span>
+                                    {job.status === "ACTIVE" ? "Pause Hiring" : "Reopen Opening"}
+                                  </button>
+
+                                  <div className="h-px bg-outline-variant/20 my-1" />
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteJob(job.id, job.title)}
+                                    className="w-full px-3.5 py-2 hover:bg-error-container/20 text-error flex items-center gap-2 font-medium transition-colors text-left"
+                                  >
+                                    <span className="material-symbols-outlined text-base">delete</span>
+                                    Delete Job
+                                  </button>
                                 </div>
                               )}
                             </div>

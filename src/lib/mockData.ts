@@ -1,6 +1,7 @@
 export interface Job {
   id: string;
   title: string;
+  companyId?: string;
   companyName: string;
   companyLogo: string;
   location: string;

@@ -57,40 +57,9 @@ export const Security = {
   },
 
   /**
-   * Returns mock security audit logs for Platform Owner admin portal
+   * Audit log interface compatibility helper (live records fetched from Neon via /api/admin/audit)
    */
   getInitialAuditLogs(): AuditLogEntry[] {
-    return [
-      {
-        id: "log-101",
-        timestamp: new Date().toLocaleString(),
-        actorEmail: "admin@nexthire.ai",
-        actorRole: "PLATFORM_ADMIN",
-        action: "COMPANY_VERIFIED",
-        resource: "Company: Stellar Systems (c-1)",
-        ipAddress: "192.168.1.10",
-        status: "SUCCESS",
-      },
-      {
-        id: "log-102",
-        timestamp: new Date(Date.now() - 3600000).toLocaleString(),
-        actorEmail: "sarah.recruiter@stellarsystems.com",
-        actorRole: "RECRUITER",
-        action: "OFFER_EXTENDED",
-        resource: "Applicant: Alex Morgan (app-881)",
-        ipAddress: "74.125.204.102",
-        status: "SUCCESS",
-      },
-      {
-        id: "log-103",
-        timestamp: new Date(Date.now() - 7200000).toLocaleString(),
-        actorEmail: "unknown@suspicious-ip.net",
-        actorRole: "UNAUTHENTICATED",
-        action: "FAILED_LOGIN_ATTEMPT",
-        resource: "Auth Service /login",
-        ipAddress: "185.220.101.5",
-        status: "FAILURE",
-      },
-    ];
+    return [];
   },
 };

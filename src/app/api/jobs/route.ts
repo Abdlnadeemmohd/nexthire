@@ -49,10 +49,9 @@ export async function GET(request: Request) {
       return {
         id: j.id,
         title: j.title,
-        companyName: j.company?.name || "NextHire Partner",
-        companyLogo:
-          j.company?.logo ||
-          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
+        companyName: j.company?.name || "Hiring Partner",
+        companyLogo: j.company?.logo || null,
+        isCompanyVerified: j.company?.isVerified || false,
         location: j.location,
         country: j.country,
         salaryMin: j.salaryMin,
@@ -61,7 +60,6 @@ export async function GET(request: Request) {
         experienceLevel: j.experienceLevel,
         category: j.category,
         isRemote: j.isRemote,
-        matchScore: 95,
         tags: j.skills ? j.skills.split(",").map((s) => s.trim()).filter(Boolean) : [],
         description: j.description,
         responsibilities,
@@ -70,7 +68,6 @@ export async function GET(request: Request) {
         postedAt: j.createdAt.toISOString().split("T")[0],
         companyDescription: j.company?.description || "",
         companyWebsite: j.company?.website || "",
-        companySize: "100-250 employees",
       };
     });
 
@@ -96,40 +93,47 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    let companyId = body.companyId || authUser.companyId;
+    const companyId = authUser.companyId;
     if (!companyId) {
-      let comp = await prisma.company.findFirst();
-      if (!comp) {
-        comp = await prisma.company.create({
-          data: {
-            name: authUser.companyName || "NextHire Simulation Corp",
-            industry: "Software & Cloud Infrastructure",
-            location: "San Francisco, CA",
-            description: "Dedicated enterprise partner on NextHire Cloud.",
-          },
-        });
-      }
-      companyId = comp.id;
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Recruiter must belong to a registered company to post jobs. Please create your company profile first.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!body.title || typeof body.title !== "string" || !body.title.trim()) {
+      return NextResponse.json(
+        { success: false, error: "Job title is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.description || typeof body.description !== "string" || !body.description.trim()) {
+      return NextResponse.json(
+        { success: false, error: "Job description is required." },
+        { status: 400 }
+      );
     }
 
     const newJob = await prisma.job.create({
       data: {
-        title: body.title || "Software Engineer",
-        description: body.description || "Exciting engineering opportunity.",
-        responsibilities: JSON.stringify(body.responsibilities || []),
-        requirements: JSON.stringify(body.requirements || []),
-        benefits: JSON.stringify(body.benefits || []),
-        location: body.location || "San Francisco, CA",
-        country: body.country || "United States",
-        salaryMin: Number(body.salaryMin) || 120000,
-        salaryMax: Number(body.salaryMax) || 160000,
+        title: body.title.trim(),
+        description: body.description.trim(),
+        responsibilities: JSON.stringify(Array.isArray(body.responsibilities) ? body.responsibilities : []),
+        requirements: JSON.stringify(Array.isArray(body.requirements) ? body.requirements : []),
+        benefits: JSON.stringify(Array.isArray(body.benefits) ? body.benefits : []),
+        location: body.location?.trim() || "Remote",
+        country: body.country?.trim() || "United States",
+        salaryMin: typeof body.salaryMin === "number" ? body.salaryMin : 0,
+        salaryMax: typeof body.salaryMax === "number" ? body.salaryMax : 0,
         employmentType: body.employmentType || "FULL_TIME",
-        experienceLevel: body.experienceLevel || "Mid-Senior",
-        category: body.category || "ENGINEERING",
-        isRemote: body.isRemote ?? true,
-        skills: Array.isArray(body.tags)
-          ? body.tags.join(",")
-          : body.skills || "TypeScript, React, PostgreSQL",
+        experienceLevel: body.experienceLevel?.trim() || "Mid-Level",
+        category: body.category?.trim() || "Engineering",
+        isRemote: Boolean(body.isRemote),
+        skills: Array.isArray(body.tags) ? body.tags.join(",") : (body.skills?.trim() || ""),
         status: "ACTIVE",
         companyId,
         recruiterId: authUser.id,

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { notificationService } from "@/lib/notifications/NotificationService";
+import { logAuditEvent } from "@/lib/audit/auditLogger";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +75,29 @@ export async function PATCH(request: Request) {
     const updated = await prisma.company.update({
       where: { id: companyId },
       data: { isVerified: Boolean(isVerified) },
+      include: { users: true },
+    });
+
+    // 1. Notify all recruiters belonging to this company
+    const verifiedLabel = Boolean(isVerified) ? "verified" : "updated";
+    for (const user of updated.users) {
+      if (user.role === "RECRUITER" || user.role === "COMPANY_ADMIN") {
+        await notificationService.sendNotification({
+          userId: user.id,
+          userEmail: user.email,
+          title: `Company Verification Status Updated`,
+          body: `Your employer organization "${updated.name}" has been ${verifiedLabel} by NextHire platform governance.`,
+          type: "SYSTEM",
+          ctaText: "View Company Profile",
+          ctaUrl: "/recruiter/company",
+        });
+      }
+    }
+
+    // 2. Log Audit Trail
+    await logAuditEvent(authUser.id, "COMPANY_VERIFICATION_UPDATED", "Company", companyId, {
+      companyName: updated.name,
+      isVerified: Boolean(isVerified),
     });
 
     return NextResponse.json({ success: true, data: updated });

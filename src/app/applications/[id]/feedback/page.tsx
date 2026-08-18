@@ -11,7 +11,7 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo";
 export default function CandidateFeedbackPage({ params }: { params: { id: string } }) {
   const feedbackData = {
     jobTitle: "Senior Full Stack Engineer",
-    companyName: "NextHire Simulation Corp",
+    companyName: "Hiring Partner",
     companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
     status: "Feedback Received",
     primaryReason: "Skills gap in Cloud Infrastructure & System Design",

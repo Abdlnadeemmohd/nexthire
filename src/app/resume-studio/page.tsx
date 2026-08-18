@@ -268,7 +268,7 @@ export default function ResumeStudioPage() {
                   <h2 className="text-xl sm:text-2xl font-bold text-on-surface">{user?.name || "Candidate Name"}</h2>
                   <p className="text-xs text-primary font-bold">{targetRole}</p>
                   <p className="text-[11px] text-outline break-anywhere">
-                    {user?.email || "candidate@nexthire.cloud"} • San Francisco, CA • linkedin.com
+                    {user?.email || "candidate@nexthire.cloud"}{user?.city ? ` • ${user.city}` : ""}
                   </p>
                 </div>
 

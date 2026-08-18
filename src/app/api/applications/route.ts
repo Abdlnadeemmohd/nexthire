@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { notificationService } from "@/lib/notifications/NotificationService";
+import { logAuditEvent } from "@/lib/audit/auditLogger";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +89,25 @@ export async function GET() {
         success: true,
         count: companyApps.length,
         data: companyApps,
+      });
+    }
+
+    if (authUser.role === "PLATFORM_ADMIN") {
+      const allApps = await prisma.application.findMany({
+        include: {
+          applicant: { include: { profile: true } },
+          job: { include: { company: true } },
+          events: { orderBy: { timestamp: "desc" } },
+          rejection: true,
+          interviews: true,
+        },
+        orderBy: { appliedAt: "desc" },
+      });
+
+      return NextResponse.json({
+        success: true,
+        count: allApps.length,
+        data: allApps,
       });
     }
 
@@ -205,6 +226,37 @@ export async function POST(request: Request) {
       include: {
         job: { include: { company: true } },
       },
+    });
+
+    // 1. Notify Recruiter in Neon PostgreSQL
+    const recruiterRecipientId = job.recruiterId;
+    if (recruiterRecipientId) {
+      await notificationService.sendNotification({
+        userId: recruiterRecipientId,
+        title: "New Application Received",
+        body: `${authUser.name} applied for "${job.title}". Review their verified profile and resume in your candidate pipeline.`,
+        type: "APPLICATION_STATUS",
+        ctaText: "Review Applicant",
+        ctaUrl: "/recruiter/applicants",
+      });
+    }
+
+    // 2. Notify Candidate in Neon PostgreSQL & email
+    await notificationService.sendNotification({
+      userId: authUser.id,
+      userEmail: authUser.email,
+      title: "Application Submitted Successfully",
+      body: `Your application for "${job.title}" at ${job.company.name} was successfully submitted. The hiring team has a 7-day review target.`,
+      type: "APPLICATION_STATUS",
+      ctaText: "Track Status",
+      ctaUrl: "/applications",
+    });
+
+    // 3. Log Audit Trail
+    await logAuditEvent(authUser.id, "APPLICATION_CREATED", "Application", app.id, {
+      jobId: app.jobId,
+      jobTitle: job.title,
+      companyId: job.companyId,
     });
 
     return NextResponse.json({ success: true, data: app }, { status: 201 });
