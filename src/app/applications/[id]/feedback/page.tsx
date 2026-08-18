@@ -6,12 +6,13 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 
 export default function CandidateFeedbackPage({ params }: { params: { id: string } }) {
   const feedbackData = {
     jobTitle: "Senior Full Stack Engineer",
     companyName: "Stellar Systems",
-    companyLogo: "https://lh3.googleusercontent.com/aida-public/AB6AXuDUSY4HuOhQnp99RQGM7nj2qJaAWM49iI9uWz43APGGY9elmswm8Xhx8Hx3opdXODLdtZq0n-bxGcH7MRRbeOar3uNrgkHm1g4eL86ilUFWlHgKQHoc0-DqJsvor7xRNbZXRHP0WvFXR_dNDhMolXMQPnmQg4Jl_XDs_ssI9JsQ_WcIV4LJRpTCzOkZnd3pXcC9vurP6zcFOrmGm5bUwPACA1hF1P7gnmLUPkIZbbhMPh5kRmRcRFnUqsykv9lu5Rpjm64oHzTH_oyL",
+    companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
     status: "Feedback Received",
     primaryReason: "Skills gap in Cloud Infrastructure & System Design",
     missingSkills: ["AWS Solutions Architecture", "Docker Containerization", "Kubernetes", "GraphQL Caching"],
@@ -77,10 +78,11 @@ export default function CandidateFeedbackPage({ params }: { params: { id: string
           {/* Job Overview Banner */}
           <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-4">
-              <img
+              <CompanyLogo
                 src={feedbackData.companyLogo}
-                alt={feedbackData.companyName}
-                className="w-14 h-14 rounded-2xl object-contain bg-white p-2 border border-outline-variant/30 shadow-xs"
+                name={feedbackData.companyName}
+                size="lg"
+                rounded="2xl"
               />
               <div className="space-y-1">
                 <h2 className="font-display text-xl font-bold text-on-surface">

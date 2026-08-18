@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { TopAppBar } from "@/components/layout/TopAppBar";
+import { AuthHeader } from "@/components/layout/AuthHeader";
 import { useAuth } from "@/context/AuthContext";
 import { authService } from "@/services/authService";
 import { useToast } from "@/components/ui/Toast";
@@ -20,7 +20,7 @@ export default function VerifyEmailPage() {
     e.preventDefault();
 
     // Check real Firebase email verification status if available
-    const check = await authService.checkEmailVerification();
+    await authService.checkEmailVerification();
     setVerified(true);
     showToast("Email address verified successfully!", "success");
 
@@ -48,13 +48,13 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <>
-      <TopAppBar />
+    <div className="min-h-screen bg-mesh flex flex-col justify-between">
+      <AuthHeader />
 
-      <main className="min-h-screen bg-mesh flex items-center justify-center p-6 pt-24">
-        <div className="glass-card rounded-2xl p-8 max-w-md w-full border border-white/60 space-y-6 shadow-2xl text-center">
-          <div className="w-16 h-16 bg-primary-container/20 text-primary rounded-full flex items-center justify-center mx-auto text-3xl">
-            <span className="material-symbols-outlined text-4xl">mark_email_unread</span>
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="glass-card rounded-2xl p-6 sm:p-8 max-w-md w-full border border-white/60 space-y-6 shadow-2xl text-center">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-container/20 text-primary rounded-full flex items-center justify-center mx-auto text-3xl">
+            <span className="material-symbols-outlined text-3xl sm:text-4xl">mark_email_unread</span>
           </div>
 
           <div className="space-y-2">
@@ -85,14 +85,14 @@ export default function VerifyEmailPage() {
                       updated[idx] = e.target.value;
                       setCode(updated);
                     }}
-                    className="w-11 h-12 text-center text-lg font-bold bg-surface border border-outline-variant/40 rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
+                    className="w-10 sm:w-11 h-12 text-center text-lg font-bold bg-surface border border-outline-variant/40 rounded-xl focus:ring-2 focus:ring-primary text-on-surface"
                   />
                 ))}
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-primary text-on-primary font-label-md font-bold rounded-full text-sm hover:bg-primary-container transition-all shadow-md"
+                className="w-full py-3.5 bg-primary text-on-primary font-label-md font-bold rounded-full text-sm hover:bg-primary-container transition-all shadow-md min-h-[44px]"
               >
                 Confirm Email & Access Portal
               </button>
@@ -104,13 +104,15 @@ export default function VerifyEmailPage() {
             <button
               onClick={handleResendEmail}
               disabled={isResending}
-              className="text-primary font-bold hover:underline disabled:opacity-50"
+              className="text-primary font-bold hover:underline disabled:opacity-50 min-h-[44px] inline-flex items-center"
             >
               {isResending ? "Resending Email..." : "Resend Verification Email"}
             </button>
           </div>
         </div>
       </main>
-    </>
+
+      <div className="pb-4" />
+    </div>
   );
 }

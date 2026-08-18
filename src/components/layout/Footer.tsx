@@ -18,7 +18,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
           {/* Brand Column */}
           <div className="md:col-span-2 space-y-3">
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-primary rounded-xl p-0.5" aria-label="NextHire home">
               <div className="w-8 h-8 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-lg shadow-xs">
                 N
               </div>

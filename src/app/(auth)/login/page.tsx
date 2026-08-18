@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
+import { AuthHeader } from "@/components/layout/AuthHeader";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { hasRouteAccess } from "@/lib/auth";
@@ -370,10 +371,14 @@ function LoginFormContent() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-mesh flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <Suspense fallback={<div className="text-center text-xs font-bold text-outline">Loading Sign In Portal...</div>}>
-        <LoginFormContent />
-      </Suspense>
+    <div className="min-h-screen bg-mesh flex flex-col justify-between">
+      <AuthHeader currentAction="login" />
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <Suspense fallback={<div className="text-center text-xs font-bold text-outline">Loading Sign In Portal...</div>}>
+          <LoginFormContent />
+        </Suspense>
+      </div>
+      <div className="pb-4" />
     </div>
   );
 }

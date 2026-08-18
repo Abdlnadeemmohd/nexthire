@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 
 interface CompanyItem {
   id: string;
@@ -22,7 +23,7 @@ const FEATURED_COMPANIES: CompanyItem[] = [
   {
     id: "c-1",
     name: "Stellar Systems Inc.",
-    logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuDUSY4HuOhQnp99RQGM7nj2qJaAWM49iI9uWz43APGGY9elmswm8Xhx8Hx3opdXODLdtZq0n-bxGcH7MRRbeOar3uNrgkHm1g4eL86ilUFWlHgKQHoc0-DqJsvor7xRNbZXRHP0WvFXR_dNDhMolXMQPnmQg4Jl_XDs_ssI9JsQ_WcIV4LJRpTCzOkZnd3pXcC9vurP6zcFOrmGm5bUwPACA1hF1P7gnmLUPkIZbbhMPh5kRmRcRFnUqsykv9lu5Rpjm64oHzTH_oyL",
+    logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
     industry: "Enterprise SaaS",
     location: "San Francisco, CA",
     size: "250 - 500 Employees",
@@ -127,10 +128,11 @@ export default function CompaniesDirectoryPage() {
               >
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <img
+                    <CompanyLogo
                       src={company.logo}
-                      alt={company.name}
-                      className="w-12 h-12 rounded-2xl object-cover border border-outline-variant/40 flex-shrink-0"
+                      name={company.name}
+                      size="md"
+                      rounded="2xl"
                     />
                     <div>
                       <div className="flex items-center gap-1.5">

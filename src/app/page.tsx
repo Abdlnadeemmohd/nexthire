@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { JobCard } from "@/components/jobs/JobCard";
-import { JobApplyModal } from "@/components/jobs/JobApplyModal";
-import { AuthDrawer } from "@/components/auth/AuthDrawer";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
+import { JobApplyModal } from "@/components/jobs/JobApplyModal";
+import { AuthDrawer } from "@/components/auth/AuthDrawer";
 
-export default function LandingPage() {
+export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [searchTitle, setSearchTitle] = useState("");
@@ -30,8 +31,7 @@ export default function LandingPage() {
 
   const handleApplyClick = (job: Job) => {
     if (!isAuthenticated) {
-      setTargetJobForAuth({ id: job.id, title: job.title });
-      setShowAuthModal(true);
+      router.push(`/login?role=seeker&redirect=/jobs/${job.id}`);
     } else {
       setSelectedJobToApply(job);
     }
@@ -40,10 +40,10 @@ export default function LandingPage() {
   const featuredJobs = INITIAL_JOBS.slice(0, 3);
 
   const companies = [
-    { name: "Stellar Systems", logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuDUSY4HuOhQnp99RQGM7nj2qJaAWM49iI9uWz43APGGY9elmswm8Xhx8Hx3opdXODLdtZq0n-bxGcH7MRRbeOar3uNrgkHm1g4eL86ilUFWlHgKQHoc0-DqJsvor7xRNbZXRHP0WvFXR_dNDhMolXMQPnmQg4Jl_XDs_ssI9JsQ_WcIV4LJRpTCzOkZnd3pXcC9vurP6zcFOrmGm5bUwPACA1hF1P7gnmLUPkIZbbhMPh5kRmRcRFnUqsykv9lu5Rpjm64oHzTH_oyL", roles: 12, location: "San Francisco, CA" },
-    { name: "Nexus AI Lab", logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuGzP8a8J-E0zJg5e7J2sL8X-Z1w6sQ3vR9yT2uK0mN1pL4vH5jF8gD3cB6n1m0L8vH5jF8gD3cB6", roles: 8, location: "New York, NY" },
-    { name: "CloudScale Infra", logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuH1vL4vH5jF8gD3cB6n1m0L8vH5jF8gD3cB6n1m0L8vH5jF8gD3cB6n1m0", roles: 15, location: "Remote / Austin" },
-    { name: "Quantum Analytics", logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuF8gD3cB6n1m0L8vH5jF8gD3cB6n1m0L8vH5jF8gD3cB6n1m0L8vH5j", roles: 6, location: "London, UK" },
+    { name: "Stellar Systems", logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80", roles: 12, location: "San Francisco, CA" },
+    { name: "Nexus AI Lab", logo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=150&auto=format&fit=crop&q=80", roles: 8, location: "New York, NY" },
+    { name: "CloudScale Infra", logo: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=150&auto=format&fit=crop&q=80", roles: 15, location: "Remote / Austin" },
+    { name: "Quantum Analytics", logo: "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=150&auto=format&fit=crop&q=80", roles: 6, location: "London, UK" },
   ];
 
   const faqs = [
@@ -71,9 +71,9 @@ export default function LandingPage() {
 
       <main className="pt-16 flex-1 overflow-x-hidden bg-surface">
         {/* 1. Hero Section & Global Search Bar */}
-        <section className="relative min-h-[65vh] sm:min-h-[75vh] flex flex-col items-center justify-center bg-mesh px-4 sm:px-6 lg:px-8 py-8 sm:py-16 text-center border-b border-outline-variant/20">
-          <div className="relative z-10 max-w-4xl mx-auto space-y-6 flex flex-col items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm uppercase tracking-wider text-[11px] sm:text-xs font-bold shadow-xs">
+        <section className="relative flex flex-col items-center justify-center bg-mesh px-4 sm:px-6 lg:px-8 py-6 sm:py-14 text-center border-b border-outline-variant/20">
+          <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6 flex flex-col items-center justify-center">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm uppercase tracking-wider text-[11px] sm:text-xs font-bold shadow-xs">
               <span className="material-symbols-outlined text-sm text-primary">auto_awesome</span>
               AI-Powered Skill-First Global Recruitment
             </span>
@@ -89,9 +89,9 @@ export default function LandingPage() {
             {/* Global Search Bar */}
             <form
               onSubmit={handleSearch}
-              className="mt-4 w-full max-w-3xl glass-card rounded-2xl p-3 shadow-xl flex flex-col md:flex-row gap-3 border border-white/60"
+              className="mt-2 w-full max-w-3xl glass-card rounded-2xl p-2 sm:p-3 shadow-xl flex flex-col md:flex-row gap-2 sm:gap-3 border border-white/60"
             >
-              <div className="flex-1 flex items-center gap-3 px-3 py-2 border-b md:border-b-0 md:border-r border-outline-variant/30">
+              <div className="flex-1 flex items-center gap-2.5 px-3 py-2 border-b md:border-b-0 md:border-r border-outline-variant/30">
                 <span className="material-symbols-outlined text-primary text-xl flex-shrink-0">
                   search
                 </span>
@@ -104,7 +104,7 @@ export default function LandingPage() {
                 />
               </div>
 
-              <div className="flex-1 flex items-center gap-3 px-3 py-2">
+              <div className="flex-1 flex items-center gap-2.5 px-3 py-2">
                 <span className="material-symbols-outlined text-primary text-xl flex-shrink-0">
                   location_on
                 </span>
@@ -119,14 +119,14 @@ export default function LandingPage() {
 
               <button
                 type="submit"
-                className="bg-primary text-on-primary px-8 py-3.5 rounded-xl font-label-md flex items-center justify-center gap-2 hover:bg-primary-container transition-all active:scale-95 shadow-md font-semibold text-xs sm:text-sm"
+                className="bg-primary text-on-primary px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-label-md flex items-center justify-center gap-2 hover:bg-primary-container transition-all active:scale-95 shadow-md font-semibold text-xs sm:text-sm min-h-[44px]"
               >
                 Search Jobs
               </button>
             </form>
 
             {/* Quick Skill Tags */}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs pt-1">
               <span className="text-on-surface-variant font-label-sm font-semibold text-[11px]">
                 Popular Searches:
               </span>
@@ -135,7 +135,7 @@ export default function LandingPage() {
                   <button
                     key={tag}
                     onClick={() => router.push(`/jobs?q=${encodeURIComponent(tag)}`)}
-                    className="px-3 py-1 bg-surface-container-high/80 hover:bg-primary-container/20 hover:text-primary rounded-full text-on-surface-variant transition-colors text-[11px] font-semibold"
+                    className="px-2.5 sm:px-3 py-1 bg-surface-container-high/80 hover:bg-primary-container/20 hover:text-primary rounded-full text-on-surface-variant transition-colors text-[11px] font-semibold"
                   >
                     {tag}
                   </button>
@@ -146,35 +146,35 @@ export default function LandingPage() {
         </section>
 
         {/* 2. Platform Statistics Section */}
-        <section className="bg-surface-container-low border-b border-outline-variant/20 py-10 sm:py-14">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-            <div className="space-y-1">
-              <span className="font-display font-bold text-3xl sm:text-4xl text-primary">25,000+</span>
-              <p className="text-on-surface-variant text-xs font-label-md">Verified Employers</p>
+        <section className="bg-surface-container-low border-b border-outline-variant/20 py-6 sm:py-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 text-center">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="font-display font-bold text-2xl sm:text-4xl text-primary">25,000+</span>
+              <p className="text-on-surface-variant text-[11px] sm:text-xs font-label-md">Verified Employers</p>
             </div>
-            <div className="space-y-1">
-              <span className="font-display font-bold text-3xl sm:text-4xl text-tertiary">98.4%</span>
-              <p className="text-on-surface-variant text-xs font-label-md">AI Match Accuracy</p>
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="font-display font-bold text-2xl sm:text-4xl text-tertiary">98.4%</span>
+              <p className="text-on-surface-variant text-[11px] sm:text-xs font-label-md">AI Match Accuracy</p>
             </div>
-            <div className="space-y-1">
-              <span className="font-display font-bold text-3xl sm:text-4xl text-primary">$185k</span>
-              <p className="text-on-surface-variant text-xs font-label-md">Average Tech Salary</p>
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="font-display font-bold text-2xl sm:text-4xl text-primary">$185k</span>
+              <p className="text-on-surface-variant text-[11px] sm:text-xs font-label-md">Average Tech Salary</p>
             </div>
-            <div className="space-y-1">
-              <span className="font-display font-bold text-3xl sm:text-4xl text-on-surface">14 Days</span>
-              <p className="text-on-surface-variant text-xs font-label-md">Average Time to Hire</p>
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="font-display font-bold text-2xl sm:text-4xl text-on-surface">14 Days</span>
+              <p className="text-on-surface-variant text-[11px] sm:text-xs font-label-md">Average Time to Hire</p>
             </div>
           </div>
         </section>
 
         {/* 3. Featured Jobs Section */}
-        <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <section className="max-w-7xl mx-auto py-8 sm:py-14 px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 sm:gap-4">
             <div className="space-y-1">
-              <span className="text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
+              <span className="text-[11px] sm:text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
                 CURATED SELECTION
               </span>
-              <h2 className="font-headline-fluid-lg font-bold text-on-background">
+              <h2 className="font-headline-fluid-lg font-bold text-on-background text-xl sm:text-2xl lg:text-3xl">
                 Featured Career Opportunities
               </h2>
               <p className="text-on-surface-variant font-body-md text-xs sm:text-sm">
@@ -190,7 +190,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 items-stretch">
             {featuredJobs.map((job) => (
               <JobCard
                 key={job.id}
@@ -209,14 +209,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Featured Verified Companies */}
-        <section className="bg-surface-container-low py-16 border-y border-outline-variant/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            <div className="text-center max-w-2xl mx-auto space-y-2">
-              <span className="text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
+        {/* 4. Featured Verified Companies (Optimized 2-Column Mobile Grid) */}
+        <section className="bg-surface-container-low py-8 sm:py-14 border-y border-outline-variant/20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-1 sm:space-y-2">
+              <span className="text-[11px] sm:text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
                 TOP EMPLOYERS
               </span>
-              <h2 className="font-headline-sm text-2xl sm:text-3xl font-bold text-on-surface">
+              <h2 className="font-headline-sm text-xl sm:text-3xl font-bold text-on-surface">
                 Hire with World-Class Engineering Teams
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant">
@@ -224,24 +224,29 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {companies.map((comp, idx) => (
                 <div
                   key={idx}
-                  className="glass-card rounded-2xl p-6 border border-outline-variant/20 hover:border-primary/30 transition-all text-center space-y-4 shadow-xs"
+                  className="glass-card rounded-2xl p-3 sm:p-5 border border-outline-variant/20 hover:border-primary/30 transition-all text-center space-y-2 sm:space-y-3.5 shadow-xs flex flex-col justify-between"
                 >
-                  <div className="w-16 h-16 bg-white rounded-2xl mx-auto p-2 border border-outline-variant/20 flex items-center justify-center shadow-xs">
-                    <img src={comp.logo} alt={comp.name} className="w-full h-full object-contain" />
+                  <div className="flex justify-center">
+                    <CompanyLogo
+                      src={comp.logo}
+                      name={comp.name}
+                      size="lg"
+                      rounded="2xl"
+                    />
                   </div>
                   <div>
-                    <h3 className="font-bold text-on-surface text-base flex items-center justify-center gap-1">
-                      {comp.name}
-                      <span className="material-symbols-outlined text-tertiary text-sm">verified</span>
+                    <h3 className="font-bold text-on-surface text-xs sm:text-base inline-flex items-center justify-center gap-1 max-w-full">
+                      <span className="truncate">{comp.name}</span>
+                      <span className="material-symbols-outlined text-tertiary text-sm flex-shrink-0" title="Verified Employer" aria-label="Verified Employer">verified</span>
                     </h3>
-                    <p className="text-xs text-on-surface-variant">{comp.location}</p>
+                    <p className="text-[11px] sm:text-xs text-on-surface-variant truncate">{comp.location}</p>
                   </div>
-                  <div className="pt-2 border-t border-outline-variant/10 flex justify-between items-center text-xs">
-                    <span className="text-primary font-bold">{comp.roles} Openings</span>
+                  <div className="pt-2 border-t border-outline-variant/10 flex justify-between items-center text-[11px] sm:text-xs">
+                    <span className="text-primary font-bold">{comp.roles} Roles</span>
                     <Link href="/jobs" className="text-on-surface-variant hover:text-primary font-semibold">
                       Explore →
                     </Link>
@@ -252,43 +257,43 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 5. Why Choose NextHire (AI Match Radar) */}
-        <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <span className="text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
+        {/* 5. Why Choose NextHire */}
+        <section className="max-w-7xl mx-auto py-8 sm:py-14 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
+          <div className="text-center max-w-2xl mx-auto space-y-1 sm:space-y-2">
+            <span className="text-[11px] sm:text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
               WHY NEXTHIRE
             </span>
-            <h2 className="font-headline-sm text-2xl sm:text-3xl font-bold text-on-surface">
+            <h2 className="font-headline-sm text-xl sm:text-3xl font-bold text-on-surface">
               Built for Modern Recruitment Transparency
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center font-bold text-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+            <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-outline-variant/20 space-y-2.5 sm:space-y-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xl sm:text-2xl">
                 <span className="material-symbols-outlined">psychology</span>
               </div>
-              <h3 className="font-bold text-lg text-on-surface">AI Skill-First Matching</h3>
+              <h3 className="font-bold text-base sm:text-lg text-on-surface">AI Skill-First Matching</h3>
               <p className="text-xs text-on-surface-variant leading-relaxed">
                 Our proprietary AI evaluates technical skills, code repositories, and project experience rather than outdated keyword matching.
               </p>
             </div>
 
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <div className="w-12 h-12 bg-tertiary/10 text-tertiary rounded-2xl flex items-center justify-center font-bold text-2xl">
+            <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-outline-variant/20 space-y-2.5 sm:space-y-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-tertiary/10 text-tertiary rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xl sm:text-2xl">
                 <span className="material-symbols-outlined">reviews</span>
               </div>
-              <h3 className="font-bold text-lg text-on-surface">Structured Recruiter Feedback</h3>
+              <h3 className="font-bold text-base sm:text-lg text-on-surface">Structured Recruiter Feedback</h3>
               <p className="text-xs text-on-surface-variant leading-relaxed">
                 Never get ghosted again. Recruiters provide structured feedback on missing skills and certifications to guide your career growth.
               </p>
             </div>
 
-            <div className="glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center font-bold text-2xl">
+            <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-outline-variant/20 space-y-2.5 sm:space-y-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xl sm:text-2xl">
                 <span className="material-symbols-outlined">verified_user</span>
               </div>
-              <h3 className="font-bold text-lg text-on-surface">Verified Employers Only</h3>
+              <h3 className="font-bold text-base sm:text-lg text-on-surface">Verified Employers Only</h3>
               <p className="text-xs text-on-surface-variant leading-relaxed">
                 Every recruiter and company account is manually audited and verified by our security team before posting roles.
               </p>
@@ -297,18 +302,18 @@ export default function LandingPage() {
         </section>
 
         {/* 6. Frequently Asked Questions (FAQ Accordion) */}
-        <section className="bg-surface-container-low py-16 border-t border-outline-variant/20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            <div className="text-center space-y-2">
-              <span className="text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
+        <section className="bg-surface-container-low py-8 sm:py-14 border-t border-outline-variant/20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8">
+            <div className="text-center space-y-1 sm:space-y-2">
+              <span className="text-[11px] sm:text-xs font-label-sm font-bold text-primary uppercase tracking-wider">
                 FREQUENTLY ASKED QUESTIONS
               </span>
-              <h2 className="font-headline-sm text-2xl sm:text-3xl font-bold text-on-surface">
+              <h2 className="font-headline-sm text-xl sm:text-3xl font-bold text-on-surface">
                 Everything You Need to Know
               </h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {faqs.map((faq, i) => {
                 const isOpen = openFaqIndex === i;
                 return (
@@ -318,15 +323,16 @@ export default function LandingPage() {
                   >
                     <button
                       onClick={() => setOpenFaqIndex(isOpen ? null : i)}
-                      className="w-full p-5 text-left flex justify-between items-center gap-4 font-bold text-sm text-on-surface hover:text-primary transition-colors"
+                      className="w-full p-3.5 sm:p-5 text-left flex justify-between items-center gap-3 sm:gap-4 font-bold text-xs sm:text-sm text-on-surface hover:text-primary transition-colors min-h-[44px]"
+                      aria-expanded={isOpen}
                     >
                       <span>{faq.q}</span>
-                      <span className="material-symbols-outlined text-outline">
+                      <span className="material-symbols-outlined text-outline text-lg sm:text-xl flex-shrink-0">
                         {isOpen ? "expand_less" : "expand_more"}
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="px-5 pb-5 text-xs text-on-surface-variant leading-relaxed border-t border-outline-variant/10 pt-3">
+                      <div className="px-3.5 sm:px-5 pb-3.5 sm:pb-5 text-xs text-on-surface-variant leading-relaxed border-t border-outline-variant/10 pt-3">
                         {faq.a}
                       </div>
                     )}
@@ -338,10 +344,10 @@ export default function LandingPage() {
         </section>
 
         {/* 7. Call to Action (CTA Banner) */}
-        <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-primary via-primary-container/80 to-tertiary text-on-primary rounded-3xl p-8 sm:p-12 shadow-xl flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="space-y-3 text-center md:text-left max-w-xl">
-              <h2 className="font-display text-2xl sm:text-4xl font-bold text-white leading-tight">
+        <section className="max-w-7xl mx-auto py-8 sm:py-14 px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-primary via-primary-container/80 to-tertiary text-on-primary rounded-2xl sm:rounded-3xl p-6 sm:p-12 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8">
+            <div className="space-y-2 sm:space-y-3 text-center md:text-left max-w-xl">
+              <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
                 Ready to accelerate your tech career?
               </h2>
               <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
@@ -349,16 +355,16 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full md:w-auto">
               <Link
                 href="/register"
-                className="px-8 py-3.5 bg-white text-primary font-label-md font-bold text-xs sm:text-sm rounded-full text-center hover:bg-surface transition-all shadow-md"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white text-primary font-label-md font-bold text-xs sm:text-sm rounded-full text-center hover:bg-surface transition-all shadow-md min-h-[44px] flex items-center justify-center"
               >
                 Create Candidate Account
               </Link>
               <Link
                 href="/recruiter"
-                className="px-8 py-3.5 bg-white/20 backdrop-blur-md text-white border border-white/40 font-label-md font-bold text-xs sm:text-sm rounded-full text-center hover:bg-white/30 transition-all"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white/20 backdrop-blur-md text-white border border-white/40 font-label-md font-bold text-xs sm:text-sm rounded-full text-center hover:bg-white/30 transition-all min-h-[44px] flex items-center justify-center"
               >
                 Post a Job as Employer
               </Link>

@@ -10,6 +10,7 @@ import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { StatusBadge } from "@/components/ui/Badge";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { INITIAL_JOBS, INITIAL_APPLICATIONS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 
@@ -155,10 +156,11 @@ export default function SeekerDashboardPage() {
                   {activeApplications.slice(0, 3).map((app) => (
                     <div key={app.id} className="py-4 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <img
+                        <CompanyLogo
                           src={app.companyLogo}
-                          alt={app.companyName}
-                          className="w-10 h-10 rounded-xl object-cover border border-outline-variant/20 p-1 bg-white"
+                          name={app.companyName}
+                          size="md"
+                          rounded="xl"
                         />
                         <div>
                           <h4 className="font-bold text-xs text-on-surface">{app.jobTitle}</h4>

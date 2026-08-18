@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { NativeShareButton } from "@/components/ui/MobileInteractionUtils";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { formatSalary } from "@/lib/utils";
 
@@ -26,34 +27,36 @@ export default function JobDetailPage() {
     <>
       <TopAppBar />
 
-      <main className="pt-20 pb-20 flex-1 bg-surface max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop w-full">
+      <main className="min-h-screen bg-mesh pt-20 sm:pt-24 pb-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Breadcrumb Navigation */}
-        <div className="py-4 flex items-center gap-2 text-xs font-label-md text-on-surface-variant">
-          <Link href="/" className="hover:underline">
-            Home
-          </Link>
-          <span>/</span>
-          <Link href="/jobs" className="hover:underline">
+        <div className="flex items-center gap-2 text-xs font-label-md text-on-surface-variant flex-wrap">
+          <Link href="/jobs" className="hover:text-primary font-semibold">
             Jobs
           </Link>
           <span>/</span>
-          <span className="text-primary font-bold">{job.title}</span>
+          <Link
+            href={`/jobs?category=${encodeURIComponent(job.category)}`}
+            className="hover:text-primary font-semibold"
+          >
+            {job.category}
+          </Link>
+          <span>/</span>
+          <span className="text-primary font-bold truncate max-w-[200px] sm:max-w-none">{job.title}</span>
         </div>
 
         {/* Job Hero Banner */}
-        <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 mb-8 space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-outline-variant/20 p-3">
-                <img
-                  src={job.companyLogo}
-                  alt={job.companyName}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                  <h1 className="font-display text-2xl md:text-3xl font-bold text-on-surface">
+        <div className="glass-card rounded-2xl p-4 sm:p-8 border border-outline-variant/20 mb-6 sm:mb-8 space-y-4 sm:space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
+            <div className="flex items-start sm:items-center gap-3.5 sm:gap-5 min-w-0">
+              <CompanyLogo
+                src={job.companyLogo}
+                name={job.companyName}
+                size="xl"
+                rounded="2xl"
+              />
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-on-surface">
                     {job.title}
                   </h1>
                   <span className="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm rounded-full text-xs font-bold shadow-xs">

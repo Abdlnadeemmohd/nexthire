@@ -176,7 +176,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
       <div className="max-w-[1600px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between relative">
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-primary rounded-xl p-1" aria-label="NextHire home">
             <div className="w-9 h-9 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-xl shadow-xs group-hover:scale-105 transition-transform">
               N
             </div>

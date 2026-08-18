@@ -19,4 +19,14 @@ googleProvider.setCustomParameters({
   prompt: "select_account",
 });
 
+/**
+ * Returns true if Firebase client has non-placeholder credentials configured
+ */
+export function isFirebaseClientConfigured(): boolean {
+  return (
+    !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "AIzaSy_Placeholder_Build_Key"
+  );
+}
+
 export { app, auth, googleProvider };

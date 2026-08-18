@@ -89,16 +89,20 @@ export function AICopilotDrawer() {
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open NextHire AI Copilot"
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 p-3.5 sm:p-4 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 group pb-safe focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+        className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-40 p-2.5 sm:p-3.5 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group touch-target focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
           !isFabVisible || isOpen ? "opacity-0 pointer-events-none scale-75 translate-y-4" : "opacity-100 scale-100 translate-y-0"
         }`}
+        style={{
+          bottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+          right: "calc(0.75rem + env(safe-area-inset-right, 0px))",
+        }}
         title="Open NextHire AI Copilot"
       >
         <span className="material-symbols-outlined text-xl sm:text-2xl group-hover:rotate-12 transition-transform" aria-hidden="true">
           auto_awesome
         </span>
         <span className="font-bold text-xs pr-1 hidden sm:inline">AI Copilot</span>
-        <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" aria-hidden="true"></span>
+        <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-400 rounded-full animate-ping" aria-hidden="true"></span>
       </button>
 
       {/* Right-Side Slide-Over Panel */}

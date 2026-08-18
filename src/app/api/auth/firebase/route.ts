@@ -27,15 +27,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Verify Firebase ID token server-side via Firebase Admin SDK
+    // 1. Verify Firebase ID token server-side via official Firebase Admin SDK
     let decodedToken: any;
     try {
       const adminAuth = getFirebaseAdminAuth();
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (err: any) {
-      console.warn("Firebase ID token verification failed server-side:", err?.message || err);
+      const errMsg = err?.message || "Verification failed";
+      console.warn("[Firebase Auth] Server verification note:", errMsg);
       return NextResponse.json(
-        { success: false, error: "Invalid or expired Firebase authentication token" },
+        {
+          success: false,
+          error: errMsg.includes("credentials are not configured")
+            ? "Authentication service configuration pending on server."
+            : "Invalid or expired Firebase authentication token",
+        },
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -76,7 +82,7 @@ export async function POST(request: Request) {
         });
       }
     } catch (dbErr) {
-      console.warn("Database lookup / creation note:", dbErr);
+      console.warn("[Firebase Auth] Database lookup / creation note:", dbErr);
     }
 
     const userId = dbUser?.id || `usr-${Date.now()}`;

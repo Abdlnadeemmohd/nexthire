@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { TopAppBar } from "@/components/layout/TopAppBar";
+import { AuthHeader } from "@/components/layout/AuthHeader";
 import { useAuth } from "@/context/AuthContext";
 
 import { RecruitmentEngine } from "@/services/recruitmentEngine";
@@ -74,11 +74,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <>
-      <TopAppBar />
+    <div className="min-h-screen bg-mesh flex flex-col justify-between">
+      <AuthHeader currentAction="register" />
 
-      <main className="min-h-screen bg-mesh flex items-center justify-center p-6 pt-24">
-        <div className="glass-card rounded-2xl p-8 max-w-lg w-full border border-white/60 space-y-6 shadow-2xl">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="glass-card rounded-2xl p-6 sm:p-8 max-w-lg w-full border border-white/60 space-y-6 shadow-2xl">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 bg-primary text-on-primary rounded-2xl flex items-center justify-center font-bold font-display text-2xl mx-auto shadow-md">
               N
@@ -323,6 +323,7 @@ export default function RegisterPage() {
           </div>
         </div>
       </main>
-    </>
+      <div className="pb-4" />
+    </div>
   );
 }

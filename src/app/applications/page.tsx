@@ -14,6 +14,7 @@ import { CandidateTimelineModal } from "@/components/recruiter/CandidateTimeline
 import { StatusBadge } from "@/components/ui/Badge";
 import { AIMatchBadge } from "@/components/ui/AIMatchBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 
 const PIPELINE_STAGES = [
   { key: "APPLIED", label: "Applied" },
@@ -102,13 +103,12 @@ export default function ApplicationTrackerPage() {
             <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/10 pb-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-outline-variant/20 p-2 shadow-xs">
-                    <img
-                      src={selectedApp.companyLogo}
-                      alt={selectedApp.company}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
+                  <CompanyLogo
+                    src={selectedApp.companyLogo}
+                    name={selectedApp.company}
+                    size="lg"
+                    rounded="xl"
+                  />
                   <div>
                     <h3 className="font-headline-sm text-xl font-bold text-on-surface">
                       {selectedApp.jobTitle}
@@ -256,10 +256,11 @@ export default function ApplicationTrackerPage() {
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <img
+                    <CompanyLogo
                       src={app.companyLogo}
-                      alt={app.company}
-                      className="w-12 h-12 rounded-xl object-contain bg-white p-2 border border-outline-variant/20 shadow-xs"
+                      name={app.company}
+                      size="md"
+                      rounded="xl"
                     />
                     <div>
                       <h4 className="font-bold text-on-surface text-base">{app.jobTitle}</h4>

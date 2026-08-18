@@ -6,6 +6,7 @@ import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { JobAuthModal } from "@/components/jobs/JobAuthModal";
 import { useAuth } from "@/context/AuthContext";
 import { AIMatchBadge } from "@/components/ui/AIMatchBadge";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 
 export interface JobCardProps {
   id: string;
@@ -53,34 +54,29 @@ export function JobCard({
 
   return (
     <>
-      <article className="surface-card bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-5 hover:border-primary/50 hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between h-full group">
-        <div className="space-y-3.5">
-          {/* Card Top: Logo, Company Name, Job Title & AI Match Score Badge */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3 min-w-0">
-              <Link href={`/companies/${companyId}`} className="flex-shrink-0 mt-0.5">
-                <img
+      <article className="surface-card bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-4 sm:p-5 hover:border-primary/50 hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between h-full group">
+        <div className="space-y-3">
+          {/* Card Top: Company Meta Row + Compact AI Match Score Badge */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Link href={`/companies/${companyId}`} className="flex-shrink-0" aria-label={`View ${company}`}>
+                <CompanyLogo
                   src={logo}
-                  alt={`${company} Logo`}
-                  className="w-11 h-11 rounded-xl object-cover border border-outline-variant/30 bg-white p-1 shadow-xs group-hover:scale-105 transition-transform"
+                  name={company}
+                  size="sm"
+                  rounded="lg"
+                  className="group-hover:scale-105 transition-transform"
                 />
               </Link>
-              <div className="min-w-0 space-y-0.5">
-                <Link
-                  href={`/companies/${companyId}`}
-                  className="text-xs font-label-md font-semibold text-outline hover:text-primary transition-colors block truncate"
-                >
-                  {company}
-                </Link>
-                <Link href={`/jobs/${id}`}>
-                  <h3 className="font-headline-sm text-base font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                    {title}
-                  </h3>
-                </Link>
-              </div>
+              <Link
+                href={`/companies/${companyId}`}
+                className="text-xs font-label-md font-semibold text-outline hover:text-primary transition-colors truncate block"
+              >
+                {company}
+              </Link>
             </div>
 
-            {/* AI Match Radial / Badge */}
+            {/* AI Match Badge (Compact on narrow mobile) */}
             <div className="flex-shrink-0">
               <AIMatchBadge
                 score={aiMatchScore}
@@ -90,6 +86,15 @@ export function JobCard({
                 onClick={() => setShowAiBreakdown(!showAiBreakdown)}
               />
             </div>
+          </div>
+
+          {/* Job Title: Full horizontal width priority (never squeezed) */}
+          <div>
+            <Link href={`/jobs/${id}`}>
+              <h3 className="font-headline-sm text-base sm:text-lg font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                {title}
+              </h3>
+            </Link>
           </div>
 
           {/* AI Match Breakdown Drawer */}
@@ -121,13 +126,13 @@ export function JobCard({
           )}
 
           {/* Location & Job Type Badges */}
-          <div className="flex items-center gap-2 text-xs text-on-surface-variant font-label-md flex-wrap">
-            <span className="inline-flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant">
-              <span className="material-symbols-outlined text-sm text-outline" aria-hidden="true">location_on</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-on-surface-variant font-label-md flex-wrap">
+            <span className="inline-flex items-center gap-1 bg-surface-container-low px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant text-[11px] sm:text-xs">
+              <span className="material-symbols-outlined text-xs sm:text-sm text-outline" aria-hidden="true">location_on</span>
               {location}
             </span>
-            <span className="inline-flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant">
-              <span className="material-symbols-outlined text-sm text-outline" aria-hidden="true">work</span>
+            <span className="inline-flex items-center gap-1 bg-surface-container-low px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant text-[11px] sm:text-xs">
+              <span className="material-symbols-outlined text-xs sm:text-sm text-outline" aria-hidden="true">work</span>
               {type}
             </span>
           </div>
@@ -138,17 +143,17 @@ export function JobCard({
           </p>
 
           {/* Skill Tag List with +N Overflow Collapse */}
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5 min-h-[28px]">
+          <div className="flex items-center gap-1.5 flex-wrap pt-0.5 min-h-[26px]">
             {visibleTags.map((tag, idx) => (
               <span
                 key={idx}
-                className="px-2.5 py-0.5 bg-surface-container text-on-surface-variant text-[11px] font-label-md font-medium rounded-md border border-outline-variant/20"
+                className="px-2 sm:px-2.5 py-0.5 bg-surface-container text-on-surface-variant text-[10px] sm:text-[11px] font-label-md font-medium rounded-md border border-outline-variant/20"
               >
                 {tag}
               </span>
             ))}
             {hiddenTagCount > 0 && (
-              <span className="px-2 py-0.5 bg-surface-container-low text-outline text-[11px] font-label-md font-medium rounded-md border border-outline-variant/30">
+              <span className="px-1.5 sm:px-2 py-0.5 bg-surface-container-low text-outline text-[10px] sm:text-[11px] font-label-md font-medium rounded-md border border-outline-variant/30">
                 +{hiddenTagCount} More
               </span>
             )}
@@ -156,7 +161,7 @@ export function JobCard({
         </div>
 
         {/* Card Footer: Non-wrapping Salary + Anchored Action Buttons */}
-        <div className="mt-4 sm:mt-5 pt-3.5 border-t border-outline-variant/20 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 flex-shrink-0">
+        <div className="mt-3.5 sm:mt-5 pt-3 border-t border-outline-variant/20 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 flex-shrink-0">
           <div className="min-w-0">
             <span className="text-[10px] text-outline font-label-md font-bold uppercase tracking-wider block">
               Salary Range

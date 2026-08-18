@@ -10,6 +10,7 @@ import { JobAuthModal } from "@/components/jobs/JobAuthModal";
 import { INITIAL_JOBS, Job } from "@/lib/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 
 export default function PublicCompanyDetailPage({ params }: { params: { id: string } }) {
   const { isAuthenticated } = useAuth();
@@ -30,7 +31,7 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
     candidateResponseRate: "98.5%",
     avgHireDays: "12 Days",
     bannerUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80",
-    logoUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDUSY4HuOhQnp99RQGM7nj2qJaAWM49iI9uWz43APGGY9elmswm8Xhx8Hx3opdXODLdtZq0n-bxGcH7MRRbeOar3uNrgkHm1g4eL86ilUFWlHgKQHoc0-DqJsvor7xRNbZXRHP0WvFXR_dNDhMolXMQPnmQg4Jl_XDs_ssI9JsQ_WcIV4LJRpTCzOkZnd3pXcC9vurP6zcFOrmGm5bUwPACA1hF1P7gnmLUPkIZbbhMPh5kRmRcRFnUqsykv9lu5Rpjm64oHzTH_oyL",
+    logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
     about: "Stellar Systems is a premier cloud architecture pioneer creating automated resilience infrastructure for Fortune 500 enterprises. Founded in San Francisco in 2018, our engineering teams build high-throughput microservices, distributed AI databases, and developer observability tooling.",
     mission: "To empower software teams worldwide to build scalable, fault-tolerant infrastructure effortlessly.",
     techStack: ["Next.js", "TypeScript", "Python", "Go", "AWS", "Docker", "Kubernetes", "GraphQL", "PostgreSQL"],
@@ -75,9 +76,13 @@ export default function PublicCompanyDetailPage({ params }: { params: { id: stri
 
           <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end pb-6 text-white">
             <div className="flex items-end gap-5">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-3 shadow-2xl border-4 border-white flex-shrink-0 flex items-center justify-center">
-                <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain" />
-              </div>
+              <CompanyLogo
+                src={company.logoUrl}
+                name={company.name}
+                size="xl"
+                rounded="2xl"
+                className="w-20 h-20 sm:w-28 sm:h-28 shadow-2xl border-4 border-white"
+              />
 
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">

@@ -42,7 +42,7 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
       <div className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-surface-container-lowest border-r border-outline-variant/30 shadow-2xl flex flex-col pt-safe pb-safe animate-slide-in">
         {/* Drawer Header */}
         <div className="p-4 border-b border-outline-variant/20 flex items-center justify-between">
-          <Link href="/" onClick={onClose} className="flex items-center gap-2">
+          <Link href="/" onClick={onClose} className="flex items-center gap-2" aria-label="NextHire home">
             <div className="w-8 h-8 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-lg">
               N
             </div>
@@ -53,6 +53,7 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
           <button
             onClick={onClose}
             className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container transition-colors touch-target"
+            aria-label="Close navigation menu"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
@@ -64,6 +65,10 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
           <div className="space-y-2">
             <h4 className="text-[11px] font-bold text-outline uppercase tracking-wider">Platform</h4>
             <nav className="space-y-1">
+              <Link href="/" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container" aria-label="Return to NextHire Homepage">
+                <span className="material-symbols-outlined text-primary text-lg">home</span>
+                Home
+              </Link>
               <Link href="/jobs" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
                 <span className="material-symbols-outlined text-primary text-lg">work</span>
                 Browse Jobs
