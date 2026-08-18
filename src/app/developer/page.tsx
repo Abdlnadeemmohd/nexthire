@@ -86,7 +86,7 @@ export default function DeveloperPage() {
 
             <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 space-y-1">
               <span className="text-[10px] font-bold text-outline uppercase">Application Version</span>
-              <div className="font-bold text-on-surface">v1.0.0 Production</div>
+              <div className="font-bold text-on-surface">v2.0.0 Production</div>
             </div>
 
             <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 space-y-1">

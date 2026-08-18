@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 
 interface ChatMessage {
@@ -11,6 +12,8 @@ interface ChatMessage {
 }
 
 export function AICopilotDrawer() {
+  const pathname = usePathname();
+  const isMessagesPage = pathname?.startsWith("/messages");
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -91,11 +94,17 @@ export function AICopilotDrawer() {
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open NextHire AI Copilot"
-        className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-40 p-2.5 sm:p-3.5 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group touch-target focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+        className={`fixed z-30 p-2.5 sm:p-3.5 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group touch-target focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+          isMessagesPage
+            ? "bottom-24 right-4 sm:bottom-28 sm:right-6"
+            : "bottom-3 right-3 sm:bottom-6 sm:right-6"
+        } ${
           !isFabVisible || isOpen ? "opacity-0 pointer-events-none scale-75 translate-y-4" : "opacity-100 scale-100 translate-y-0"
         }`}
         style={{
-          bottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+          bottom: isMessagesPage
+            ? "calc(6rem + env(safe-area-inset-bottom, 0px))"
+            : "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
           right: "calc(0.75rem + env(safe-area-inset-right, 0px))",
         }}
         title="Open NextHire AI Copilot"

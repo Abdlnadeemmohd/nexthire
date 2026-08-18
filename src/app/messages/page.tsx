@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
@@ -43,6 +43,7 @@ function MessagingCentreContent() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("chat");
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const portalType =
     user?.role === "RECRUITER"
@@ -122,6 +123,11 @@ function MessagingCentreContent() {
     const interval = setInterval(loadThread, 5000);
     return () => clearInterval(interval);
   }, [selectedContactId]);
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // 3. Send message handler
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -247,7 +253,7 @@ function MessagingCentreContent() {
                   </div>
 
                   {/* Messages Scroll Area */}
-                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 pb-6">
                     {messages.length > 0 ? (
                       messages.map((msg) => {
                         const isSelf = msg.senderId === user?.id;
@@ -279,26 +285,28 @@ function MessagingCentreContent() {
                         </p>
                       </div>
                     )}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Message Input Form */}
                   <form
                     onSubmit={handleSendMessage}
-                    className="p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-3"
+                    className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-2 sm:gap-3 relative z-20 flex-shrink-0"
                   >
                     <input
                       type="text"
                       placeholder={`Message ${activeContact.name}...`}
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
-                      className="flex-1 px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="flex-1 px-4 py-2.5 sm:py-3 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                     <button
                       type="submit"
                       disabled={sending || !inputMessage.trim()}
-                      className="p-3 bg-primary text-on-primary rounded-full hover:bg-primary-container transition-colors disabled:opacity-50 flex items-center justify-center"
+                      aria-label="Send message"
+                      className="p-2.5 sm:p-3 bg-primary text-on-primary rounded-full hover:bg-primary-container transition-colors disabled:opacity-40 flex items-center justify-center shadow-xs flex-shrink-0 touch-target focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                      <span className="material-symbols-outlined text-lg">send</span>
+                      <span className="material-symbols-outlined text-lg sm:text-xl">send</span>
                     </button>
                   </form>
                 </>

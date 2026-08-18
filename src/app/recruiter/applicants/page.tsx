@@ -13,8 +13,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { InterviewScheduleModal, ScheduledInterviewEvent } from "@/components/recruiter/InterviewScheduleModal";
 import { StructuredRejectionModal, RejectionFeedbackData } from "@/components/recruiter/StructuredRejectionModal";
 import { CandidateTimelineModal } from "@/components/recruiter/CandidateTimelineModal";
-import { getAllowedTransitions, STAGE_LABELS, isTerminalStatus } from "@/lib/ats/stateMachine";
 import { Modal } from "@/components/ui/Modal";
+import {
+  getAllowedTransitions,
+  STAGE_LABELS,
+  RECRUITER_ACTION_LABELS,
+  isTerminalStatus,
+} from "@/lib/ats/stateMachine";
 
 export default function RecruiterApplicantsPage() {
   const { showToast } = useToast();
@@ -47,9 +52,13 @@ export default function RecruiterApplicantsPage() {
     loadApplicants();
   }, []);
 
-  const filteredApplicants = applicants.filter(
-    (app) => selectedStage === "ALL" || app.status === selectedStage
-  );
+  const filteredApplicants = applicants.filter((app) => {
+    if (selectedStage === "ALL") return true;
+    if (selectedStage === "INTERVIEW_SCHEDULED") {
+      return app.status.startsWith("INTERVIEW");
+    }
+    return app.status === selectedStage;
+  });
 
   const handleMoveStage = async (candidateId: string, newStage: string) => {
     if (newStage === "INTERVIEW_SCHEDULED" || newStage === "INTERVIEW_ROUND_1") {
@@ -136,15 +145,9 @@ export default function RecruiterApplicantsPage() {
     }
   };
 
-  const handleDownloadResume = async (applicationId: string) => {
+  const handleDownloadResume = (applicationId: string) => {
     try {
-      const res = await fetch(`/api/documents/download?applicationId=${applicationId}`);
-      const data = await res.json();
-      if (res.ok && data.downloadUrl) {
-        window.open(data.downloadUrl, "_blank");
-      } else {
-        showToast(data.error || "Resume unavailable.", "info");
-      }
+      window.open(`/api/documents/download?applicationId=${applicationId}`, "_blank");
     } catch {
       showToast("Unable to open resume. Please try again.", "error");
     }
@@ -182,12 +185,9 @@ export default function RecruiterApplicantsPage() {
                   <option value="ALL">All Stages ({applicants.length})</option>
                   <option value="SUBMITTED">Submitted</option>
                   <option value="UNDER_REVIEW">Under Review</option>
-                  <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
-                  <option value="INTERVIEW_ROUND_1">Round 1</option>
-                  <option value="INTERVIEW_ROUND_2">Round 2</option>
-                  <option value="INTERVIEW_ROUND_3">Round 3</option>
+                  <option value="INTERVIEW_SCHEDULED">Interview</option>
                   <option value="FINAL_DECISION">Final Decision</option>
-                  <option value="OFFER_EXTENDED">Offer Extended</option>
+                  <option value="OFFER_EXTENDED">Selected</option>
                   <option value="REJECTED">Rejected</option>
                   <option value="APPLICATION_CLOSED">Closed</option>
                 </select>
@@ -293,9 +293,10 @@ export default function RecruiterApplicantsPage() {
                               <button
                                 key={nextSt}
                                 onClick={() => handleMoveStage(candidate.id, nextSt)}
-                                className="px-3 py-1 bg-surface-container-low hover:bg-surface-container text-on-surface border border-outline-variant/20 rounded-lg font-bold text-xs transition-all hover:border-primary/40"
+                                className="px-3 py-1 bg-surface-container-low hover:bg-surface-container text-on-surface border border-outline-variant/20 rounded-lg font-bold text-xs transition-all hover:border-primary/40 flex items-center gap-1"
                               >
-                                {STAGE_LABELS[nextSt] || nextSt}
+                                <span className="material-symbols-outlined text-sm text-primary">arrow_forward</span>
+                                {RECRUITER_ACTION_LABELS[nextSt] || STAGE_LABELS[nextSt] || nextSt}
                               </button>
                             ))}
 

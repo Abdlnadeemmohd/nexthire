@@ -118,14 +118,14 @@ export function Footer() {
                   rel="noopener noreferrer"
                   className="font-bold text-primary hover:underline"
                 >
-                  Abdul Nadeem Mohd
+                  ANM
                 </a>
               ) : (
-                <strong className="font-bold text-on-surface">Abdul Nadeem Mohd</strong>
+                <strong className="font-bold text-on-surface">ANM</strong>
               )}
             </span>
             <span className="text-[11px] font-semibold text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
-              Version 1.0.0
+              Version 2.0.0
             </span>
           </div>
         </div>

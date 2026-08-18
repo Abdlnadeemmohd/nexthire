@@ -63,6 +63,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const applicationId = searchParams.get("applicationId");
     const requestedUserId = searchParams.get("userId");
+    const requestedFormat = searchParams.get("format");
+    const acceptHeader = request.headers.get("accept") || "";
 
     let resolvedDocumentUrl: string | null = null;
     let documentName = "resume.pdf";
@@ -81,7 +83,7 @@ export async function GET(request: Request) {
 
       if (!app) {
         return NextResponse.json(
-          { success: false, error: "Application not found" },
+          { success: false, error: "Resume unavailable. Application record not found." },
           { status: 404, headers: { "Content-Type": "application/json" } }
         );
       }
@@ -132,7 +134,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Resume unavailable.",
+          error: "Resume unavailable. The document could not be retrieved right now.",
         },
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
@@ -161,7 +163,6 @@ export async function GET(request: Request) {
           const durationSeconds = 15 * 60; // 15 minutes
           const expiresAtEpoch = Math.floor(Date.now() / 1000) + durationSeconds;
 
-          // Official Cloudinary signed delivery URL with true publicId
           secureDeliveryUrl = cloudinary.url(parsedRef.publicId, {
             resource_type: parsedRef.resourceType,
             type: parsedRef.deliveryType,
@@ -180,21 +181,56 @@ export async function GET(request: Request) {
 
     const resolvedMimeType = inferMimeType(resolvedDocumentUrl);
 
+    // 4. Return JSON response if explicitly requested by client API
+    if (requestedFormat === "json" || (acceptHeader.includes("application/json") && !acceptHeader.includes("text/html"))) {
+      return NextResponse.json(
+        {
+          success: true,
+          downloadUrl: secureDeliveryUrl,
+          fileName: documentName,
+          authorizedUser: authUser.email,
+          mimeType: resolvedMimeType,
+          expiresAt: actualExpiresAt,
+        },
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Default Direct Streaming: Fetch document server-side and stream response to user
+    if (secureDeliveryUrl && secureDeliveryUrl.startsWith("http")) {
+      try {
+        const upstreamRes = await fetch(secureDeliveryUrl, { cache: "no-store" });
+        if (upstreamRes.ok) {
+          const fileBuffer = await upstreamRes.arrayBuffer();
+          return new Response(fileBuffer, {
+            status: 200,
+            headers: {
+              "Content-Type": resolvedMimeType || "application/pdf",
+              "Content-Disposition": `inline; filename="${documentName}"`,
+              "Cache-Control": "private, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+            },
+          });
+        }
+      } catch (streamErr) {
+        console.error("[Document Download] Upstream stream fetch notice:", streamErr);
+      }
+
+      // If server-side fetch cannot complete, perform 307 temporary redirect to signed URL
+      return NextResponse.redirect(secureDeliveryUrl, { status: 307 });
+    }
+
     return NextResponse.json(
       {
-        success: true,
-        downloadUrl: secureDeliveryUrl,
-        fileName: documentName,
-        authorizedUser: authUser.email,
-        mimeType: resolvedMimeType,
-        expiresAt: actualExpiresAt,
+        success: false,
+        error: "Resume unavailable. The document could not be retrieved right now.",
       },
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 404, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {
     console.error("[Document Download Route Error]:", err);
     return NextResponse.json(
-      { success: false, error: "Unable to open resume. Please try again." },
+      { success: false, error: "Resume unavailable. The document could not be retrieved right now." },
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

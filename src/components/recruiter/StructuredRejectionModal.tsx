@@ -120,7 +120,7 @@ export function StructuredRejectionModal({
             rows={3}
             value={recruiterComments}
             onChange={(e) => setRecruiterComments(e.target.value)}
-            className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-primary resize-y min-h-[72px]"
             placeholder="e.g. This position requires stronger production experience with Kubernetes and AWS infrastructure."
             required
           />
@@ -162,22 +162,22 @@ export function StructuredRejectionModal({
             rows={2}
             value={resumeImprovementAdvice}
             onChange={(e) => setResumeImprovementAdvice(e.target.value)}
-            className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-primary resize-y min-h-[56px]"
             placeholder="Specific suggestions to strengthen candidate's profile for future openings..."
           />
         </div>
 
-        <div className="pt-4 border-t border-outline-variant/20 flex items-center justify-end gap-3">
+        <div className="pt-4 border-t border-outline-variant/20 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container transition-colors"
+            className="px-4 py-2.5 sm:py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container transition-colors text-center"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-5 py-2 bg-error text-on-error font-bold text-xs rounded-xl hover:bg-error/90 transition-all shadow-sm flex items-center gap-1.5 touch-target"
+            className="px-5 py-2.5 sm:py-2 bg-error text-on-error font-bold text-xs rounded-xl hover:bg-error/90 transition-all shadow-sm flex items-center justify-center gap-1.5 touch-target"
           >
             <span className="material-symbols-outlined text-base">cancel</span>
             Confirm Rejection & Send Feedback

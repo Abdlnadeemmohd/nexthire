@@ -11,17 +11,13 @@ import { CandidateTimelineModal } from "@/components/recruiter/CandidateTimeline
 import { StatusBadge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
-import { STAGE_LABELS, isTerminalStatus } from "@/lib/ats/stateMachine";
-
-const PIPELINE_STAGES = [
-  { key: "SUBMITTED", label: "Submitted" },
-  { key: "UNDER_REVIEW", label: "Under Review" },
-  { key: "INTERVIEW_SCHEDULED", label: "Interview" },
-  { key: "INTERVIEW_ROUND_1", label: "Round 1" },
-  { key: "INTERVIEW_ROUND_2", label: "Round 2" },
-  { key: "FINAL_DECISION", label: "Decision" },
-  { key: "OFFER_EXTENDED", label: "Offer" },
-];
+import {
+  STAGE_LABELS,
+  isTerminalStatus,
+  isActiveApplicationStatus,
+  CANDIDATE_PIPELINE_STAGES,
+  getCandidateStageIndex,
+} from "@/lib/ats/stateMachine";
 
 export default function ApplicationTrackerPage() {
   const { showToast } = useToast();
@@ -56,22 +52,12 @@ export default function ApplicationTrackerPage() {
 
   const [viewFilter, setViewFilter] = useState<"ACTIVE_15" | "ALL">("ACTIVE_15");
 
-  const filteredApps = apps.filter((app) => {
-    if (viewFilter === "ALL") return true;
-    const days = typeof app.daysAwaitingUpdate === "number"
-      ? app.daysAwaitingUpdate
-      : Math.floor((Date.now() - new Date(app.appliedAt).getTime()) / (1000 * 60 * 60 * 24));
-    return days <= 15 || !isTerminalStatus(app.status);
-  });
+  const activeApps = apps.filter((app) => isActiveApplicationStatus(app.status));
+  const filteredApps = viewFilter === "ACTIVE_15" ? activeApps : apps;
 
-  const selectedApp = filteredApps.find((a) => a.id === selectedAppId) || filteredApps[0] || apps[0];
+  const selectedApp = filteredApps.find((a) => a.id === selectedAppId) || filteredApps[0] || null;
 
-  const getStageIndex = (status: string) => {
-    if (status === "REJECTED" || status === "APPLICATION_CLOSED") return -1;
-    return PIPELINE_STAGES.findIndex((s) => s.key === status);
-  };
-
-  const currentStageIndex = selectedApp ? getStageIndex(selectedApp.status) : 0;
+  const currentStageIndex = selectedApp ? getCandidateStageIndex(selectedApp.status) : 0;
 
   const handleWithdraw = async (appId: string, title: string) => {
     if (confirm(`Are you sure you want to withdraw your application for ${title}? This action cannot be undone.`)) {
@@ -92,15 +78,9 @@ export default function ApplicationTrackerPage() {
     }
   };
 
-  const handleDownloadResume = async (applicationId: string) => {
+  const handleDownloadResume = (applicationId: string) => {
     try {
-      const res = await fetch(`/api/documents/download?applicationId=${applicationId}`);
-      const data = await res.json();
-      if (res.ok && data.downloadUrl) {
-        window.open(data.downloadUrl, "_blank");
-      } else {
-        showToast(data.error || "Resume unavailable.", "info");
-      }
+      window.open(`/api/documents/download?applicationId=${applicationId}`, "_blank");
     } catch {
       showToast("Unable to open resume. Please try again.", "error");
     }
@@ -135,7 +115,7 @@ export default function ApplicationTrackerPage() {
                   Application History
                 </button>
 
-                {!isTerminalStatus(selectedApp.status) && (
+                {isActiveApplicationStatus(selectedApp.status) && (
                   <button
                     onClick={() => handleWithdraw(selectedApp.id, selectedApp.jobTitle)}
                     className="px-4 py-2 bg-error/10 hover:bg-error/20 text-error border border-error/30 font-bold text-xs rounded-full transition-colors"
@@ -161,62 +141,98 @@ export default function ApplicationTrackerPage() {
                   </span>
                   <div className="flex items-center gap-1 bg-surface-container-high p-1 rounded-xl text-[11px] font-bold">
                     <button
-                      onClick={() => setViewFilter("ACTIVE_15")}
-                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                      onClick={() => {
+                        setViewFilter("ACTIVE_15");
+                        if (activeApps.length > 0 && !activeApps.some((a) => a.id === selectedAppId)) {
+                          setSelectedAppId(activeApps[0].id);
+                        }
+                      }}
+                      className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
                         viewFilter === "ACTIVE_15"
                           ? "bg-primary text-on-primary shadow-xs"
                           : "text-on-surface-variant hover:text-on-surface"
                       }`}
                     >
-                      15-Day Pipeline
+                      <span>15-Day Pipeline</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                        viewFilter === "ACTIVE_15" ? "bg-on-primary/20 text-on-primary" : "bg-surface-container text-outline"
+                      }`}>
+                        {activeApps.length}
+                      </span>
                     </button>
                     <button
-                      onClick={() => setViewFilter("ALL")}
-                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                      onClick={() => {
+                        setViewFilter("ALL");
+                        if (apps.length > 0 && !apps.some((a) => a.id === selectedAppId)) {
+                          setSelectedAppId(apps[0].id);
+                        }
+                      }}
+                      className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
                         viewFilter === "ALL"
                           ? "bg-primary text-on-primary shadow-xs"
                           : "text-on-surface-variant hover:text-on-surface"
                       }`}
                     >
-                      All History
+                      <span>All History</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                        viewFilter === "ALL" ? "bg-on-primary/20 text-on-primary" : "bg-surface-container text-outline"
+                      }`}>
+                        {apps.length}
+                      </span>
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  {filteredApps.map((app) => (
-                    <div
-                      key={app.id}
-                      onClick={() => setSelectedAppId(app.id)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                        selectedApp?.id === app.id
-                          ? "bg-surface-container border-primary shadow-sm"
-                          : "bg-surface-container-lowest border-outline-variant/20 hover:bg-surface-container/40"
-                      }`}
+                {filteredApps.length === 0 ? (
+                  <div className="p-6 bg-surface-container-low rounded-2xl border border-outline-variant/20 text-center space-y-3">
+                    <span className="material-symbols-outlined text-3xl text-outline">inbox</span>
+                    <p className="text-xs font-bold text-on-surface">No Active Applications</p>
+                    <p className="text-[11px] text-on-surface-variant">
+                      You have no active applications in your 15-Day Pipeline.
+                    </p>
+                    <button
+                      onClick={() => setViewFilter("ALL")}
+                      className="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl shadow-xs"
                     >
-                      <div className="flex items-start gap-3">
-                        <CompanyLogo
-                          src={app.companyLogo}
-                          name={app.companyName}
-                          size="md"
-                          rounded="xl"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-xs text-on-surface truncate">{app.jobTitle}</h4>
-                          <p className="text-[11px] text-on-surface-variant truncate">{app.companyName}</p>
-                          <div className="flex items-center justify-between mt-2">
-                            <StatusBadge status={app.status} size="sm" />
-                            <span className="text-[10px] text-outline">Applied {app.appliedAt}</span>
+                      View All History ({apps.length})
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredApps.map((app) => (
+                      <div
+                        key={app.id}
+                        onClick={() => setSelectedAppId(app.id)}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                          selectedApp?.id === app.id
+                            ? "bg-surface-container border-primary shadow-sm"
+                            : "bg-surface-container-lowest border-outline-variant/20 hover:bg-surface-container/40"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <CompanyLogo
+                            src={app.companyLogo}
+                            name={app.companyName}
+                            size="md"
+                            rounded="xl"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-xs text-on-surface truncate">{app.jobTitle}</h4>
+                            <p className="text-[11px] text-on-surface-variant truncate">{app.companyName}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <StatusBadge status={app.status} size="sm" />
+                              <span className="text-[10px] text-outline">Applied {app.appliedAt}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Application Detail / Pipeline Stage View */}
-              {selectedApp && (
+              {selectedApp ? (
                 <div className="lg:col-span-2 space-y-6">
                   <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
                     <div className="flex justify-between items-start gap-4">
@@ -279,6 +295,22 @@ export default function ApplicationTrackerPage() {
                           )}
                         </div>
                       </div>
+                    ) : selectedApp.status === "APPLICATION_CLOSED" || selectedApp.status === "WITHDRAWN" ? (
+                      <div className="space-y-4 pt-4 border-t border-outline-variant/10">
+                        <div className="p-4 bg-surface-container-high/60 border border-outline-variant/30 rounded-2xl space-y-2">
+                          <div className="flex items-center gap-2 text-outline">
+                            <span className="material-symbols-outlined text-base">archive</span>
+                            <span className="font-bold text-xs uppercase tracking-wider">
+                              Application Status: {selectedApp.status === "WITHDRAWN" ? "WITHDRAWN" : "APPLICATION CLOSED"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-on-surface-variant leading-relaxed">
+                            {selectedApp.status === "WITHDRAWN"
+                              ? "This application was voluntarily withdrawn. It is preserved in your application history for your records."
+                              : "This application has been closed and is preserved in your application history for your records."}
+                          </p>
+                        </div>
+                      </div>
                     ) : (
                       /* Progress Bar / Stage Indicator */
                       <div className="space-y-2 pt-4 border-t border-outline-variant/10">
@@ -286,8 +318,8 @@ export default function ApplicationTrackerPage() {
                           Pipeline Progression
                         </span>
 
-                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 pt-2">
-                          {PIPELINE_STAGES.map((stage, idx) => {
+                        <div className="grid grid-cols-5 gap-2 sm:gap-3 pt-2">
+                          {CANDIDATE_PIPELINE_STAGES.map((stage, idx) => {
                             const isCompleted = currentStageIndex >= idx;
                             const isCurrent = currentStageIndex === idx;
 
@@ -303,7 +335,7 @@ export default function ApplicationTrackerPage() {
                                   }`}
                                 />
                                 <span
-                                  className={`text-[10px] font-bold block truncate ${
+                                  className={`text-[10px] sm:text-xs font-bold block truncate ${
                                     isCurrent ? "text-primary font-bold" : "text-outline"
                                   }`}
                                 >
@@ -332,7 +364,7 @@ export default function ApplicationTrackerPage() {
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           ) : (
             <EmptyState

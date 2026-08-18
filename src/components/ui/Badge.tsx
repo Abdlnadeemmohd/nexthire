@@ -30,9 +30,10 @@ export function getStatusSpecs(status: string) {
   const normalized = status.toUpperCase().replace(/\s+/g, "_");
 
   switch (normalized) {
+    case "SUBMITTED":
     case "APPLIED":
       return {
-        label: "Applied",
+        label: "Submitted",
         colorClasses: "bg-blue-50 text-blue-800 border-blue-200",
         icon: "send",
       };
@@ -51,26 +52,36 @@ export function getStatusSpecs(status: string) {
       };
     case "INTERVIEW":
     case "INTERVIEW_SCHEDULED":
+    case "INTERVIEW_ROUND_1":
+    case "INTERVIEW_ROUND_2":
+    case "INTERVIEW_ROUND_3":
       return {
         label: "Interview",
         colorClasses: "bg-purple-50 text-purple-800 border-purple-200",
         icon: "video_call",
       };
+    case "FINAL_DECISION":
+      return {
+        label: "Final Decision",
+        colorClasses: "bg-indigo-50 text-indigo-800 border-indigo-200",
+        icon: "assignment_turned_in",
+      };
     case "OFFER":
     case "OFFER_EXTENDED":
+    case "SELECTED":
+    case "HIRED":
       return {
-        label: "Offer Extended",
+        label: "Selected",
         colorClasses: "bg-emerald-50 text-emerald-800 border-emerald-200",
         icon: "verified",
       };
-    case "HIRED":
     case "VERIFIED":
     case "APPROVED":
     case "ACTIVE":
     case "COMPLETED":
     case "SUCCESS":
       return {
-        label: normalized === "HIRED" ? "Hired" : normalized.replace("_", " "),
+        label: normalized.replace("_", " "),
         colorClasses: "bg-emerald-50 text-emerald-800 border-emerald-200",
         icon: "check_circle",
       };
@@ -84,9 +95,11 @@ export function getStatusSpecs(status: string) {
         colorClasses: "bg-rose-50 text-rose-800 border-rose-200",
         icon: "cancel",
       };
+    case "APPLICATION_CLOSED":
+    case "CLOSED":
     case "WITHDRAWN":
       return {
-        label: "Withdrawn",
+        label: normalized === "WITHDRAWN" ? "Withdrawn" : "Closed",
         colorClasses: "bg-slate-100 text-slate-700 border-slate-300",
         icon: "archive",
       };
