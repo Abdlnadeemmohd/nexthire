@@ -136,28 +136,20 @@ export async function POST(request: Request) {
       });
 
       return NextResponse.json({ success: true, data: newJob }, { status: 201 });
-    } catch {
-      // Memory fallback
-      const newJobMemory = {
-        id: `job-${Date.now()}`,
-        postedAt: "Just now",
-        matchScore: 95,
-        companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
-        companyName: authUser.companyName || "Stellar Systems",
-        companyDescription: "Next-gen software organization.",
-        companyWebsite: "https://stellarsystems.ai",
-        companySize: "250-500 employees",
-        responsibilities: body.responsibilities || ["Deliver software modules."],
-        requirements: body.requirements || ["3+ years experience."],
-        benefits: body.benefits || ["Health insurance", "PTO"],
-        ...body,
-      };
-      INITIAL_JOBS.unshift(newJobMemory);
-      return NextResponse.json({ success: true, data: newJobMemory }, { status: 201 });
+    } catch (dbErr: any) {
+      console.error("[POST /api/jobs DB Error]:", dbErr);
+      return NextResponse.json(
+        {
+          success: false,
+          error: dbErr?.message || "Failed to create job in database.",
+          category: "DATABASE_ERROR",
+        },
+        { status: 500 }
+      );
     }
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to create job" },
+      { success: false, error: err.message || "Failed to process job creation request." },
       { status: 500 }
     );
   }

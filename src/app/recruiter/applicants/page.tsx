@@ -505,30 +505,31 @@ export default function RecruiterApplicantsPage() {
                     <div className="p-2 bg-surface-container-low rounded-xl flex items-center justify-between text-[11px] font-bold text-on-surface-variant">
                       <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-base text-primary">description</span>
-                        Resume v2.0
+                        Candidate Resume
                       </span>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => {
-                            showToast(`Opening resume abstract preview for ${candidate.applicantName}`, "info");
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/documents/download?applicationId=${candidate.id}`);
+                              const data = await res.json();
+                              if (data.success && data.downloadUrl) {
+                                window.open(data.downloadUrl, "_blank");
+                              } else {
+                                showToast(data.error || `No verified resume found for ${candidate.applicantName}.`, "info");
+                              }
+                            } catch {
+                              showToast("Unable to fetch candidate resume.", "error");
+                            }
                           }}
-                          className="hover:text-primary transition-colors"
+                          className="hover:text-primary transition-colors cursor-pointer"
                         >
-                          View
+                          View / Download
                         </button>
                         <span>•</span>
                         <button
                           onClick={() => {
-                            showToast(`Downloading resume for ${candidate.applicantName}`, "success");
-                          }}
-                          className="hover:text-primary transition-colors"
-                        >
-                          Download
-                        </button>
-                        <span>•</span>
-                        <button
-                          onClick={() => {
-                            showToast(`AI Summary generated for ${candidate.applicantName}: 96% fit for senior lead developer.`, "info");
+                            showToast(`AI Summary for ${candidate.applicantName}: Matched ${candidate.skills?.length || 5} core competencies.`, "info");
                           }}
                           className="hover:text-tertiary transition-colors"
                         >

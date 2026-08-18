@@ -124,8 +124,6 @@ export const PRECONFIGURED_USERS: AuthUser[] = [
     country: "United States",
     bio: "Passionate Staff Systems Architect with 8+ years designing scalable cloud backends and high-conversion enterprise UX.",
     employmentStatus: "ON_NOTICE_PERIOD",
-    resumeUrl: "/resumes/Alex_Rivers_Resume_2026.pdf",
-    resumeFileName: "Alex_Rivers_Resume_2026.pdf",
     experience: [
       {
         id: "exp-1",

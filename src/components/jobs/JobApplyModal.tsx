@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { useAuth } from "@/context/AuthContext";
 import { RecruitmentEngine } from "@/services/recruitmentEngine";
 
 interface JobApplyModalProps {
@@ -14,25 +15,80 @@ interface JobApplyModalProps {
 
 export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }: JobApplyModalProps) {
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [coverNote, setCoverNote] = useState("");
   const [useDefaultResume, setUseDefaultResume] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileResumeUrl, setProfileResumeUrl] = useState<string | null>(user?.resumeUrl || null);
+  const [resumeDisplayName, setResumeDisplayName] = useState<string>(
+    user?.resumeFileName || (user?.resumeUrl ? "Primary_Resume.pdf" : "No resume uploaded")
+  );
+
+  useEffect(() => {
+    if (isOpen && user) {
+      // Fetch latest profile document status
+      fetch("/api/documents/download")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.downloadUrl) {
+            setProfileResumeUrl(data.downloadUrl);
+            setResumeDisplayName(data.fileName || "Verified_Resume.pdf");
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const app = RecruitmentEngine.applyForJob(jobId, {
-      name: "Alex Rivers",
-      email: "alex.rivers@example.com",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    });
 
-    if (app) {
-      showToast(`Application submitted for ${jobTitle} at ${companyName}! Added to recruiter ATS.`, "success");
-    } else {
-      showToast(`Position ${jobTitle} is closed or filled.`, "error");
+    if (!user) {
+      showToast("Please log in to submit your application.", "error");
+      return;
     }
-    onClose();
+
+    if (!profileResumeUrl && !user.resumeUrl) {
+      showToast("Please upload your resume to your profile before applying.", "error");
+      return;
+    }
+
+    setIsSubmitting(true);
+    showToast("Submitting your application...", "info");
+
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId,
+          coverLetter: coverNote,
+          resumeUrl: profileResumeUrl || user.resumeUrl,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit application.");
+      }
+
+      // Synchronize in-memory engine for real-time reactivity
+      RecruitmentEngine.applyForJob(jobId, {
+        name: user.name || "Candidate",
+        email: user.email,
+        avatar: user.avatar,
+      });
+
+      showToast(`Application submitted for ${jobTitle} at ${companyName}!`, "success");
+      onClose();
+    } catch (err: any) {
+      console.error("[Application Submission Error]:", err);
+      showToast(err.message || "Unable to submit application. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -51,7 +107,8 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
 
           <button
             onClick={onClose}
-            className="p-2 text-on-surface-variant dark:text-slate-400 hover:text-on-surface dark:hover:text-white hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors"
+            disabled={isSubmitting}
+            className="p-2 text-on-surface-variant dark:text-slate-400 hover:text-on-surface dark:hover:text-white hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-40"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
@@ -63,8 +120,12 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary text-2xl">description</span>
               <div>
-                <h4 className="text-xs font-bold text-on-surface dark:text-slate-100">Primary Resume Attached</h4>
-                <p className="text-[11px] text-on-surface-variant dark:text-slate-400">Alex_Rivers_Senior_Engineer_2026.pdf</p>
+                <h4 className="text-xs font-bold text-on-surface dark:text-slate-100">
+                  {profileResumeUrl || user?.resumeUrl ? "Primary Resume Attached" : "No Resume on Profile"}
+                </h4>
+                <p className="text-[11px] text-on-surface-variant dark:text-slate-400 font-mono">
+                  {resumeDisplayName}
+                </p>
               </div>
             </div>
 
@@ -95,15 +156,24 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-xs font-label-md font-bold text-on-surface-variant dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 text-xs font-label-md font-bold text-on-surface-variant dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-all shadow-sm"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
             >
-              Submit Application
+              {isSubmitting ? (
+                <>
+                  <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                  Submitting...
+                </>
+              ) : (
+                "Submit Application"
+              )}
             </button>
           </div>
         </form>

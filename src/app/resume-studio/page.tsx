@@ -5,6 +5,7 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { AIEngine, ATSAnalysisResult } from "@/lib/aiEngine";
 import { MobileScrollableChips } from "@/components/ui/MobileInteractionUtils";
@@ -12,8 +13,11 @@ import { Modal } from "@/components/ui/Modal";
 
 export default function ResumeStudioPage() {
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"builder" | "preview" | "ats">("builder");
-  const [resumeTitle, setResumeTitle] = useState("Alex_Rivers_Senior_UX_Architect_2026");
+  const [resumeTitle, setResumeTitle] = useState(
+    user?.name ? `${user.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume_2026` : "NextHire_ATS_Resume_2026"
+  );
   const [targetRole, setTargetRole] = useState("Senior Product Designer / Lead UX Engineer");
   const [selectedTemplate, setSelectedTemplate] = useState<"modern" | "classic" | "minimal">("modern");
   const [selectedVersion, setSelectedVersion] = useState("v2.0 (AI Optimized - Current)");
@@ -47,7 +51,8 @@ export default function ResumeStudioPage() {
   };
 
   const handleRunAtsScan = () => {
-    const resumeContentText = `Alex Rivers ${targetRole} Skills: ${skills.join(", ")} Senior Lead Years Experience Frontend Architect`;
+    const candidateName = user?.name || "Candidate";
+    const resumeContentText = `${candidateName} ${targetRole} Skills: ${skills.join(", ")} Senior Lead Years Experience Frontend Architect`;
     const result = AIEngine.analyzeResumeATS(resumeContentText, ["React", "TypeScript", "Next.js", "AI UX", "System Design"]);
     setAtsResult(result);
     setActiveTab("ats");
@@ -56,8 +61,9 @@ export default function ResumeStudioPage() {
 
   const handleDownloadPdf = () => {
     showToast("Generating high-resolution ATS-formatted PDF resume...", "info");
+    const downloadFilename = `${resumeTitle}.pdf`;
     setTimeout(() => {
-      showToast("Download started: Alex_Rivers_Resume_2026.pdf", "success");
+      showToast(`Download started: ${downloadFilename}`, "success");
     }, 1500);
   };
 

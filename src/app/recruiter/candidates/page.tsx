@@ -350,17 +350,27 @@ export default function CandidateSearchPage() {
               <div className="p-4 bg-surface-container-low rounded-2xl space-y-2 border border-outline-variant/20">
                 <span className="font-bold text-on-surface block">Resume Verification Document</span>
                 <p className="text-on-surface-variant text-[11px]">
-                  Verified PDF resume on file (Last updated July 2026).
+                  Verified PDF resume on file.
                 </p>
-                <a
-                  href="/resumes/Alex_Rivers_Resume_2026.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-primary font-bold hover:underline"
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/documents/download?userId=${selectedCandidate.id}`);
+                      const data = await res.json();
+                      if (data.success && data.downloadUrl) {
+                        window.open(data.downloadUrl, "_blank");
+                      } else {
+                        showToast(data.error || "Verified resume document not found for this candidate.", "info");
+                      }
+                    } catch {
+                      showToast("Unable to fetch candidate resume at this time.", "error");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 text-primary font-bold hover:underline cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">download</span>
                   Download Verified Candidate Resume (PDF)
-                </a>
+                </button>
               </div>
             </div>
 

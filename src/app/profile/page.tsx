@@ -92,7 +92,30 @@ export default function ProfilePage() {
   );
 
   // Resume State
-  const [resumeName, setResumeName] = useState(user?.resumeFileName || "Alex_Rivers_Resume_2026.pdf");
+  const [resumeUrl, setResumeUrl] = useState<string | null>(user?.resumeUrl || null);
+  const [resumeName, setResumeName] = useState(
+    user?.resumeFileName || (user?.resumeUrl ? "Primary_Resume.pdf" : "No resume uploaded")
+  );
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+
+  // Fetch verified profile document on load
+  useEffect(() => {
+    async function loadProfileDocument() {
+      try {
+        const res = await fetch("/api/documents/download");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.downloadUrl) {
+            setResumeUrl(data.downloadUrl);
+            setResumeName(data.fileName || "Verified_Resume.pdf");
+          }
+        }
+      } catch {
+        // Fallback to local user context if unauthenticated or offline
+      }
+    }
+    loadProfileDocument();
+  }, []);
 
   const handleSaveProfile = () => {
     updateUserProfile({
@@ -109,6 +132,7 @@ export default function ProfilePage() {
       certifications: certifications,
       portfolioLinks: formData.portfolioLinks,
       resumeFileName: resumeName,
+      resumeUrl: resumeUrl || undefined,
     });
     setIsEditing(false);
     showToast("Profile and Employment Status saved successfully!", "success");
@@ -145,13 +169,103 @@ export default function ProfilePage() {
     showToast("Added new professional certification", "info");
   };
 
-  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  const handleResumeFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    // Client-side validation: Max 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File size exceeds 5MB limit. Please upload a smaller PDF or DOCX file.", "error");
+      return;
+    }
+
+    const permittedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+    if (file.type && !permittedTypes.includes(file.type)) {
+      showToast("Unsupported format. Allowed: PDF, DOC, DOCX, PNG, JPEG, WEBP.", "error");
+      return;
+    }
+
+    setIsUploadingResume(true);
+    showToast("Requesting secure upload authorization...", "info");
+
+    try {
+      // 1. Fetch Cloudinary signed parameters from server
+      const signRes = await fetch("/api/documents/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileType: file.type || "application/pdf" }),
+      });
+
+      const signData = await signRes.json();
+      if (!signRes.ok || !signData.success) {
+        throw new Error(signData.error || "Failed to initialize document upload session.");
+      }
+
+      showToast("Uploading document to Cloudinary storage...", "info");
+
+      // 2. Upload directly to Cloudinary
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      formDataUpload.append("api_key", signData.apiKey);
+      formDataUpload.append("timestamp", signData.timestamp.toString());
+      formDataUpload.append("signature", signData.signature);
+      formDataUpload.append("folder", signData.folder);
+      if (signData.type) {
+        formDataUpload.append("type", signData.type);
+      }
+
+      const cloudRes = await fetch(signData.uploadUrl, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const cloudData = await cloudRes.json();
+      if (!cloudRes.ok || !cloudData.secure_url) {
+        throw new Error(cloudData.error?.message || "Failed to upload document to Cloudinary.");
+      }
+
+      showToast("Saving document reference to profile...", "info");
+
+      // 3. Save reference in Neon PostgreSQL Profile
+      const saveRes = await fetch("/api/documents/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secureUrl: cloudData.secure_url,
+          publicId: cloudData.public_id,
+          fileName: file.name,
+          mimeType: file.type || "application/pdf",
+          fileSize: file.size,
+        }),
+      });
+
+      const saveData = await saveRes.json();
+      if (!saveRes.ok || !saveData.success) {
+        throw new Error(saveData.error || "Failed to save document reference to database.");
+      }
+
+      setResumeUrl(cloudData.secure_url);
       setResumeName(file.name);
-      updateUserProfile({ resumeFileName: file.name });
+      updateUserProfile({
+        resumeFileName: file.name,
+        resumeUrl: cloudData.secure_url,
+      });
+
       setShowResumeModal(false);
-      showToast(`Uploaded resume: ${file.name}`, "success");
+      showToast(`Resume "${file.name}" uploaded and saved successfully!`, "success");
+    } catch (err: any) {
+      console.error("[Resume Upload Error]:", err);
+      showToast(err.message || "Failed to upload resume. Please try again.", "error");
+    } finally {
+      setIsUploadingResume(false);
     }
   };
 
@@ -383,19 +497,31 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowResumeModal(true)}
+                  disabled={isUploadingResume}
                   className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded-xl border border-outline-variant/30 transition-colors flex items-center gap-1.5"
                 >
                   <span className="material-symbols-outlined text-sm">swap_horiz</span>
-                  Replace / Upload
+                  {isUploadingResume ? "Uploading..." : "Replace / Upload"}
                 </button>
-                <a
-                  href={`/resumes/${resumeName}`}
-                  download
-                  className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-sm">download</span>
-                  Download PDF
-                </a>
+                {resumeUrl ? (
+                  <a
+                    href={resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    View / Download Resume
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => setShowResumeModal(true)}
+                    className="px-4 py-2 bg-primary/20 text-primary text-xs font-bold rounded-xl hover:bg-primary/30 transition-colors flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-sm">upload_file</span>
+                    Upload Resume
+                  </button>
+                )}
               </div>
             </div>
 
@@ -571,22 +697,44 @@ export default function ProfilePage() {
           <div className="bg-surface rounded-2xl max-w-md w-full p-6 border border-outline-variant/30 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg text-on-surface">Upload Resume File</h3>
-              <button onClick={() => setShowResumeModal(false)} className="text-outline hover:text-on-surface">
+              <button
+                onClick={() => !isUploadingResume && setShowResumeModal(false)}
+                disabled={isUploadingResume}
+                className="text-outline hover:text-on-surface disabled:opacity-40"
+              >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
             <p className="text-xs text-on-surface-variant">
-              Supported formats: PDF, DOC, DOCX (Max size 10MB).
+              Supported formats: PDF, DOC, DOCX, PNG, JPEG, WEBP (Max size 5MB).
             </p>
 
             <div className="border-2 border-dashed border-outline-variant/40 rounded-2xl p-8 text-center space-y-3">
-              <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
-              <p className="text-xs font-bold text-on-surface">Drag & drop your resume file here</p>
-              <label className="inline-block px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl cursor-pointer hover:bg-primary-container transition-colors">
-                Browse Files
-                <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} className="hidden" />
-              </label>
+              {isUploadingResume ? (
+                <div className="flex flex-col items-center justify-center py-4 space-y-3">
+                  <span className="material-symbols-outlined text-3xl text-primary animate-spin">
+                    progress_activity
+                  </span>
+                  <p className="text-xs font-bold text-on-surface">Uploading to secure storage...</p>
+                  <p className="text-[11px] text-on-surface-variant">Saving reference to database</p>
+                </div>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+                  <p className="text-xs font-bold text-on-surface">Drag & drop your resume file here</p>
+                  <label className="inline-block px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl cursor-pointer hover:bg-primary-container transition-colors">
+                    Browse Files
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp"
+                      onChange={handleResumeFileSelected}
+                      disabled={isUploadingResume}
+                      className="hidden"
+                    />
+                  </label>
+                </>
+              )}
             </div>
           </div>
         </div>

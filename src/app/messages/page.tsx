@@ -332,7 +332,7 @@ export default function MessagingCentrePage() {
             >
               <button
                 type="button"
-                onClick={() => alert("Resume file attached: Alex_Rivers_Resume_2026.pdf")}
+                onClick={() => showToast("Document attachment dialog opened.", "info")}
                 className="p-2 sm:p-2.5 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors touch-target flex-shrink-0"
                 title="Attach Resume / File"
                 aria-label="Attach Resume or File"
