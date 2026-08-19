@@ -79,7 +79,7 @@ export default function PostJobPage() {
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="recruiter" />
 
-        <main className="flex-1 lg:pl-[270px] p-6 md:p-10 space-y-8 max-w-4xl">
+        <main className="flex-1 lg:pl-[270px] p-6 md:p-10 space-y-8 max-w-4xl pb-20 sm:pb-24">
           <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Post a New Job" }]} />
 
           <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6">

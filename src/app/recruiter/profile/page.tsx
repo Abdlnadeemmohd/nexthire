@@ -9,9 +9,12 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MyRecruiterProfilePage() {
   const { showToast } = useToast();
+  const { updateUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -84,6 +87,11 @@ export default function MyRecruiterProfilePage() {
       const data = await res.json();
       if (res.ok && data.success) {
         showToast("Recruiter profile updated in Neon PostgreSQL!", "success");
+        updateUserProfile({
+          name: recruiterData.name,
+          headline: recruiterData.title,
+          avatar: recruiterData.avatar || undefined,
+        });
         setIsEditing(false);
         loadProfile();
       } else {
@@ -104,7 +112,7 @@ export default function MyRecruiterProfilePage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6 pb-20 sm:pb-24">
             <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "My Recruiter Profile" }]} />
 
             {/* Header Title */}
@@ -241,13 +249,14 @@ export default function MyRecruiterProfilePage() {
                         />
                       </div>
 
-                      <div>
-                        <label className="block font-bold text-outline uppercase text-[10px] pb-1">Avatar Image URL</label>
-                        <input
-                          type="url"
-                          value={recruiterData.avatar}
-                          onChange={(e) => setRecruiterData({ ...recruiterData, avatar: e.target.value })}
-                          className="w-full p-2.5 bg-surface border border-outline-variant/40 rounded-xl text-on-surface"
+                      <div className="sm:col-span-2 pt-1">
+                        <ImageUpload
+                          label="Recruiter Profile Picture"
+                          currentImageUrl={recruiterData.avatar}
+                          onImageChange={(url) => setRecruiterData({ ...recruiterData, avatar: url || "" })}
+                          shape="rounded"
+                          size="md"
+                          fallbackInitial={recruiterData.name || "R"}
                         />
                       </div>
                     </div>

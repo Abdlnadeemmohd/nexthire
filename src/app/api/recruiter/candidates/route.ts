@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { assertUserVerified, VerificationRequiredError } from "@/lib/auth/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,21 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") || "";
+
+  // Enforce strict explicit recruiter verification check (PENDING, REJECTED, and SUSPENDED are blocked)
+  if (authUser.role === "RECRUITER") {
+    try {
+      await assertUserVerified(authUser, "searching candidates and viewing talent profiles");
+    } catch (err: any) {
+      if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
+        return NextResponse.json(
+          { success: false, error: err.message, status: err.status },
+          { status: 403 }
+        );
+      }
+      throw err;
+    }
+  }
 
   try {
     const candidates = await prisma.user.findMany({

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { notificationService } from "@/lib/notifications/NotificationService";
+import { assertUserVerified, VerificationRequiredError } from "@/lib/auth/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +105,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Enforce strict explicit verification on message sender (PENDING, REJECTED, and SUSPENDED are blocked)
+    await assertUserVerified(authUser, "sending direct messages");
+
     // Verify receiver exists
     const receiver = await prisma.user.findUnique({
       where: { id: receiverId },
@@ -147,6 +151,12 @@ export async function POST(request: Request) {
       data: createdMessage,
     });
   } catch (err: any) {
+    if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
+      return NextResponse.json(
+        { success: false, error: err.message, status: err.status },
+        { status: 403 }
+      );
+    }
     console.error("[POST /api/messages Error]:", err);
     return NextResponse.json(
       { success: false, error: err.message || "Failed to send message" },

@@ -113,7 +113,7 @@ export default function AdminSubscriptionsPage() {
         <SidebarNav portal="admin" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8 pb-20 sm:pb-24">
             {/* Header Banner & Floating Quick Actions */}
             <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
@@ -167,33 +167,33 @@ export default function AdminSubscriptionsPage() {
                 <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl space-y-1">
                   <span className="text-outline text-[11px] font-label-md">Monthly Recurring Revenue (MRR)</span>
                   <h3 className="font-display text-2xl font-bold text-on-surface">
-                    £142,500 <span className="text-xs text-emerald-700 font-bold">+18.4%</span>
+                    £0 <span className="text-xs text-outline font-normal">• Live DB</span>
                   </h3>
-                  <p className="text-[10px] text-on-surface-variant">Annualized ARR: £1.71 Million</p>
+                  <p className="text-[10px] text-on-surface-variant">Annualized ARR: £0</p>
                 </div>
 
                 <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl space-y-1">
                   <span className="text-outline text-[11px] font-label-md">Active Paying Customers</span>
                   <h3 className="font-display text-2xl font-bold text-on-surface">
-                    2,288 <span className="text-xs text-primary font-bold">Employers</span>
+                    0 <span className="text-xs text-primary font-bold">Employers</span>
                   </h3>
-                  <p className="text-[10px] text-on-surface-variant">Avg LTV: £3,450 per account</p>
+                  <p className="text-[10px] text-on-surface-variant">No active billing subscriptions yet</p>
                 </div>
 
                 <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl space-y-1">
                   <span className="text-outline text-[11px] font-label-md">Gross Churn Rate</span>
                   <h3 className="font-display text-2xl font-bold text-on-surface">
-                    1.8% <span className="text-xs text-emerald-700 font-bold">-0.4% MoM</span>
+                    N/A <span className="text-xs text-outline font-normal">• 0 Churned</span>
                   </h3>
-                  <p className="text-[10px] text-on-surface-variant">184 Active Free Trials</p>
+                  <p className="text-[10px] text-on-surface-variant">0 Active Free Trials</p>
                 </div>
 
                 <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl space-y-1">
                   <span className="text-outline text-[11px] font-label-md">Trial Conversion Rate</span>
                   <h3 className="font-display text-2xl font-bold text-on-surface">
-                    34.2% <span className="text-xs text-emerald-700 font-bold">+4.1%</span>
+                    N/A <span className="text-xs text-outline font-normal">• No conversions</span>
                   </h3>
-                  <p className="text-[10px] text-on-surface-variant">Free Trial to Paid Ratio</p>
+                  <p className="text-[10px] text-on-surface-variant">Requires billing activity</p>
                 </div>
               </div>
             </div>

@@ -86,7 +86,7 @@ export default function AdminCompanyModerationPage() {
         <SidebarNav portal="admin" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6 pb-20 sm:pb-24">
             <Breadcrumbs items={[{ label: "Home", href: "/admin" }, { label: "Company Moderation" }]} />
 
             {/* Page Header */}
@@ -151,11 +151,11 @@ export default function AdminCompanyModerationPage() {
                       <div className="p-3 bg-surface-container-low rounded-xl text-xs space-y-1">
                         <div className="flex justify-between">
                           <span className="text-outline">Active Openings:</span>
-                          <span className="font-bold text-on-surface">{comp.jobs?.length || 0}</span>
+                          <span className="font-bold text-on-surface">{(comp as any).jobsCount ?? comp.jobs?.length ?? 0}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-outline">Associated Recruiters:</span>
-                          <span className="font-bold text-on-surface">{comp.recruiters?.length || 0}</span>
+                          <span className="font-bold text-on-surface">{(comp as any).teamSize ?? comp.recruiters?.length ?? 0}</span>
                         </div>
                       </div>
                     </div>

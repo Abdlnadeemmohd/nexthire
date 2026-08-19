@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { EmploymentStatus, UserExperience, UserEducation, UserCertification } from "@/lib/auth";
 
 import { CertificateUploadModal, CertificateRecord } from "@/components/profile/CertificateUploadModal";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 import { RecruitmentEngine } from "@/services/recruitmentEngine";
 import { useEffect } from "react";
 
@@ -278,7 +279,7 @@ export default function ProfilePage() {
         <SidebarNav portal="seeker" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8 pb-20 sm:pb-24">
             {/* Profile Completion Score Gauge */}
             <div className="glass-card bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 space-y-4 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -322,13 +323,26 @@ export default function ProfilePage() {
             <div className="glass-card rounded-2xl p-4 sm:p-6 md:p-8 border border-outline-variant/20 space-y-6 relative">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md flex-shrink-0">
-                    <img
-                      src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"}
-                      alt={formData.name}
-                      className="w-full h-full object-cover"
+                  {isEditing ? (
+                    <ImageUpload
+                      currentImageUrl={user?.avatar}
+                      onImageChange={(url) => {
+                        updateUserProfile({ avatar: url || undefined });
+                        showToast("Profile picture updated!", "success");
+                      }}
+                      shape="circle"
+                      size="md"
+                      fallbackInitial={formData.name || "C"}
                     />
-                  </div>
+                  ) : (
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md flex-shrink-0">
+                      <img
+                        src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"}
+                        alt={formData.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       {isEditing ? (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { assertRecruiterAndCompanyVerified, VerificationRequiredError } from "@/lib/auth/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -94,16 +95,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const companyId = authUser.companyId;
-    if (!companyId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Recruiter must belong to a registered company to post jobs. Please create your company profile first.",
-        },
-        { status: 400 }
-      );
+    // Enforce strict explicit verification for Recruiter AND Company (PENDING, REJECTED, and SUSPENDED are blocked)
+    if (authUser.role === "RECRUITER") {
+      await assertRecruiterAndCompanyVerified(authUser);
     }
+
+    const companyId = authUser.companyId || body.companyId;
 
     if (!body.title || typeof body.title !== "string" || !body.title.trim()) {
       return NextResponse.json(
@@ -143,6 +140,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, data: newJob }, { status: 201 });
   } catch (err: any) {
+    if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
+      return NextResponse.json(
+        { success: false, error: err.message, status: err.status },
+        { status: 403 }
+      );
+    }
     console.error("[POST /api/jobs Error]:", err);
     return NextResponse.json(
       { success: false, error: err.message || "Failed to create job in database." },

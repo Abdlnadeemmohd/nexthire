@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 export default function RecruiterCompanyProfilePage() {
   const { showToast } = useToast();
@@ -230,6 +231,17 @@ export default function RecruiterCompanyProfilePage() {
                     />
                   </div>
 
+                  <div className="pt-2">
+                    <ImageUpload
+                      label="Company Brand Logo"
+                      currentImageUrl={companyInfo.logoUrl}
+                      onImageChange={(url) => setCompanyInfo({ ...companyInfo, logoUrl: url || "" })}
+                      shape="rounded"
+                      size="md"
+                      fallbackInitial={companyInfo.name || "C"}
+                    />
+                  </div>
+
                   <div className="flex justify-end gap-2 pt-4">
                     {hasCompany && (
                       <button
@@ -254,7 +266,7 @@ export default function RecruiterCompanyProfilePage() {
               /* View Company State */
               <div className="space-y-8">
                 {/* Metrics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="glass-card rounded-2xl p-5 border border-outline-variant/20 space-y-1">
                     <span className="text-xs font-label-md text-outline uppercase font-bold">Active Roles</span>
                     <h3 className="font-display text-2xl font-bold text-on-surface">{companyInfo.activeRoles} Openings</h3>
@@ -285,11 +297,29 @@ export default function RecruiterCompanyProfilePage() {
                 {/* Overview Card */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 glass-card rounded-3xl p-8 border border-outline-variant/20 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-display text-2xl font-bold text-on-surface">{companyInfo.name}</h2>
-                      {companyInfo.isVerified && (
-                        <VerifiedBadge role="RECRUITER" customLabel="Verified Employer" size="sm" />
+                    <div className="flex items-center gap-4">
+                      {companyInfo.logoUrl ? (
+                        <img
+                          src={companyInfo.logoUrl}
+                          alt={companyInfo.name}
+                          className="w-16 h-16 rounded-2xl object-cover border border-outline-variant/40 shadow-xs flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold font-display text-2xl border border-primary/20 flex-shrink-0">
+                          {companyInfo.name ? companyInfo.name.charAt(0).toUpperCase() : "C"}
+                        </div>
                       )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-display text-2xl font-bold text-on-surface">{companyInfo.name}</h2>
+                          {companyInfo.isVerified && (
+                            <VerifiedBadge role="RECRUITER" customLabel="Verified Employer" size="sm" />
+                          )}
+                        </div>
+                        <p className="text-xs text-on-surface-variant font-medium">
+                          {companyInfo.industry} • {companyInfo.headquarters}
+                        </p>
+                      </div>
                     </div>
                     <p className="text-xs text-on-surface-variant leading-relaxed">
                       {companyInfo.about || "No company description provided yet."}

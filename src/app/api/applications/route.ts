@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { notificationService } from "@/lib/notifications/NotificationService";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
+import { assertUserVerified, VerificationRequiredError } from "@/lib/auth/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -165,6 +166,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Enforce strict explicit candidate verification status (PENDING, REJECTED, and SUSPENDED are blocked)
+    await assertUserVerified(authUser, "submitting job applications");
+
     // Resolve candidate's verified resume reference
     const profile = await prisma.profile.findUnique({
       where: { userId: authUser.id },
@@ -275,9 +279,15 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (err: any) {
+    if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
+      return NextResponse.json(
+        { success: false, error: err.message, status: err.status },
+        { status: 403 }
+      );
+    }
     console.error("[Applications POST Error]:", err);
     return NextResponse.json(
-      { success: false, error: "Failed to submit application to database" },
+      { success: false, error: err.message || "Failed to submit application to database" },
       { status: 500 }
     );
   }

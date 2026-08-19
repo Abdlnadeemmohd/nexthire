@@ -120,7 +120,7 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
   return (
     <div
       ref={dropdownRef}
-      className="absolute left-0 right-0 top-full mt-2 mx-auto max-w-2xl bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
+      className="absolute right-0 top-full mt-2 w-[320px] sm:w-[460px] lg:w-[520px] max-w-[calc(100vw-2rem)] bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
     >
       {/* Search Input Box */}
       <div className="p-4 border-b border-outline-variant/20 flex items-center gap-3">

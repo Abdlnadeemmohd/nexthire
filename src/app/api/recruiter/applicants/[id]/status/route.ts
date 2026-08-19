@@ -6,6 +6,7 @@ import { validateStatusTransition } from "@/lib/ats/stateMachine";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
 import { notificationService } from "@/lib/notifications/NotificationService";
 import { ApplicationStatus, RejectionReason } from "@prisma/client";
+import { assertUserVerified, VerificationRequiredError } from "@/lib/auth/verification";
 
 export async function POST(
   request: Request,
@@ -20,6 +21,21 @@ export async function POST(
   }
 
   const { id } = params;
+
+  // Enforce strict explicit recruiter verification check (PENDING, REJECTED, and SUSPENDED are blocked)
+  if (authUser.role === "RECRUITER") {
+    try {
+      await assertUserVerified(authUser, "updating candidate pipeline status");
+    } catch (err: any) {
+      if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
+        return NextResponse.json(
+          { success: false, error: err.message, status: err.status },
+          { status: 403 }
+        );
+      }
+      throw err;
+    }
+  }
 
   try {
     const body = await request.json();

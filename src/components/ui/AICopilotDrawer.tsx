@@ -146,9 +146,9 @@ export function AICopilotDrawer() {
           bottom: isMessagesPage
             ? "calc(6rem + env(safe-area-inset-bottom, 0px))"
             : footerOffset > 0
-            ? `calc(1rem + env(safe-area-inset-bottom, 0px) + ${footerOffset}px)`
-            : "calc(1rem + env(safe-area-inset-bottom, 0px))",
-          right: "calc(1rem + env(safe-area-inset-right, 0px))",
+            ? `calc(1.5rem + env(safe-area-inset-bottom, 0px) + ${footerOffset}px)`
+            : "calc(1.25rem + env(safe-area-inset-bottom, 0px))",
+          right: "calc(1.25rem + env(safe-area-inset-right, 0px))",
           transition: "bottom 0.15s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out",
         }}
         title="Open NextHire AI Copilot"
