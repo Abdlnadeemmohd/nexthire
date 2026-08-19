@@ -252,8 +252,8 @@ function MessagingCentreContent() {
                     </div>
                   </div>
 
-                  {/* Messages Scroll Area */}
-                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 pb-6">
+                  {/* Messages Scroll Area with Copilot Safe Area */}
+                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 pb-28 sm:pb-32">
                     {messages.length > 0 ? (
                       messages.map((msg) => {
                         const isSelf = msg.senderId === user?.id;
@@ -265,13 +265,13 @@ function MessagingCentreContent() {
                             <div
                               className={`max-w-md px-4 py-3 rounded-2xl text-xs sm:text-sm font-body-sm shadow-xs ${
                                 isSelf
-                                  ? "bg-primary text-on-primary rounded-br-none"
+                                  ? "bg-primary text-on-primary rounded-br-none mr-2 sm:mr-4"
                                   : "bg-surface-container-high text-on-surface rounded-bl-none border border-outline-variant/20"
                               }`}
                             >
                               {msg.content}
                             </div>
-                            <span className="text-[10px] text-outline pt-1 px-1">
+                            <span className={`text-[10px] text-outline pt-1 px-1 ${isSelf ? "mr-2 sm:mr-4" : ""}`}>
                               {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </span>
                           </div>
@@ -285,7 +285,7 @@ function MessagingCentreContent() {
                         </p>
                       </div>
                     )}
-                    <div ref={messagesEndRef} />
+                    <div ref={messagesEndRef} className="h-6" />
                   </div>
 
                   {/* Message Input Form */}

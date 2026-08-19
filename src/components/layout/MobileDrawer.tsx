@@ -27,7 +27,7 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden md:hidden"
+      className="fixed inset-0 z-50 overflow-hidden lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile Navigation Menu"

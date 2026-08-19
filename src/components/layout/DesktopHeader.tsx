@@ -22,6 +22,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +54,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
       setIsScrolled(window.scrollY > 20);
       setIsNotifOpen(false);
       setIsProfileOpen(false);
+      setIsMoreOpen(false);
     };
 
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
@@ -62,6 +64,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
   useEffect(() => {
     setIsNotifOpen(false);
     setIsProfileOpen(false);
+    setIsMoreOpen(false);
     syncUnreadCount();
   }, [pathname]);
 
@@ -70,6 +73,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
       if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
         setIsProfileOpen(false);
+        setIsMoreOpen(false);
       }
     };
 
@@ -77,6 +81,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
       if (event.key === "Escape") {
         setIsNotifOpen(false);
         setIsProfileOpen(false);
+        setIsMoreOpen(false);
       }
     };
 
@@ -91,12 +96,18 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
 
   const toggleNotif = () => {
     setIsNotifOpen((prev) => !prev);
-    if (!isNotifOpen) setIsProfileOpen(false);
+    if (!isNotifOpen) {
+      setIsProfileOpen(false);
+      setIsMoreOpen(false);
+    }
   };
 
   const toggleProfile = () => {
     setIsProfileOpen((prev) => !prev);
-    if (!isProfileOpen) setIsNotifOpen(false);
+    if (!isProfileOpen) {
+      setIsNotifOpen(false);
+      setIsMoreOpen(false);
+    }
   };
 
   const isItemActive = (currentPath: string, targetHref: string): boolean => {
@@ -169,30 +180,31 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
   return (
     <header
       ref={headerRef}
-      className={`hidden md:block fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 h-16 transition-all duration-300 ${
+      className={`hidden lg:block fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 h-16 transition-all duration-300 ${
         isScrolled ? "shadow-md shadow-black/5 bg-surface/95" : ""
       }`}
     >
-      <div className="max-w-[1600px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between relative">
+      <div className="max-w-[1600px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between relative gap-3 lg:gap-4">
         {/* Left: Brand Logo */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <Link
             href="/"
             className="flex items-center gap-2.5 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-1 transition-all"
             aria-label="NextHire home"
           >
-            <div className="w-9 h-9 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-xl shadow-xs group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-xl shadow-xs group-hover:scale-105 transition-transform flex-shrink-0">
               N
             </div>
-            <span className="font-display font-bold text-xl text-on-surface tracking-tight">
+            <span className="font-display font-bold text-xl text-on-surface tracking-tight whitespace-nowrap">
               Next<span className="text-primary">Hire</span>
             </span>
           </Link>
         </div>
 
-        {/* Center: Dynamic Desktop & Tablet Navigation */}
-        <nav className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8">
-          {navItems.map((item) => {
+        {/* Center: Dynamic Desktop Navigation with Progressive Breakpoint Adaptation */}
+        <nav className="flex items-center gap-2 lg:gap-4 xl:gap-7 min-w-0">
+          {/* Primary 3 Navigation Items (Always visible on lg+) */}
+          {navItems.slice(0, 3).map((item) => {
             const isActive = isItemActive(pathname, item.href);
             return (
               <Link
@@ -211,38 +223,104 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
               </Link>
             );
           })}
+
+          {/* Secondary Navigation Items (Inline on xl+, or in "More" menu on lg) */}
+          {navItems.slice(3).map((item) => {
+            const isActive = isItemActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`hidden xl:inline-block text-xs font-label-md font-bold transition-all relative py-2 whitespace-nowrap ${
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-on-surface-variant hover:text-on-surface font-semibold"
+                }`}
+              >
+                {item.label}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                )}
+              </Link>
+            );
+          })}
+
+          {/* Responsive "More" Dropdown on Medium Desktop (lg: 1024-1279px) */}
+          {navItems.length > 3 && (
+            <div className="relative xl:hidden">
+              <button
+                type="button"
+                onClick={() => setIsMoreOpen(!isMoreOpen)}
+                className={`flex items-center gap-1 text-xs font-label-md font-bold px-2.5 py-1.5 rounded-xl transition-all ${
+                  isMoreOpen || navItems.slice(3).some((it) => isItemActive(pathname, it.href))
+                    ? "text-primary bg-primary/10"
+                    : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+                }`}
+                aria-label="More navigation links"
+                aria-expanded={isMoreOpen}
+              >
+                <span>More</span>
+                <span className="material-symbols-outlined text-sm">
+                  {isMoreOpen ? "expand_less" : "expand_more"}
+                </span>
+              </button>
+
+              {isMoreOpen && (
+                <div className="absolute left-0 mt-2 w-48 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-xl p-1.5 z-50 animate-fade-in">
+                  {navItems.slice(3).map((item) => {
+                    const isActive = isItemActive(pathname, item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsMoreOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 text-xs rounded-xl font-bold transition-colors ${
+                          isActive
+                            ? "text-primary bg-primary/10"
+                            : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {isActive && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* Right: Search, Notifications & Profile */}
-        <div className="flex items-center gap-2 relative flex-shrink-0">
+        <div className="flex items-center gap-2 lg:gap-3 relative flex-shrink-0">
           {!isMounted || !isAuthenticated || !user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <Link
                 href="/login?role=seeker"
-                className="px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-all touch-target"
+                className="px-2.5 lg:px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full transition-all touch-target whitespace-nowrap"
               >
                 Candidate Login
               </Link>
               <Link
                 href="/login?role=recruiter"
-                className="px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-tertiary hover:bg-surface-container rounded-full transition-all touch-target"
+                className="px-2.5 lg:px-3 py-1.5 text-xs font-label-md font-bold text-on-surface-variant hover:text-tertiary hover:bg-surface-container rounded-full transition-all touch-target whitespace-nowrap"
               >
                 Recruiter Login
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target whitespace-nowrap flex-shrink-0"
+                className="px-3.5 lg:px-4 py-2 text-xs font-label-md font-bold bg-primary text-on-primary rounded-full hover:bg-primary-container transition-all shadow-xs touch-target whitespace-nowrap flex-shrink-0"
               >
                 Sign Up
               </Link>
             </div>
           ) : (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 lg:gap-3">
               {/* Desktop Wide Search Input & Attached Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="w-40 sm:w-52 md:w-56 lg:w-72 xl:w-[420px] px-3 sm:px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target"
+                  className="w-36 lg:w-48 xl:w-72 2xl:w-[380px] px-3 sm:px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target"
                   aria-label="Global search (Ctrl+K)"
                   title="Global Context-Aware Search (Ctrl+K)"
                 >
@@ -250,13 +328,13 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
                     <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">search</span>
                     <span className="truncate text-outline text-xs">
                       {user?.role === "RECRUITER"
-                        ? "Search candidates, jobs, companies..."
+                        ? "Search candidates, jobs..."
                         : user?.role === "PLATFORM_ADMIN"
-                        ? "Search users, subscriptions, tickets..."
-                        : "Search jobs, companies, skills..."}
+                        ? "Search users, tickets..."
+                        : "Search jobs, skills..."}
                     </span>
                   </div>
-                  <kbd className="flex px-2 py-0.5 bg-surface-container-lowest text-[10px] font-mono text-outline rounded-md border border-outline-variant/40 shadow-2xs flex-shrink-0">
+                  <kbd className="hidden xl:flex px-2 py-0.5 bg-surface-container-lowest text-[10px] font-mono text-outline rounded-md border border-outline-variant/40 shadow-2xs flex-shrink-0">
                     ⌘K
                   </kbd>
                 </button>
@@ -270,7 +348,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
               {/* Notification Button */}
               <button
                 onClick={toggleNotif}
-                className={`relative p-2.5 rounded-full transition-all touch-target ${
+                className={`relative p-2 lg:p-2.5 rounded-full transition-all touch-target ${
                   isNotifOpen
                     ? "bg-primary-container/20 text-primary"
                     : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
@@ -288,7 +366,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
               {/* Profile Avatar Button */}
               <button
                 onClick={toggleProfile}
-                className={`flex items-center gap-2.5 p-1 sm:pr-2.5 rounded-full transition-all border ${
+                className={`flex items-center gap-2 p-1 xl:pr-2.5 rounded-full transition-all border ${
                   isProfileOpen
                     ? "border-primary bg-primary/5"
                     : "border-transparent hover:bg-surface-container"
@@ -299,10 +377,10 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
                   alt={user.name}
                   className="w-8 h-8 rounded-full object-cover border border-outline-variant shadow-2xs flex-shrink-0"
                 />
-                <span className="text-xs font-label-md font-bold text-on-surface max-w-[120px] truncate hidden sm:inline">
+                <span className="text-xs font-label-md font-bold text-on-surface max-w-[110px] truncate hidden xl:inline">
                   {user.name}
                 </span>
-                <span className="material-symbols-outlined text-sm text-outline hidden sm:inline">
+                <span className="material-symbols-outlined text-sm text-outline hidden xl:inline">
                   {isProfileOpen ? "expand_less" : "expand_more"}
                 </span>
               </button>

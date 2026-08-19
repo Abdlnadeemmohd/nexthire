@@ -17,7 +17,7 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
 
   return (
     <>
-      <header className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 sm:h-16 bg-surface/95 backdrop-blur-md border-b border-outline-variant/30 px-2.5 sm:px-4 flex items-center justify-between pt-safe transition-all">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 sm:h-16 bg-surface/95 backdrop-blur-md border-b border-outline-variant/30 px-2.5 sm:px-4 flex items-center justify-between pt-safe transition-all">
         {/* Left: Hamburger Menu & Brand Logo */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-shrink-1">
           <button
