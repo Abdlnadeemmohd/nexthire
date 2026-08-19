@@ -18,30 +18,75 @@ export function AICopilotDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isFabVisible, setIsFabVisible] = useState(true);
+  const [footerOffset, setFooterOffset] = useState(0);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let rafId: number;
+
+    const updatePositionAndVisibility = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-        setIsFabVisible(false); // Hide on scroll down
+
+      // 1. Calculate dynamic elevation when scrolling into footer or avoided regions
+      const footer = document.querySelector("footer") || document.querySelector("[data-avoid-copilot]");
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        // Check if top of footer has entered the viewport
+        if (footerRect.top < viewportHeight) {
+          const overlap = Math.max(0, viewportHeight - footerRect.top);
+          setFooterOffset(overlap);
+        } else {
+          setFooterOffset(0);
+        }
       } else {
-        setIsFabVisible(true); // Show on scroll up
+        setFooterOffset(0);
+      }
+
+      // 2. Hide on rapid scroll down only when NOT near the footer
+      if (currentScrollY > lastScrollY.current && currentScrollY > 120) {
+        const footer = document.querySelector("footer");
+        const nearFooter = footer && footer.getBoundingClientRect().top < window.innerHeight + 120;
+        if (!nearFooter) {
+          setIsFabVisible(false);
+        } else {
+          setIsFabVisible(true);
+        }
+      } else {
+        setIsFabVisible(true);
       }
       lastScrollY.current = currentScrollY;
+    };
+
+    const onScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updatePositionAndVisibility);
+    };
+
+    const onResize = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updatePositionAndVisibility);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) setIsOpen(false);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Initial position calculation on mount or route change
+    updatePositionAndVisibility();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, pathname]);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "msg-1",
@@ -89,23 +134,22 @@ export function AICopilotDrawer() {
 
   return (
     <>
-      {/* Minimized Floating Action Button (FAB) with Smooth Hide on Scroll */}
+      {/* Minimized Floating Action Button (FAB) with Dynamic Safe-Area & Footer Elevation */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open NextHire AI Copilot"
         className={`fixed z-30 p-2.5 sm:p-3.5 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group touch-target focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-          isMessagesPage
-            ? "bottom-24 right-4 sm:bottom-28 sm:right-6"
-            : "bottom-3 right-3 sm:bottom-6 sm:right-6"
-        } ${
           !isFabVisible || isOpen ? "opacity-0 pointer-events-none scale-75 translate-y-4" : "opacity-100 scale-100 translate-y-0"
         }`}
         style={{
           bottom: isMessagesPage
             ? "calc(6rem + env(safe-area-inset-bottom, 0px))"
-            : "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
-          right: "calc(0.75rem + env(safe-area-inset-right, 0px))",
+            : footerOffset > 0
+            ? `calc(1rem + env(safe-area-inset-bottom, 0px) + ${footerOffset}px)`
+            : "calc(1rem + env(safe-area-inset-bottom, 0px))",
+          right: "calc(1rem + env(safe-area-inset-right, 0px))",
+          transition: "bottom 0.15s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out",
         }}
         title="Open NextHire AI Copilot"
       >
