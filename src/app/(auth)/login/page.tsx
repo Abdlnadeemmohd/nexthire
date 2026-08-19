@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
-
-import { AuthHeader } from "@/components/layout/AuthHeader";
+import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { hasRouteAccess } from "@/lib/auth";
@@ -67,7 +66,6 @@ function LoginFormContent() {
     }
   };
 
-
   const handleUnconfiguredOAuth = (providerName: string) => {
     showToast(`${providerName} Sign-In is not currently enabled. Please use Google or Email.`, "info");
   };
@@ -105,11 +103,11 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    <div className="w-full space-y-6">
       {/* Friendly Info Banner if redirected from job apply */}
       {infoMessage && (
-        <div className="p-4 bg-primary-container/30 border border-primary/30 rounded-2xl text-xs font-body-md text-on-surface flex items-start gap-3 shadow-xs">
-          <span className="material-symbols-outlined text-primary text-xl">info</span>
+        <div className="p-4 bg-primary-container/20 border border-primary/30 rounded-2xl text-xs font-body-md text-on-surface flex items-start gap-3 shadow-xs">
+          <span className="material-symbols-outlined text-primary text-xl" aria-hidden="true">info</span>
           <div>
             <span className="font-bold text-primary">Authentication Required</span>
             <p className="text-on-surface-variant pt-0.5">{infoMessage}</p>
@@ -133,26 +131,28 @@ function LoginFormContent() {
       {/* Role Switcher Tabs */}
       <div className="flex bg-surface-container-high p-1 rounded-2xl text-xs font-bold shadow-xs">
         <button
+          type="button"
           onClick={() => {
             setActiveRole("seeker");
             setEmail("jobseeker@nexthire.com");
           }}
           className={`flex-1 py-2.5 text-center rounded-xl transition-all ${
             activeRole === "seeker"
-              ? "bg-surface text-primary shadow-xs"
+              ? "bg-surface text-primary shadow-xs font-bold"
               : "text-outline hover:text-on-surface"
           }`}
         >
           Candidate Login
         </button>
         <button
+          type="button"
           onClick={() => {
             setActiveRole("recruiter");
             setEmail("recruiter@nexthire.com");
           }}
           className={`flex-1 py-2.5 text-center rounded-xl transition-all ${
             activeRole === "recruiter"
-              ? "bg-surface text-tertiary shadow-xs"
+              ? "bg-surface text-tertiary shadow-xs font-bold"
               : "text-outline hover:text-on-surface"
           }`}
         >
@@ -161,7 +161,7 @@ function LoginFormContent() {
       </div>
 
       {/* Production Glass Card */}
-      <div className="glass-card rounded-3xl p-8 border border-white/60 shadow-2xl space-y-6">
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/60 shadow-2xl space-y-6">
         <div className="space-y-2 text-center">
           <h1 className="font-display text-2xl font-bold text-on-surface">
             {activeRole === "seeker" ? "Welcome Back, Candidate" : "Welcome Back, Recruiter"}
@@ -175,7 +175,7 @@ function LoginFormContent() {
 
         {errorMsg && (
           <div className="p-3 bg-error-container/40 border border-error/40 text-error text-xs font-bold rounded-xl flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">error</span>
+            <span className="material-symbols-outlined text-base" aria-hidden="true">error</span>
             {errorMsg}
           </div>
         )}
@@ -246,7 +246,7 @@ function LoginFormContent() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2 mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            className="w-full py-3 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2 mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary min-h-[44px]"
           >
             {isSubmitting ? (
               <>
@@ -378,14 +378,10 @@ function LoginFormContent() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-mesh flex flex-col justify-between">
-      <AuthHeader currentAction="login" />
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <Suspense fallback={<div className="text-center text-xs font-bold text-outline">Loading Sign In Portal...</div>}>
-          <LoginFormContent />
-        </Suspense>
-      </div>
-      <div className="pb-4" />
-    </div>
+    <AuthSplitLayout currentAction="login">
+      <Suspense fallback={<div className="text-center text-xs font-bold text-outline py-12">Loading Sign In Portal...</div>}>
+        <LoginFormContent />
+      </Suspense>
+    </AuthSplitLayout>
   );
 }

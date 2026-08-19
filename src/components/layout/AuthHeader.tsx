@@ -9,7 +9,7 @@ interface AuthHeaderProps {
 
 export function AuthHeader({ currentAction }: AuthHeaderProps) {
   return (
-    <header className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex items-center justify-between">
       {/* Brand Logo - Sole Navigation to Homepage */}
       <Link
         href="/"
