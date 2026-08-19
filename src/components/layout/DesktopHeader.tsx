@@ -320,7 +320,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
               <div className="relative">
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="w-36 lg:w-48 xl:w-72 2xl:w-[380px] px-3 sm:px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target"
+                  className="w-36 lg:w-48 xl:w-72 2xl:w-[380px] px-3 sm:px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-full text-xs font-medium transition-all flex items-center justify-between border border-outline-variant/30 group shadow-2xs touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   aria-label="Global search (Ctrl+K)"
                   title="Global Context-Aware Search (Ctrl+K)"
                 >

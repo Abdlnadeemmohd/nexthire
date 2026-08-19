@@ -131,14 +131,16 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
           placeholder={placeholderText}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-outline focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-outline focus:outline-none focus-visible:outline-none"
+          aria-label="Global search input"
         />
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="p-1 rounded-full text-on-surface-variant hover:bg-surface-container"
+            className="p-1 rounded-full text-on-surface-variant hover:bg-surface-container focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label="Clear search query"
           >
-            <span className="material-symbols-outlined text-sm">close</span>
+            <span className="material-symbols-outlined text-sm" aria-hidden="true">close</span>
           </button>
         )}
       </div>

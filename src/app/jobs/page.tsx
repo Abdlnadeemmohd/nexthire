@@ -136,7 +136,8 @@ function JobSearchContent() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent font-label-md font-bold text-on-surface focus:outline-none cursor-pointer"
+                  className="bg-transparent font-label-md font-bold text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md cursor-pointer"
+                  aria-label="Sort jobs by"
                 >
                   <option value="newest">Newest First</option>
                   <option value="match">Highest AI Match</option>
@@ -153,35 +154,35 @@ function JobSearchContent() {
                 {keyword && (
                   <span className="px-3 py-1 bg-surface text-primary font-bold rounded-full border border-primary/30 flex items-center gap-1.5">
                     Query: "{keyword}"
-                    <button onClick={() => setKeyword("")} className="hover:text-error text-base leading-none">×</button>
+                    <button onClick={() => setKeyword("")} className="hover:text-error text-base leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full" aria-label="Clear query filter">×</button>
                   </span>
                 )}
 
                 {location && (
                   <span className="px-3 py-1 bg-surface text-primary font-bold rounded-full border border-primary/30 flex items-center gap-1.5">
                     Location: "{location}"
-                    <button onClick={() => setLocation("")} className="hover:text-error text-base leading-none">×</button>
+                    <button onClick={() => setLocation("")} className="hover:text-error text-base leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full" aria-label="Clear location filter">×</button>
                   </span>
                 )}
 
                 {selectedCategory !== "ALL" && (
                   <span className="px-3 py-1 bg-surface text-tertiary font-bold rounded-full border border-tertiary/30 flex items-center gap-1.5">
                     Category: {selectedCategory}
-                    <button onClick={() => setSelectedCategory("ALL")} className="hover:text-error text-base leading-none">×</button>
+                    <button onClick={() => setSelectedCategory("ALL")} className="hover:text-error text-base leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full" aria-label="Clear category filter">×</button>
                   </span>
                 )}
 
                 {selectedEmploymentType !== "ALL" && (
                   <span className="px-3 py-1 bg-surface text-tertiary font-bold rounded-full border border-tertiary/30 flex items-center gap-1.5">
                     Type: {selectedEmploymentType}
-                    <button onClick={() => setSelectedEmploymentType("ALL")} className="hover:text-error text-base leading-none">×</button>
+                    <button onClick={() => setSelectedEmploymentType("ALL")} className="hover:text-error text-base leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full" aria-label="Clear employment type filter">×</button>
                   </span>
                 )}
 
                 {remoteOnly && (
                   <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 font-bold rounded-full border border-emerald-500/30 flex items-center gap-1.5">
                     Remote Only
-                    <button onClick={() => setRemoteOnly(false)} className="hover:text-error text-base leading-none">×</button>
+                    <button onClick={() => setRemoteOnly(false)} className="hover:text-error text-base leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full" aria-label="Clear remote only filter">×</button>
                   </span>
                 )}
 
@@ -194,7 +195,7 @@ function JobSearchContent() {
                     setRemoteOnly(false);
                     setMinSalary(0);
                   }}
-                  className="text-xs text-error font-bold hover:underline ml-auto"
+                  className="text-xs text-error font-bold hover:underline ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-md px-1"
                 >
                   Clear All Filters
                 </button>
@@ -205,22 +206,25 @@ function JobSearchContent() {
             <div className="sticky top-16 z-20 bg-surface/95 backdrop-blur-md pt-2 pb-3 border-b border-outline-variant/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:static lg:bg-transparent lg:p-0 lg:border-0 lg:m-0">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-lg">search</span>
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-lg" aria-hidden="true">search</span>
                   <input
                     type="text"
                     placeholder="Search jobs by title, skills..."
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:border-outline-variant/60 focus:border-outline-variant focus:shadow-2xs rounded-xl text-xs text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150 min-h-[44px]"
+                    aria-label="Search jobs by title, skills"
                   />
                 </div>
                 <button
                   onClick={() => setShowMobileFilters(!showMobileFilters)}
-                  className={`lg:hidden px-3.5 py-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold transition-all flex items-center gap-1.5 touch-target ${
+                  className={`lg:hidden px-3.5 py-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold transition-all flex items-center gap-1.5 touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                     showMobileFilters ? "bg-primary text-on-primary" : "bg-surface-container-lowest text-on-surface"
                   }`}
+                  aria-expanded={showMobileFilters}
+                  aria-label="Toggle search filters"
                 >
-                  <span className="material-symbols-outlined text-base">filter_list</span>
+                  <span className="material-symbols-outlined text-base" aria-hidden="true">filter_list</span>
                   <span>Filters</span>
                 </button>
               </div>
@@ -231,7 +235,7 @@ function JobSearchContent() {
               <aside className={`space-y-6 lg:col-span-1 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/20 h-fit shadow-xs ${showMobileFilters ? "block" : "hidden lg:block"}`}>
                 <div className="flex justify-between items-center pb-4 border-b border-outline-variant/20">
                   <h3 className="font-headline-sm text-base font-bold text-on-surface flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-lg">filter_list</span>
+                    <span className="material-symbols-outlined text-primary text-lg" aria-hidden="true">filter_list</span>
                     Search Filters
                   </h3>
                   <button
@@ -243,7 +247,7 @@ function JobSearchContent() {
                       setRemoteOnly(false);
                       setMinSalary(0);
                     }}
-                    className="text-xs text-primary font-bold hover:underline"
+                    className="text-xs text-primary font-bold hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md px-1"
                   >
                     Reset
                   </button>
@@ -251,27 +255,29 @@ function JobSearchContent() {
 
                 {/* Location Input */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                  <label htmlFor="job-search-location" className="block text-xs font-label-md font-bold text-outline uppercase">
                     Location
                   </label>
                   <input
+                    id="job-search-location"
                     type="text"
                     placeholder="e.g. San Francisco, Remote"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:border-outline-variant/60 focus:border-outline-variant focus:shadow-2xs rounded-xl text-xs text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150"
                   />
                 </div>
 
                 {/* Category */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                  <label htmlFor="job-search-category" className="block text-xs font-label-md font-bold text-outline uppercase">
                     Category
                   </label>
                   <select
+                    id="job-search-category"
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:border-outline-variant/60 focus:border-outline-variant focus:shadow-2xs rounded-xl text-xs text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150 cursor-pointer"
                   >
                     <option value="ALL">All Categories</option>
                     <option value="ENGINEERING">Software Engineering</option>
@@ -283,13 +289,14 @@ function JobSearchContent() {
 
                 {/* Employment Type */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-label-md font-bold text-outline uppercase">
+                  <label htmlFor="job-search-type" className="block text-xs font-label-md font-bold text-outline uppercase">
                     Employment Type
                   </label>
                   <select
+                    id="job-search-type"
                     value={selectedEmploymentType}
                     onChange={(e) => setSelectedEmploymentType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-lowest border border-outline-variant/30 hover:border-outline-variant/60 focus:border-outline-variant focus:shadow-2xs rounded-xl text-xs text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150 cursor-pointer"
                   >
                     <option value="ALL">All Types</option>
                     <option value="FULL_TIME">Full-time</option>
@@ -299,12 +306,12 @@ function JobSearchContent() {
                 </div>
 
                 {/* Remote Toggle */}
-                <label className="flex items-center gap-2 text-xs font-bold text-on-surface cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-bold text-on-surface cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={remoteOnly}
                     onChange={(e) => setRemoteOnly(e.target.checked)}
-                    className="rounded text-primary focus:ring-primary"
+                    className="rounded text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer"
                   />
                   Remote Roles Only
                 </label>

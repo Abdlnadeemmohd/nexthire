@@ -98,7 +98,8 @@ export default function CompaniesDirectoryPage() {
                   placeholder="Search by company name, technology, or location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/40 rounded-2xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-xs"
+                  className="w-full pl-11 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-outline-variant/60 focus:border-outline-variant focus:shadow-2xs rounded-2xl text-xs sm:text-sm text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-150 shadow-xs"
+                  aria-label="Search company directory"
                 />
               </div>
             </div>

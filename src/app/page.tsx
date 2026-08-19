@@ -99,37 +99,44 @@ export default function LandingPage() {
 
             {/* Quick Search Box */}
             <form
+              action="/jobs"
+              method="GET"
               onSubmit={handleSearch}
               className="w-full max-w-3xl glass-card rounded-2xl p-2 sm:p-3 border border-outline-variant/40 shadow-xl flex flex-col sm:flex-row gap-2 mt-4"
             >
-              <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-xl">
-                <span className="material-symbols-outlined text-primary text-xl">search</span>
+              <div className="flex-1 flex items-center gap-3 px-3.5 py-2.5 bg-surface-container-low hover:bg-surface-container/80 transition-colors duration-150 rounded-xl border border-transparent focus-within:border-outline-variant/60 focus-within:bg-surface focus-within:shadow-2xs">
+                <span className="material-symbols-outlined text-primary text-xl" aria-hidden="true">search</span>
                 <input
                   type="text"
+                  name="q"
                   placeholder="Job title, technical skill, or keyword..."
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="w-full bg-transparent text-xs sm:text-sm text-on-surface placeholder:text-outline focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm text-on-surface placeholder:text-outline focus:outline-none focus-visible:outline-none"
+                  aria-label="Search by job title, technical skill, or keyword"
                 />
               </div>
 
-              <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-xl">
-                <span className="material-symbols-outlined text-primary text-xl">location_on</span>
+              <div className="flex-1 flex items-center gap-3 px-3.5 py-2.5 bg-surface-container-low hover:bg-surface-container/80 transition-colors duration-150 rounded-xl border border-transparent focus-within:border-outline-variant/60 focus-within:bg-surface focus-within:shadow-2xs">
+                <span className="material-symbols-outlined text-primary text-xl" aria-hidden="true">location_on</span>
                 <input
                   type="text"
+                  name="location"
                   placeholder="City, state, or 'Remote'..."
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-transparent text-xs sm:text-sm text-on-surface placeholder:text-outline focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm text-on-surface placeholder:text-outline focus:outline-none focus-visible:outline-none"
+                  aria-label="Filter by location or Remote"
                 />
               </div>
 
               <button
                 type="submit"
-                className="px-6 py-3 bg-primary text-on-primary font-bold text-xs sm:text-sm rounded-xl hover:bg-primary-container transition-all flex items-center justify-center gap-2 shadow-xs"
+                className="px-6 py-3 bg-primary text-on-primary font-bold text-xs sm:text-sm rounded-xl hover:bg-primary-hover active:bg-primary-active transition-all duration-150 flex items-center justify-center gap-2 shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target"
+                aria-label="Submit job search"
               >
                 <span>Search Jobs</span>
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
               </button>
             </form>
           </div>

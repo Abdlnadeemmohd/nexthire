@@ -96,10 +96,39 @@
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* WCAG 2.2 AA Accessible High-Contrast Focus Rings */
-*:focus-visible {
+/* WCAG 2.2 AA Accessible High-Contrast Focus Rings for Keyboard Navigation */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
   outline: 2px solid var(--color-focus) !important;
   outline-offset: 2px !important;
+}
+
+/* Text Inputs & Selects: Suppress default rectangular outline on click/focus */
+input:not([type="checkbox"]):not([type="radio"]),
+input:not([type="checkbox"]):not([type="radio"]):focus,
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+select,
+select:focus,
+select:focus-visible,
+textarea,
+textarea:focus,
+textarea:focus-visible {
+  outline: none !important;
+  outline-style: none !important;
+}
+
+/* Ensure transparent search inputs have zero default borders */
+input.bg-transparent,
+input.bg-transparent:focus,
+input.bg-transparent:focus-visible {
+  outline: none !important;
+  outline-style: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .btn-accessible-success {
