@@ -22,6 +22,8 @@ export async function GET() {
       companies,
       activeJobs,
       totalApplications,
+      activeSubscriptions,
+      auditEventsCount,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { role: "JOB_SEEKER" } }),
@@ -30,6 +32,8 @@ export async function GET() {
       prisma.company.count(),
       prisma.job.count({ where: { status: "ACTIVE" } }),
       prisma.application.count(),
+      prisma.subscription.count({ where: { status: "ACTIVE", endDate: { gte: new Date() } } }),
+      prisma.auditEvent.count(),
     ]);
 
     return NextResponse.json({
@@ -42,8 +46,8 @@ export async function GET() {
         companies,
         activeJobs,
         totalApplications,
-        activeSubscriptions: 0,
-        auditEventsCount: 0,
+        activeSubscriptions,
+        auditEventsCount,
       },
     });
   } catch (err: any) {

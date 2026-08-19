@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { assertRecruiterAndCompanyVerified, VerificationRequiredError } from "@/lib/auth/verification";
+import { assertJobPostingAllowed, EntitlementLimitError } from "@/lib/billing/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -50,26 +51,41 @@ export async function GET(request: Request) {
       return {
         id: j.id,
         title: j.title,
-        companyName: j.company?.name || "Hiring Partner",
-        companyId: j.companyId || j.company?.id || null,
-        companyLogo: j.company?.logo || null,
-        isCompanyVerified: j.company?.isVerified || false,
-        location: j.location,
-        country: j.country,
-        salaryMin: j.salaryMin,
-        salaryMax: j.salaryMax,
-        employmentType: j.employmentType,
-        experienceLevel: j.experienceLevel,
-        category: j.category,
-        isRemote: j.isRemote,
-        tags: j.skills ? j.skills.split(",").map((s) => s.trim()).filter(Boolean) : [],
         description: j.description,
         responsibilities,
         requirements,
         benefits,
+        location: j.location,
+        country: j.country,
+        salaryMin: j.salaryMin,
+        salaryMax: j.salaryMax,
+        salary: `$${j.salaryMin.toLocaleString()} - $${j.salaryMax.toLocaleString()}`,
+        employmentType: j.employmentType,
+        experienceLevel: j.experienceLevel,
+        category: j.category,
+        isRemote: j.isRemote,
+        skills: j.skills ? j.skills.split(",").map((s) => s.trim()) : [],
+        tags: j.skills ? j.skills.split(",").map((s) => s.trim()) : [],
+        postedDate: j.createdAt.toISOString().split("T")[0],
         postedAt: j.createdAt.toISOString().split("T")[0],
-        companyDescription: j.company?.description || "",
-        companyWebsite: j.company?.website || "",
+        status: j.status,
+        isTrialJob: j.isTrialJob,
+        companyName: j.company?.name || "Verified Organization",
+        companyId: j.companyId || j.company?.id || null,
+        companyLogo:
+          j.company?.logo ||
+          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
+        isCompanyVerified: j.company?.isVerified ?? true,
+        company: {
+          id: j.company?.id || "unknown",
+          name: j.company?.name || "Verified Organization",
+          logo:
+            j.company?.logo ||
+            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
+          industry: j.company?.industry || "Technology",
+          location: j.company?.location || "Remote",
+          isVerified: j.company?.isVerified ?? true,
+        },
       };
     });
 
@@ -85,9 +101,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (!authUser) {
     return NextResponse.json(
-      { success: false, error: "Unauthorized: Recruiter or Admin role required" },
+      { success: false, error: "Unauthorized: Sign in required to post jobs." },
+      { status: 401 }
+    );
+  }
+
+  if (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN") {
+    return NextResponse.json(
+      { success: false, error: "Forbidden: Recruiter or Admin role required." },
       { status: 403 }
     );
   }
@@ -95,9 +118,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Enforce strict explicit verification for Recruiter AND Company (PENDING, REJECTED, and SUSPENDED are blocked)
+    // 1. Enforce strict explicit verification for Recruiter AND Company
     if (authUser.role === "RECRUITER") {
       await assertRecruiterAndCompanyVerified(authUser);
+    }
+
+    // 2. Enforce job posting quotas (Trial mode max 1 job posting)
+    let isTrialJob = false;
+    if (authUser.role === "RECRUITER") {
+      const postingQuota = await assertJobPostingAllowed(authUser.id);
+      isTrialJob = postingQuota.isTrialJob;
     }
 
     const companyId = authUser.companyId || body.companyId;
@@ -131,8 +161,15 @@ export async function POST(request: Request) {
         experienceLevel: body.experienceLevel?.trim() || "Mid-Level",
         category: body.category?.trim() || "Engineering",
         isRemote: Boolean(body.isRemote),
-        skills: Array.isArray(body.tags) ? body.tags.join(",") : (body.skills?.trim() || ""),
+        skills: Array.isArray(body.skills)
+          ? body.skills.join(", ")
+          : Array.isArray(body.tags)
+          ? body.tags.join(", ")
+          : typeof body.skills === "string"
+          ? body.skills.trim()
+          : "",
         status: "ACTIVE",
+        isTrialJob,
         companyId,
         recruiterId: authUser.id,
       },
@@ -143,6 +180,12 @@ export async function POST(request: Request) {
     if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
       return NextResponse.json(
         { success: false, error: err.message, status: err.status },
+        { status: 403 }
+      );
+    }
+    if (err instanceof EntitlementLimitError || err.name === "EntitlementLimitError") {
+      return NextResponse.json(
+        { success: false, error: err.message, code: err.code, upgradeRequired: true },
         { status: 403 }
       );
     }

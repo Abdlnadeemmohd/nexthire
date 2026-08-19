@@ -50,8 +50,16 @@ export function formatSessionCookie(payload: SessionPayload): string {
 /**
  * Parses and validates an authenticated user session.
  */
-export async function getAuthenticatedUser(requestOrToken?: string): Promise<AuthUser | null> {
-  let cookieVal = requestOrToken;
+export async function getAuthenticatedUser(requestOrToken?: string | Request): Promise<AuthUser | null> {
+  let cookieVal: string | undefined;
+
+  if (typeof requestOrToken === "string") {
+    cookieVal = requestOrToken;
+  } else if (requestOrToken && typeof requestOrToken === "object" && "headers" in requestOrToken) {
+    const rawCookie = (requestOrToken as Request).headers.get("cookie") || "";
+    const match = rawCookie.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE_NAME}=([^;]*)`));
+    cookieVal = match ? match[1] : undefined;
+  }
 
   if (!cookieVal) {
     try {
@@ -111,6 +119,9 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
       .catch(() => {});
 
     const u = dbSession.user;
+    const { getUserVerificationStatus } = await import("@/lib/auth/verification");
+    const verificationStatus = await getUserVerificationStatus(u.id, u.role);
+
     return {
       id: u.id,
       name: u.name,
@@ -119,7 +130,8 @@ export async function getAuthenticatedUser(requestOrToken?: string): Promise<Aut
       avatar:
         u.avatar ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-      status: "VERIFIED",
+      status: verificationStatus === "VERIFIED" ? "VERIFIED" : "PENDING",
+      verificationStatus,
       companyId: u.companyId || u.company?.id || undefined,
       companyName: u.company?.name,
       headline: u.headline || undefined,

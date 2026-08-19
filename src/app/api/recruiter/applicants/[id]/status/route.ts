@@ -99,7 +99,7 @@ export async function POST(
       },
       include: {
         job: { include: { company: true } },
-        applicant: { include: { profile: true } },
+        applicant: true,
         rejection: true,
         events: { orderBy: { timestamp: "desc" } },
       },
@@ -203,4 +203,11 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: { id: string } }
+) {
+  return POST(request, context);
 }

@@ -7,10 +7,17 @@ import { logAuditEvent } from "@/lib/audit/auditLogger";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const authUser = await getAuthenticatedUser();
-  if (!authUser || authUser.role !== "PLATFORM_ADMIN") {
+  const authUser = await getAuthenticatedUser(request);
+  if (!authUser) {
     return NextResponse.json(
-      { success: false, error: "Unauthorized: Platform Admin access required" },
+      { success: false, error: "Unauthorized: Sign in required." },
+      { status: 401 }
+    );
+  }
+
+  if (authUser.role !== "PLATFORM_ADMIN") {
+    return NextResponse.json(
+      { success: false, error: "Forbidden: Platform Admin access required." },
       { status: 403 }
     );
   }

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { notificationService } from "@/lib/notifications/NotificationService";
 import { assertUserVerified, VerificationRequiredError } from "@/lib/auth/verification";
+import { sanitizeMessageContent } from "@/lib/privacy/contactProtection";
+import { getTodayDateString } from "@/lib/billing/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +18,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const contactId = searchParams.get("contactId");
+  const contactId = searchParams.get("contactId") || searchParams.get("conversationWith");
 
   try {
     if (contactId) {
@@ -120,12 +122,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // Track daily message usage
+    const today = getTodayDateString();
+    await prisma.dailyUsage.upsert({
+      where: { userId_date: { userId: authUser.id, date: today } },
+      create: { userId: authUser.id, date: today, messages: 1 },
+      update: { messages: { increment: 1 } },
+    });
+
+    // Sanitize contact info if message contains unprotected emails/phone numbers
+    const { sanitized } = sanitizeMessageContent(content.trim());
+
     // Persist message in Neon PostgreSQL
     const createdMessage = await prisma.message.create({
       data: {
         senderId: authUser.id,
         receiverId: receiver.id,
-        content: content.trim(),
+        content: sanitized,
         attachment: attachment || undefined,
         read: false,
       },
@@ -136,7 +149,7 @@ export async function POST(request: Request) {
     });
 
     // Send in-app notification to the message receiver
-    const preview = content.trim().length > 60 ? `${content.trim().substring(0, 60)}...` : content.trim();
+    const preview = sanitized.length > 60 ? `${sanitized.substring(0, 60)}...` : sanitized;
     await notificationService.sendNotification({
       userId: receiver.id,
       title: `New Message from ${authUser.name}`,
@@ -146,10 +159,13 @@ export async function POST(request: Request) {
       ctaUrl: `/messages?contactId=${authUser.id}`,
     });
 
-    return NextResponse.json({
-      success: true,
-      data: createdMessage,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: createdMessage,
+      },
+      { status: 201 }
+    );
   } catch (err: any) {
     if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
       return NextResponse.json(

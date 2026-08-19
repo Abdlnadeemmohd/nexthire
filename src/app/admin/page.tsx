@@ -54,7 +54,7 @@ export default function PlatformAdminPage() {
         <SidebarNav portal="admin" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-6 pb-20 sm:pb-24">
             <Breadcrumbs items={[{ label: "Home", href: "/admin" }, { label: "Admin Operations" }]} />
 
             {/* Platform Admin Banner */}

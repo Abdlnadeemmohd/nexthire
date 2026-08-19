@@ -17,6 +17,8 @@ model User {
   headline         String?
   bio              String?
   location         String?
+  phone            String?
+  isDiscoverable   Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   companyId        String?
@@ -29,6 +31,15 @@ model User {
   profile          Profile?
   savedJobs        SavedJob[]
   sessions         Session[]
+  trials           RecruiterTrial[]
+  subscriptions    Subscription[]
+  dailyUsages      DailyUsage[]
+  unlockedCandidates CandidateUnlock[] @relation("RecruiterUnlocks")
+  unlockedBy       CandidateUnlock[] @relation("CandidateUnlocked")
+  sentContactRequests ContactRequest[] @relation("SentContactRequests")
+  receivedContactRequests ContactRequest[] @relation("ReceivedContactRequests")
+  resumeAccessLogs ResumeAccessLog[] @relation("RecruiterResumeLogs")
+  resumeTargetLogs ResumeAccessLog[] @relation("CandidateResumeLogs")
   company          Company?       @relation(fields: [companyId], references: [id])
 }
 
@@ -62,6 +73,8 @@ model Company {
   createdAt     DateTime @default(now())
   jobs          Job[]
   users         User[]
+  trials        RecruiterTrial[]
+  subscriptions Subscription[]
 }
 
 model Job {
@@ -81,6 +94,7 @@ model Job {
   isRemote         Boolean        @default(false)
   skills           String
   status           JobStatus      @default(ACTIVE)
+  isTrialJob       Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   companyId        String
@@ -300,4 +314,179 @@ enum RejectionReason {
   CULTURE_FIT
   POSITION_CANCELLED
   OTHER
+}
+
+model RecruiterTrial {
+  id                    String      @id @default(uuid())
+  recruiterId           String      @unique
+  companyId             String
+  candidateSearchLimit  Int         @default(5)
+  candidateSearchesUsed Int         @default(0)
+  jobPostingLimit       Int         @default(1)
+  jobPostingsUsed       Int         @default(0)
+  startedAt             DateTime    @default(now())
+  completedAt           DateTime?
+  status                TrialStatus @default(ACTIVE)
+  recruiter             User        @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  company               Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([recruiterId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model SubscriptionPlan {
+  id                   String              @id
+  name                 String
+  tier                 PlanTier
+  price                Int                 @default(0)
+  currency             String              @default("INR")
+  durationDays         Int                 @default(30)
+  candidateSearchLimit Int                 @default(5)
+  candidateUnlockLimit Int                 @default(0)
+  resumeUnlockLimit    Int                 @default(0)
+  messageLimit         Int                 @default(10)
+  messagingLevel       MessagingLevel      @default(LIMITED_MESSAGE)
+  contactSharingLevel  ContactSharingLevel @default(MASKED)
+  jobPostingLimit      Int                 @default(1)
+  advancedSearch       Boolean             @default(false)
+  savedSearches        Boolean             @default(false)
+  aiMatching           Boolean             @default(false)
+  analytics            Boolean             @default(false)
+  prioritySupport      Boolean             @default(false)
+  isActive             Boolean             @default(true)
+  displayOrder         Int                 @default(0)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  subscriptions        Subscription[]
+}
+
+model Subscription {
+  id         String             @id @default(uuid())
+  userId     String
+  companyId  String?
+  planId     String
+  status     SubscriptionStatus @default(ACTIVE)
+  startDate  DateTime           @default(now())
+  endDate    DateTime
+  autoRenew  Boolean            @default(false)
+  paymentId  String?
+  amountPaid Int                @default(0)
+  currency   String             @default("INR")
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company    Company?           @relation(fields: [companyId], references: [id])
+  plan       SubscriptionPlan   @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model DailyUsage {
+  id                String   @id @default(uuid())
+  userId            String
+  date              String   // YYYY-MM-DD
+  candidateSearches Int      @default(0)
+  candidateUnlocks  Int      @default(0)
+  resumeUnlocks     Int      @default(0)
+  messages          Int      @default(0)
+  contactRequests   Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model CandidateUnlock {
+  id          String   @id @default(uuid())
+  recruiterId String
+  candidateId String
+  unlockedAt  DateTime @default(now())
+  recruiter   User     @relation("RecruiterUnlocks", fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidate   User     @relation("CandidateUnlocked", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([recruiterId, candidateId])
+  @@index([recruiterId])
+  @@index([candidateId])
+}
+
+model ContactRequest {
+  id          String               @id @default(uuid())
+  recruiterId String
+  candidateId String
+  status      ContactRequestStatus @default(PENDING)
+  message     String?
+  createdAt   DateTime             @default(now())
+  respondedAt DateTime?
+  recruiter   User                 @relation("SentContactRequests", fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidate   User                 @relation("ReceivedContactRequests", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([recruiterId])
+  @@index([candidateId])
+  @@index([status])
+}
+
+model ResumeAccessLog {
+  id          String   @id @default(uuid())
+  recruiterId String
+  candidateId String
+  action      String   // "PREVIEW" | "DOWNLOAD" | "UNLOCK"
+  timestamp   DateTime @default(now())
+  ipAddress   String?
+  recruiter   User     @relation("RecruiterResumeLogs", fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidate   User     @relation("CandidateResumeLogs", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([recruiterId])
+  @@index([candidateId])
+}
+
+enum TrialStatus {
+  AVAILABLE
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  SUSPENDED
+}
+
+enum PlanTier {
+  TRIAL
+  SILVER
+  GOLD
+  DIAMOND
+  PLATINUM
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  REFUNDED
+  SUSPENDED
+}
+
+enum MessagingLevel {
+  LIMITED_MESSAGE
+  BASIC_MESSAGE
+  ENHANCED_MESSAGE
+  CONTACT_REQUEST
+  ADVANCED_MESSAGE
+}
+
+enum ContactSharingLevel {
+  MASKED
+  CONTROLLED_REQUEST
+  DIRECT_PERMISSION
+}
+
+enum ContactRequestStatus {
+  PENDING
+  ACCEPTED_EMAIL
+  ACCEPTED_PHONE
+  ACCEPTED_ALL
+  DECLINED
 }

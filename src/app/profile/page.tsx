@@ -12,6 +12,7 @@ import { EmploymentStatus, UserExperience, UserEducation, UserCertification } fr
 
 import { CertificateUploadModal, CertificateRecord } from "@/components/profile/CertificateUploadModal";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { PrivacyAndContactRequests } from "@/components/profile/PrivacyAndContactRequests";
 import { RecruitmentEngine } from "@/services/recruitmentEngine";
 import { useEffect } from "react";
 
@@ -682,6 +683,9 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+
+            {/* Candidate Privacy & Recruiter Contact Consent Center */}
+            <PrivacyAndContactRequests />
           </main>
           <Footer />
         </div>
