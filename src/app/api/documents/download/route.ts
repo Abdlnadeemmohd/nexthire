@@ -252,18 +252,48 @@ export async function GET(request: Request) {
     // 5. Default Direct Streaming: Fetch document server-side and stream response to user
     let fileBuffer: Buffer | ArrayBuffer | null = null;
 
-    if (secureDeliveryUrl && secureDeliveryUrl.startsWith("http")) {
+    if (resolvedDocumentUrl.startsWith("data:")) {
       try {
-        const upstreamRes = await fetch(secureDeliveryUrl, { cache: "no-store" });
+        const commaIndex = resolvedDocumentUrl.indexOf(",");
+        if (commaIndex > 0) {
+          const base64Data = resolvedDocumentUrl.substring(commaIndex + 1);
+          fileBuffer = Buffer.from(base64Data, "base64");
+        }
+      } catch (dataErr) {
+        console.warn("[Document Download] Base64 decoding warning:", dataErr);
+      }
+    } else if (resolvedDocumentUrl.startsWith("/")) {
+      try {
+        const fs = await import("fs/promises");
+        const path = await import("path");
+        const localPath = path.join(process.cwd(), "public", resolvedDocumentUrl.replace(/^\//, ""));
+        fileBuffer = await fs.readFile(localPath);
+      } catch (fsErr) {
+        console.warn("[Document Download] Local file read warning:", fsErr);
+      }
+    } else if (secureDeliveryUrl && secureDeliveryUrl.startsWith("http")) {
+      try {
+        const fetchHeaders: Record<string, string> = {};
+        if (secureDeliveryUrl.includes("res.cloudinary.com") && apiKey && apiSecret) {
+          fetchHeaders["Authorization"] = "Basic " + Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+        }
+
+        let upstreamRes = await fetch(secureDeliveryUrl, { headers: fetchHeaders, cache: "no-store" });
         if (upstreamRes.ok) {
           fileBuffer = await upstreamRes.arrayBuffer();
+        } else if (resolvedDocumentUrl !== secureDeliveryUrl) {
+          // Retry direct resolvedDocumentUrl
+          upstreamRes = await fetch(resolvedDocumentUrl, { headers: fetchHeaders, cache: "no-store" });
+          if (upstreamRes.ok) {
+            fileBuffer = await upstreamRes.arrayBuffer();
+          }
         }
       } catch (streamErr) {
         console.error("[Document Download] Upstream stream fetch notice:", streamErr);
       }
     }
 
-    // Local file fallback (e.g. public/resumes/verified_candidate.pdf)
+    // Local file fallback if document is inaccessible or mock
     if (!fileBuffer) {
       try {
         const fs = await import("fs/promises");

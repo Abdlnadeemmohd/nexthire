@@ -122,6 +122,17 @@ export async function getAuthenticatedUser(requestOrToken?: string | Request): P
     const { getUserVerificationStatus } = await import("@/lib/auth/verification");
     const verificationStatus = await getUserVerificationStatus(u.id, u.role);
 
+    let subscriptionTier = "TRIAL";
+    try {
+      if (u.role === "RECRUITER") {
+        const { getRecruiterEntitlements } = await import("@/lib/billing/entitlements");
+        const entitlements = await getRecruiterEntitlements(u.id);
+        subscriptionTier = entitlements.planTier;
+      }
+    } catch {}
+
+    const isVerified = verificationStatus === "VERIFIED";
+
     return {
       id: u.id,
       name: u.name,
@@ -130,8 +141,10 @@ export async function getAuthenticatedUser(requestOrToken?: string | Request): P
       avatar:
         u.avatar ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
-      status: verificationStatus === "VERIFIED" ? "VERIFIED" : "PENDING",
+      status: isVerified ? "VERIFIED" : "PENDING",
       verificationStatus,
+      isVerified,
+      subscriptionTier,
       companyId: u.companyId || u.company?.id || undefined,
       companyName: u.company?.name,
       headline: u.headline || undefined,

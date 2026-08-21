@@ -146,6 +146,8 @@ export default function RecruiterCompanyProfilePage() {
         techStack: company.techStack,
         benefits: company.benefits,
         locations: company.locations,
+        values: company.values,
+        links: company.links,
         ...overrides,
       };
 
@@ -221,6 +223,10 @@ export default function RecruiterCompanyProfilePage() {
   const handleApplySuggestion = async () => {
     if (!enrichSuggestions) return;
 
+    const domainPart = (enrichSuggestions.website || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    const safeLogo = enrichSuggestions.logoUrl || (domainPart ? `https://www.google.com/s2/favicons?domain=${domainPart}&sz=128` : company.logo);
+    const safeCover = enrichSuggestions.coverImageUrl || company.coverImage;
+
     const updated = {
       ...company,
       name: enrichSuggestions.name || company.name,
@@ -234,8 +240,9 @@ export default function RecruiterCompanyProfilePage() {
       companySize: enrichSuggestions.companySize || company.companySize,
       foundedYear: enrichSuggestions.foundedYear || company.foundedYear,
       location: enrichSuggestions.headquarters || company.location,
-      logo: enrichSuggestions.logoUrl || company.logo,
-      coverImage: enrichSuggestions.coverImageUrl || company.coverImage,
+      headquarters: enrichSuggestions.headquarters || company.headquarters,
+      logo: safeLogo,
+      coverImage: safeCover,
       techStack: enrichSuggestions.techStack?.length ? enrichSuggestions.techStack : company.techStack,
       benefits: enrichSuggestions.benefits?.length ? enrichSuggestions.benefits : company.benefits,
       values: enrichSuggestions.values?.length ? enrichSuggestions.values : company.values,

@@ -81,6 +81,42 @@ export async function GET(request: Request) {
     const normalize = (txt: string) =>
       txt.toLowerCase().replace(/[-_./,\t]/g, " ").replace(/\s+/g, " ").trim();
 
+    const SYNONYMS: Record<string, string[]> = {
+      "fullstack": ["full stack", "full-stack"],
+      "full stack": ["fullstack", "full-stack"],
+      "full-stack": ["fullstack", "full stack"],
+      "frontend": ["front end", "front-end"],
+      "front end": ["frontend", "front-end"],
+      "front-end": ["frontend", "front end"],
+      "backend": ["back end", "back-end"],
+      "back end": ["backend", "back-end"],
+      "back-end": ["backend", "back end"],
+      "react": ["react.js", "reactjs"],
+      "reactjs": ["react", "react.js"],
+      "react.js": ["react", "reactjs"],
+      "node": ["node.js", "nodejs"],
+      "nodejs": ["node", "node.js"],
+      "node.js": ["node", "nodejs"],
+      "next": ["next.js", "nextjs"],
+      "nextjs": ["next", "next.js"],
+      "js": ["javascript", "typescript", "ts"],
+      "javascript": ["js", "typescript", "ts", "react"],
+      "ts": ["typescript", "javascript", "js"],
+      "typescript": ["ts", "javascript", "js"],
+      "cloud": ["aws", "azure", "gcp", "devops", "cloud computing"],
+      "aws": ["cloud", "amazon web services"],
+      "azure": ["cloud", "microsoft azure"],
+      "gcp": ["cloud", "google cloud platform"],
+      "ui/ux": ["ui ux", "ui", "ux", "designer"],
+      "ui ux": ["ui/ux", "ui", "ux", "designer"],
+      "engineer": ["developer", "engineering"],
+      "developer": ["engineer", "engineering"],
+      "engineering": ["engineer", "developer"],
+      "tech": ["technical", "technology"],
+      "technical": ["tech", "technology"],
+      "professional": ["specialist", "practitioner"],
+    };
+
     // 5. Post-process candidates for multi-criteria matching & contact protection
     const formatted = candidates
       .map((cand) => {
@@ -155,28 +191,37 @@ export async function GET(request: Request) {
         const matchedReasons: string[] = [];
         if (q) {
           const normQ = normalize(q);
-          const tokens = normQ.split(/\s+/).filter(Boolean);
+          const rawTokens = normQ.split(/\s+/).filter(Boolean);
 
-          const hasMatch =
-            searchableCorpus.includes(normQ) ||
-            tokens.some((t) => searchableCorpus.includes(t));
+          // Expand query with synonyms
+          const allQueryVariants = new Set<string>([normQ, ...rawTokens]);
+          rawTokens.forEach((t) => {
+            if (SYNONYMS[t]) SYNONYMS[t].forEach((syn) => allQueryVariants.add(syn));
+          });
+          if (SYNONYMS[normQ]) {
+            SYNONYMS[normQ].forEach((syn) => allQueryVariants.add(syn));
+          }
+
+          const hasMatch = Array.from(allQueryVariants).some((v) =>
+            searchableCorpus.includes(normalize(v))
+          );
 
           if (!hasMatch) return null;
 
-          if (normalize(cand.name).includes(normQ) || tokens.some((t) => normalize(cand.name).includes(t))) {
+          if (normalize(cand.name).includes(normQ) || rawTokens.some((t) => normalize(cand.name).includes(t))) {
             matchedReasons.push("Name match");
           }
-          if (normalize(cleanHeadline).includes(normQ) || tokens.some((t) => normalize(cleanHeadline).includes(t))) {
+          if (normalize(cleanHeadline).includes(normQ) || rawTokens.some((t) => normalize(cleanHeadline).includes(t))) {
             matchedReasons.push(`Role: ${cleanHeadline}`);
           }
           const matchedSkills = skillsArray.filter((s) =>
-            tokens.some((t) => normalize(s).includes(t)) || normalize(s).includes(normQ)
+            Array.from(allQueryVariants).some((v) => normalize(s).includes(normalize(v)))
           );
           if (matchedSkills.length > 0) {
             matchedReasons.push(`Skill: ${matchedSkills.slice(0, 2).join(", ")}`);
           }
           const matchedComp = previousCompanies.find((c) =>
-            tokens.some((t) => normalize(c).includes(t)) || normalize(c).includes(normQ)
+            Array.from(allQueryVariants).some((v) => normalize(c).includes(normalize(v)))
           );
           if (matchedComp) {
             matchedReasons.push(`Experience: ${matchedComp}`);

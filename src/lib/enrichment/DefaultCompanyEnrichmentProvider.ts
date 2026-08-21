@@ -5,15 +5,27 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
   public providerName = "NextHire Official Knowledge & Directory Enrichment";
 
   public async enrichCompany(query: { name?: string; domain?: string }): Promise<CompanyEnrichmentSuggestion | null> {
-    const rawName = (query.name || "").trim();
-    const rawDomain = (query.domain || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    // 1. Clean and normalize input (support full URLs, domain paths, query params, and raw names)
+    let raw = (query.name || query.domain || "").trim();
+    raw = raw.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").replace(/\?.*$/, "");
+    raw = raw.replace(/^(www\.|careers\.|about\.|jobs\.|corporate\.|ir\.|dev\.|developer\.)+/i, "");
 
-    if (!rawName && !rawDomain) return null;
+    let rawDomain = "";
+    let searchToken = raw.toLowerCase();
+
+    if (raw.includes(".")) {
+      rawDomain = raw.toLowerCase();
+      searchToken = raw.split(".")[0].toLowerCase();
+    }
+
+    const rawName = query.name && !query.name.includes("/") && !query.name.includes(".") ? query.name.trim() : searchToken;
+
+    if (!raw && !searchToken) return null;
 
     try {
-      // 1. Search existing verified NextHire companies with strictly defined conditions (Never empty {})
+      // 2. Search existing verified NextHire companies with strictly defined conditions (Never empty {})
       const orConditions: any[] = [];
-      if (rawName) {
+      if (rawName && rawName.length > 1) {
         orConditions.push({ name: { equals: rawName, mode: "insensitive" } });
         orConditions.push({ name: { contains: rawName, mode: "insensitive" } });
       }
@@ -50,8 +62,9 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
             tagline: existingCompany.tagline || undefined,
             mission: existingCompany.mission || undefined,
             vision: existingCompany.vision || undefined,
-            logoUrl: existingCompany.logo || undefined,
-            coverImage: existingCompany.coverImage || undefined,
+            logoUrl: existingCompany.logo || `https://images.unsplash.com/photo-1523474253246-73be6cb4225a?w=256&auto=format&fit=crop&q=80`,
+            coverImage: existingCompany.coverImage || "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1600&auto=format&fit=crop&q=80",
+            coverImageUrl: existingCompany.coverImage || "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1600&auto=format&fit=crop&q=80",
             remotePolicy: existingCompany.remotePolicy || "Hybrid",
             techStack,
             benefits,
@@ -64,8 +77,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
         }
       }
 
-      // 2. Structured Provider Suggestions for Recognized Organizations (Canonical Knowledge)
-      const cleanLower = (rawName || rawDomain).toLowerCase();
+      // 3. Structured Provider Suggestions for Recognized Organizations (Canonical Knowledge)
+      const cleanLower = searchToken.toLowerCase();
       let matchedOrg: {
         name: string;
         website: string;
@@ -75,6 +88,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
         headquarters: string;
         tagline: string;
         description: string;
+        logoUrl: string;
+        coverImageUrl: string;
         techStack: string[];
       } | null = null;
 
@@ -88,6 +103,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "Seattle, WA, United States",
           tagline: "Earth's most customer-centric company and cloud infrastructure leader.",
           description: "Amazon is a global technology leader focusing on cloud computing (AWS), digital streaming, artificial intelligence, and e-commerce.",
+          logoUrl: "https://images.unsplash.com/photo-1523474253246-73be6cb4225a?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1600&auto=format&fit=crop&q=80",
           techStack: ["AWS", "Java", "TypeScript", "Python", "Distributed Systems", "DynamoDB", "React"],
         };
       } else if (cleanLower.includes("google")) {
@@ -100,6 +117,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "Mountain View, CA, United States",
           tagline: "Organizing the world's information and making it universally accessible.",
           description: "Google is an international technology multinational specializing in artificial intelligence, search engines, cloud computing, and computer software.",
+          logoUrl: "https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1600&auto=format&fit=crop&q=80",
           techStack: ["Go", "Python", "C++", "TensorFlow", "TypeScript", "Angular", "GCP", "Kubernetes"],
         };
       } else if (cleanLower.includes("microsoft")) {
@@ -112,6 +131,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "Redmond, WA, United States",
           tagline: "Empowering every person and every organization on the planet to achieve more.",
           description: "Microsoft develops, manufactures, licenses, supports, and sells computer software, consumer electronics, personal computers, and cloud services.",
+          logoUrl: "https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&auto=format&fit=crop&q=80",
           techStack: ["C#", ".NET", "Azure", "TypeScript", "React", "Python", "SQL Server"],
         };
       } else if (cleanLower.includes("stripe")) {
@@ -124,6 +145,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "San Francisco, CA, United States",
           tagline: "Financial infrastructure for the internet.",
           description: "Stripe is a financial technology company that builds economic infrastructure for the internet, enabling businesses of every size to accept payments and manage transactions.",
+          logoUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&auto=format&fit=crop&q=80",
           techStack: ["Ruby", "TypeScript", "React", "Go", "PostgreSQL", "Kafka", "AWS"],
         };
       } else if (cleanLower.includes("apple")) {
@@ -136,6 +159,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "Cupertino, CA, United States",
           tagline: "Think Different.",
           description: "Apple designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories, and sells a variety of related services.",
+          logoUrl: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&auto=format&fit=crop&q=80",
           techStack: ["Swift", "Objective-C", "C++", "Python", "iOS", "macOS", "CloudKit"],
         };
       } else if (cleanLower.includes("meta")) {
@@ -148,6 +173,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "Menlo Park, CA, United States",
           tagline: "Giving people the power to build community and bring the world closer together.",
           description: "Meta builds technologies that help people connect, find communities, and grow businesses across apps like Facebook, Instagram, and WhatsApp.",
+          logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&auto=format&fit=crop&q=80",
           techStack: ["React", "PyTorch", "Python", "Hack/PHP", "C++", "GraphQL", "Rust"],
         };
       } else if (cleanLower.includes("netflix")) {
@@ -160,6 +187,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
           headquarters: "Los Gatos, CA, United States",
           tagline: "See what's next.",
           description: "Netflix is one of the world's leading entertainment streaming services, pioneering cloud-native microservices architecture and video encoding technologies.",
+          logoUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=256&auto=format&fit=crop&q=80",
+          coverImageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600&auto=format&fit=crop&q=80",
           techStack: ["Java", "Node.js", "React", "AWS", "Spinnaker", "Cassandra", "Kafka"],
         };
       }
@@ -178,6 +207,8 @@ export class DefaultCompanyEnrichmentProvider implements CompanyEnrichmentProvid
         headquarters: matchedOrg.headquarters,
         description: matchedOrg.description,
         tagline: matchedOrg.tagline,
+        logoUrl: matchedOrg.logoUrl,
+        coverImageUrl: matchedOrg.coverImageUrl,
         remotePolicy: "Hybrid",
         techStack: matchedOrg.techStack,
         benefits: [

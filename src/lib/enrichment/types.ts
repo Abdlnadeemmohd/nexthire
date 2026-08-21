@@ -15,6 +15,7 @@ export interface CompanyEnrichmentSuggestion {
   culture?: string;
   logoUrl?: string;
   coverImage?: string;
+  coverImageUrl?: string;
   remotePolicy?: string;
   techStack?: string[];
   benefits?: Array<{ category: string; perks: string[] }>;

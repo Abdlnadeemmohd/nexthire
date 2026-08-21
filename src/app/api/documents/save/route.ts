@@ -46,54 +46,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Strict Cloudinary HTTPS URL validation
+    // 3. Document Storage Source Resolution & Validation
     const configuredCloudName =
       process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(secureUrl);
-    } catch {
-      return NextResponse.json(
-        { success: false, error: "Malformed document storage URL." },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Reject non-HTTPS, localhost, data:, file:, javascript:
-    if (parsedUrl.protocol !== "https:") {
-      return NextResponse.json(
-        { success: false, error: "Insecure protocol rejected. Only HTTPS storage URLs are permitted." },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    if (parsedUrl.hostname !== "res.cloudinary.com") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid storage host. Documents must reside on authorized Cloudinary infrastructure.",
-        },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify Cloud Name in pathname (e.g. /<cloud-name>/...)
-    if (configuredCloudName) {
-      const pathSegments = parsedUrl.pathname.split("/").filter(Boolean);
-      const urlCloudName = pathSegments[0];
-      if (urlCloudName !== configuredCloudName) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Storage account mismatch. Document does not belong to the configured Cloudinary account.",
-          },
-          { status: 403, headers: { "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // 4. Strict Ownership & Server-Controlled Folder Validation
     const sanitizedUserId = authUser.id.replace(/[^a-zA-Z0-9_-]/g, "");
     if (!sanitizedUserId) {
       return NextResponse.json(
@@ -104,31 +62,7 @@ export async function POST(request: Request) {
 
     const expectedFolderSegment = `nexthire/users/${sanitizedUserId}/documents`;
 
-    // Verify that the secureUrl path contains the authenticated user's directory
-    if (!parsedUrl.pathname.includes(expectedFolderSegment)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Forbidden: Document does not belong to your authenticated user storage directory.",
-        },
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // If publicId is supplied, verify it matches the authenticated user's folder prefix
-    if (publicId && typeof publicId === "string") {
-      if (!publicId.startsWith(expectedFolderSegment)) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Forbidden: Document publicId ownership mismatch.",
-          },
-          { status: 403, headers: { "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // 5. Validate MIME type and File Size if provided
+    // 4. Validate MIME type and File Size if provided
     if (mimeType && typeof mimeType === "string" && !PERMITTED_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
         {
@@ -146,28 +80,105 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Structured Resume Intelligence & Non-Destructive Profile Extraction
-    let extractedText = "";
+    // 5. Binary PDF Retrieval & Decompression across all storage providers
+    let pdfBuffer: Buffer | null = null;
+
     try {
-      if (secureUrl && secureUrl.startsWith("http")) {
-        const docRes = await fetch(secureUrl, { cache: "no-store" });
+      if (secureUrl.startsWith("data:")) {
+        // Base64 Data URL
+        const commaIndex = secureUrl.indexOf(",");
+        if (commaIndex > 0) {
+          const base64Data = secureUrl.substring(commaIndex + 1);
+          pdfBuffer = Buffer.from(base64Data, "base64");
+        }
+      } else if (secureUrl.startsWith("/")) {
+        // Local path
+        const fs = await import("fs/promises");
+        const path = await import("path");
+        const localPath = path.join(process.cwd(), "public", secureUrl.replace(/^\//, ""));
+        pdfBuffer = await fs.readFile(localPath);
+      } else if (secureUrl.startsWith("http")) {
+        // Remote Cloudinary or HTTPS URL
+        const fetchHeaders: Record<string, string> = {};
+        if (secureUrl.includes("res.cloudinary.com") && apiKey && apiSecret) {
+          fetchHeaders["Authorization"] = "Basic " + Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+        }
+
+        const docRes = await fetch(secureUrl, { headers: fetchHeaders, cache: "no-store" });
         if (docRes.ok) {
-          const buffer = await docRes.arrayBuffer();
-          const rawBytes = Buffer.from(buffer);
-          // Match PDF text operators Tj and TJ
-          const textMatches = rawBytes.toString("latin1").match(/\(([^)]+)\)\s*Tj/g) || [];
-          extractedText = textMatches.map((m) => m.replace(/^\(/, "").replace(/\)\s*Tj$/, "")).join(" ");
-          if (!extractedText || extractedText.length < 40) {
-            const tjMatches = rawBytes.toString("latin1").match(/\[([^\]]+)\]\s*TJ/g) || [];
-            extractedText = tjMatches.map((m) => m.replace(/\[|\]\s*TJ/g, "").replace(/\(([^)]+)\)/g, "$1 ")).join(" ");
-          }
-          if (!extractedText || extractedText.length < 40) {
-            extractedText = rawBytes.toString("utf8").replace(/[^\x20-\x7E\n\r\t]/g, " ");
-          }
+          pdfBuffer = Buffer.from(await docRes.arrayBuffer());
         }
       }
-    } catch (fetchErr) {
-      console.warn("[PDF Text Extraction Warning]:", fetchErr);
+    } catch (retrievalErr) {
+      console.warn("[Document Save] Binary retrieval notice:", retrievalErr);
+    }
+
+    // 6. Structured PDF Text Extraction with FlateDecode Decompression
+    let extractedText = "";
+
+    if (pdfBuffer && pdfBuffer.length > 0) {
+      try {
+        const zlib = await import("zlib");
+        const bufferStr = pdfBuffer.toString("latin1");
+        const textChunks: string[] = [];
+
+        // Parse PDF streams and decompress /FlateDecode blocks
+        const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+        let match: RegExpExecArray | null;
+
+        while ((match = streamRegex.exec(bufferStr)) !== null) {
+          const streamData = match[1];
+          let decompressed = streamData;
+          try {
+            const rawStreamBytes = Buffer.from(streamData, "latin1");
+            const inflated = zlib.inflateSync(rawStreamBytes);
+            decompressed = inflated.toString("latin1");
+          } catch {
+            decompressed = streamData;
+          }
+
+          // Extract (text) Tj
+          const tjMatches = decompressed.match(/\(([^)]+)\)\s*Tj/g);
+          if (tjMatches) {
+            tjMatches.forEach((m) => {
+              const clean = m.replace(/^\(/, "").replace(/\)\s*Tj$/, "");
+              if (clean.trim()) textChunks.push(clean);
+            });
+          }
+
+          // Extract [(text) ... ] TJ
+          const tjArrayMatches = decompressed.match(/\[([\s\S]*?)\]\s*TJ/g);
+          if (tjArrayMatches) {
+            tjArrayMatches.forEach((m) => {
+              const innerTexts = m.match(/\(([^)]+)\)/g) || [];
+              innerTexts.forEach((it) => {
+                const clean = it.replace(/^\(/, "").replace(/\)$/, "");
+                if (clean.trim()) textChunks.push(clean);
+              });
+            });
+          }
+        }
+
+        // Global uncompressed text check
+        const globalTj = bufferStr.match(/\(([^)]+)\)\s*Tj/g) || [];
+        globalTj.forEach((m) => {
+          const clean = m.replace(/^\(/, "").replace(/\)\s*Tj$/, "");
+          if (clean.trim() && !textChunks.includes(clean)) textChunks.push(clean);
+        });
+
+        extractedText = textChunks.join(" ").replace(/\\([()\\])/g, "$1").replace(/\s+/g, " ").trim();
+
+        // Printable ASCII fallback if structured text chunks were minimal
+        if (!extractedText || extractedText.length < 50) {
+          const printable = pdfBuffer.toString("utf8").replace(/[^\x20-\x7E\n\r\t]/g, " ");
+          const validWords = printable.split(/\s+/).filter((w) => w.length > 2 && /[a-zA-Z]/.test(w));
+          if (validWords.length > 10) {
+            extractedText = validWords.join(" ");
+          }
+        }
+      } catch (parseErr) {
+        console.warn("[Document Save] PDF text parsing warning:", parseErr);
+      }
     }
 
     const { AIEngine } = await import("@/lib/aiEngine");

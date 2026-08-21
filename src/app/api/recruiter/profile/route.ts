@@ -125,7 +125,7 @@ export async function GET() {
         title: user.headline || null,
         company: user.company?.name || null,
         companyId: user.companyId || null,
-        isVerified: !!user.company?.isVerified,
+        isVerified: authUser.isVerified,
         subscriptionTier: entitlements?.planTier || "TRIAL",
         avatar: user.avatar || null,
         bio: user.bio || null,

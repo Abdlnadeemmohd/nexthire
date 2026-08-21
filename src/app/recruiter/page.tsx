@@ -11,6 +11,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+
 interface RecruiterJob {
   id: string;
   title: string;
@@ -125,9 +127,14 @@ export default function RecruiterDashboardPage() {
             {/* Header Banner */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-6">
               <div>
-                <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-                  Employer Dashboard
-                </h1>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                    Employer Dashboard
+                  </h1>
+                  {user?.isVerified && (
+                    <VerifiedBadge role="RECRUITER" tier={(user as any)?.subscriptionTier} size="md" />
+                  )}
+                </div>
                 <p className="text-on-surface-variant text-xs sm:text-sm font-body-md">
                   {user?.companyName || "Employer Workspace"} • Talent Acquisition Suite
                 </p>
