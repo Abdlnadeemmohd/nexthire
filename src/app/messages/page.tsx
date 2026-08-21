@@ -217,7 +217,9 @@ function MessagingCentreContent() {
                   ))
                 ) : (
                   <div className="p-6 text-center text-xs text-on-surface-variant">
-                    No active conversations. Reach out to candidates from the Candidate Search page.
+                    {portalType === "seeker"
+                      ? "No conversations yet. Inbound messages from employers will appear here."
+                      : "No active conversations. Reach out to candidates from the Candidate Search page."}
                   </div>
                 )}
               </div>
@@ -236,69 +238,69 @@ function MessagingCentreContent() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setMobileView("list")}
-                        className="sm:hidden p-1 text-on-surface-variant"
+                        className="sm:hidden p-1 text-on-surface-variant hover:text-on-surface rounded-full"
+                        aria-label="Back to contacts list"
                       >
-                        <span className="material-symbols-outlined">arrow_back</span>
+                        <span className="material-symbols-outlined text-xl">arrow_back</span>
                       </button>
                       <img
                         src={activeContact.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
                         alt={activeContact.name}
-                        className="w-10 h-10 rounded-full object-cover border border-primary/30"
+                        className="w-10 h-10 rounded-full object-cover border border-outline-variant/30"
                       />
                       <div>
                         <h3 className="font-bold text-sm text-on-surface">{activeContact.name}</h3>
-                        <p className="text-[11px] text-emerald-700 font-bold">● Active on NextHire Cloud</p>
+                        <span className="text-[10px] text-primary font-bold">
+                          {activeContact.role === "RECRUITER" ? "Verified Employer" : "NextHire Candidate"}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Messages Scroll Area with Copilot Safe Area */}
-                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 pb-28 sm:pb-32">
+                  {/* Messages Feed */}
+                  <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {messages.length > 0 ? (
                       messages.map((msg) => {
-                        const isSelf = msg.senderId === user?.id;
+                        const isMine = msg.senderId === user?.id;
                         return (
                           <div
                             key={msg.id}
-                            className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}
+                            className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}
                           >
                             <div
-                              className={`max-w-md px-4 py-3 rounded-2xl text-xs sm:text-sm font-body-sm shadow-xs ${
-                                isSelf
-                                  ? "bg-primary text-on-primary rounded-br-none mr-2 sm:mr-4"
-                                  : "bg-surface-container-high text-on-surface rounded-bl-none border border-outline-variant/20"
+                              className={`max-w-[85%] sm:max-w-[70%] p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                                isMine
+                                  ? "bg-primary text-on-primary rounded-br-xs shadow-xs"
+                                  : "bg-surface-container-high text-on-surface rounded-bl-xs border border-outline-variant/20 shadow-xs"
                               }`}
                             >
                               {msg.content}
                             </div>
-                            <span className={`text-[10px] text-outline pt-1 px-1 ${isSelf ? "mr-2 sm:mr-4" : ""}`}>
+                            <span className="text-[10px] text-outline font-medium pt-1 px-1">
                               {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </span>
                           </div>
                         );
                       })
                     ) : (
-                      <div className="py-20 text-center space-y-2">
-                        <div className="material-symbols-outlined text-4xl text-outline">chat_bubble_outline</div>
-                        <p className="text-xs text-on-surface-variant">
-                          No messages in this conversation yet. Send a greeting to start communicating!
-                        </p>
+                      <div className="flex items-center justify-center h-full text-xs text-on-surface-variant">
+                        Start the conversation by sending a message below.
                       </div>
                     )}
-                    <div ref={messagesEndRef} className="h-6" />
+                    <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Message Input Form */}
+                  {/* Message Input Box */}
                   <form
                     onSubmit={handleSendMessage}
-                    className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-2 sm:gap-3 relative z-20 flex-shrink-0"
+                    className="p-3 sm:p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center gap-2"
                   >
                     <input
                       type="text"
-                      placeholder={`Message ${activeContact.name}...`}
+                      placeholder="Type a professional message..."
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
-                      className="flex-1 px-4 py-2.5 sm:py-3 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="flex-1 p-2.5 sm:p-3 bg-surface border border-outline-variant/30 rounded-full text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-body-sm"
                     />
                     <button
                       type="submit"
@@ -312,13 +314,23 @@ function MessagingCentreContent() {
                 </>
               ) : (
                 <div className="flex-1 flex items-center justify-center p-6">
-                  <EmptyState
-                    title="No conversations yet"
-                    description="Candidate communications will appear here when messaging begins. Select candidate from Candidate Search to reach out."
-                    icon="forum"
-                    actionLabel="Search Candidates"
-                    actionHref="/recruiter/candidates"
-                  />
+                  {portalType === "seeker" ? (
+                    <EmptyState
+                      title="No conversations yet"
+                      description="Recruiter conversations and interview invitations will appear here when employers contact you."
+                      icon="forum"
+                      actionLabel="Explore Jobs"
+                      actionHref="/jobs"
+                    />
+                  ) : (
+                    <EmptyState
+                      title="No conversations yet"
+                      description="Candidate communications will appear here when messaging begins. Select candidates from Candidate Search to reach out."
+                      icon="forum"
+                      actionLabel="Search Candidates"
+                      actionHref="/recruiter/candidates"
+                    />
+                  )}
                 </div>
               )}
             </div>

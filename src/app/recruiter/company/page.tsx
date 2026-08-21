@@ -196,11 +196,12 @@ export default function RecruiterCompanyProfilePage() {
       });
 
       const json = await res.json();
-      if (res.ok && json.success && json.suggestion) {
-        setEnrichSuggestions(json.suggestion);
+      const suggestionData = json.data || json.suggestion;
+      if (res.ok && json.success && suggestionData) {
+        setEnrichSuggestions(suggestionData);
         showToast("Enrichment suggestions loaded for review.", "info");
       } else {
-        showToast(json.error || "No verified enrichment profile found for this domain.", "info");
+        showToast(json.error || json.message || "No verified enrichment profile found for this domain.", "info");
       }
     } catch (err) {
       console.error("Enrichment error:", err);

@@ -11,7 +11,7 @@ import { maskEmail, maskPhone } from "@/lib/privacy/contactProtection";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const authUser = await getAuthenticatedUser(request);
+  const authUser = await getAuthenticatedUser();
   if (!authUser) {
     return NextResponse.json(
       { success: false, error: "Unauthorized: Sign in required." },
@@ -159,11 +159,15 @@ export async function GET(request: Request) {
         }
 
         const isUnlocked = unlockedCandidateIds.has(cand.id);
+        const cleanHeadline =
+          cand.headline && !cand.headline.includes("Verified via Firebase")
+            ? cand.headline
+            : "Technical Professional";
 
         return {
           id: cand.id,
           name: cand.name,
-          headline: cand.headline || "Technical Professional",
+          headline: cleanHeadline,
           location: cand.location || "Location not specified",
           skills: skillsArray,
           employmentStatus,

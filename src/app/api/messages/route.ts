@@ -107,9 +107,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Enforce strict explicit verification on message sender (PENDING, REJECTED, and SUSPENDED are blocked)
-    await assertUserVerified(authUser, "sending direct messages");
-
     // Verify receiver exists
     const receiver = await prisma.user.findUnique({
       where: { id: receiverId },

@@ -416,7 +416,7 @@ export default function CandidateProfilePage() {
             />
 
             {/* 2. Personal & Profile Header Card */}
-            <div id="section-header" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative">
+            <div id="section-about" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative scroll-mt-24">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full md:w-auto">
                   {isEditingHeader ? (
@@ -449,14 +449,21 @@ export default function CandidateProfilePage() {
                         {headerData.employmentStatus || "Open to Opportunities"}
                       </span>
 
-                      {/* Genuine Verification Badge (only shown when platform-verified) */}
-                      {headerData.isVerified && (
+                      {/* Genuine Verification Badge (only shown when platform-verified, otherwise explicit unverified state) */}
+                      {headerData.isVerified ? (
                         <VerifiedBadge role="JOB_SEEKER" size="md" />
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface-container text-outline border border-outline-variant/30 select-none">
+                          <span className="material-symbols-outlined text-[13px]">pending</span>
+                          Unverified
+                        </span>
                       )}
                     </div>
 
                     <p className="text-primary font-bold text-xs sm:text-sm">
-                      {headerData.headline || "Technical Candidate • NextHire Member"}
+                      {headerData.headline && !headerData.headline.includes("Verified via Firebase")
+                        ? headerData.headline
+                        : "Technical Professional • NextHire Candidate"}
                     </p>
 
                     <p className="text-outline text-xs flex items-center gap-1 font-medium">
@@ -584,7 +591,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 3. Resume Management Banner */}
-            <div id="section-resume" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div id="section-resume" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs scroll-mt-24">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <span className="material-symbols-outlined text-2xl">description</span>
@@ -620,7 +627,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 4. Experience Section */}
-            <div id="section-experience">
+            <div id="section-experience" className="scroll-mt-24">
               <ExperienceSection
                 experiences={experiences}
                 onChange={handleExperiencesChange}
@@ -628,7 +635,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 5. Education Section */}
-            <div id="section-education">
+            <div id="section-education" className="scroll-mt-24">
               <EducationSection
                 educations={educations}
                 onChange={handleEducationsChange}
@@ -636,7 +643,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 6. Skills Section */}
-            <div id="section-skills">
+            <div id="section-skills" className="scroll-mt-24">
               <SkillsSection
                 skills={skills}
                 skillsList={skillsList}
@@ -645,7 +652,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 7. Certifications Section */}
-            <div id="section-certifications">
+            <div id="section-certifications" className="scroll-mt-24">
               <CertificationsSection
                 certifications={certifications}
                 onChange={handleCertificationsChange}
@@ -653,7 +660,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 8. Projects Section */}
-            <div id="section-projects">
+            <div id="section-projects" className="scroll-mt-24">
               <ProjectsSection
                 projects={projects}
                 onChange={handleProjectsChange}
@@ -661,7 +668,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 9. Portfolio Links Section */}
-            <div id="section-links">
+            <div id="section-links" className="scroll-mt-24">
               <PortfolioLinksSection
                 links={links}
                 onChange={handleLinksChange}
@@ -669,7 +676,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 10. Achievements Section */}
-            <div id="section-achievements">
+            <div id="section-achievements" className="scroll-mt-24">
               <AchievementsAndAwardsSection
                 achievements={achievements}
                 onChange={handleAchievementsChange}
@@ -693,7 +700,7 @@ export default function CandidateProfilePage() {
             />
 
             {/* 13. Career Preferences & Search Visibility */}
-            <div id="section-preferences">
+            <div id="section-preferences" className="scroll-mt-24">
               <CareerPreferencesSection
                 preferences={preferences}
                 visibility={visibility}

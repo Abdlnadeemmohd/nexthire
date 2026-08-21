@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const enrichmentProvider = new DefaultCompanyEnrichmentProvider();
 
 export async function POST(request: Request) {
-  const authUser = await getAuthenticatedUser(request);
+  const authUser = await getAuthenticatedUser();
   if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
     return NextResponse.json(
       { success: false, error: "Unauthorized: Recruiter or Admin access required." },

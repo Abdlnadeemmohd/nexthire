@@ -79,210 +79,217 @@ export default function PostJobPage() {
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="recruiter" />
 
-        <main className="flex-1 lg:pl-[270px] p-6 md:p-10 space-y-8 max-w-4xl pb-20 sm:pb-24">
-          <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Post a New Job" }]} />
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-4xl w-full mx-auto space-y-8 pb-20 sm:pb-24">
+            <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Post a New Job" }]} />
 
-          <div className="glass-card rounded-2xl p-8 border border-outline-variant/20 space-y-6">
-            <div>
-              <h1 className="font-display text-2xl font-bold text-on-surface">
-                Create & Publish Job Opening
-              </h1>
-              <p className="text-on-surface-variant text-sm font-body-md">
-                Publishing to NextHire saves the position directly into Neon PostgreSQL.
-              </p>
-            </div>
-
-            {submitted ? (
-              <div className="text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-3xl animate-bounce">
-                  <span className="material-symbols-outlined text-4xl">check_circle</span>
-                </div>
-                <h3 className="font-headline-md text-2xl text-on-surface font-bold">
-                  Job Opening Published!
-                </h3>
-                <p className="text-on-surface-variant font-body-md text-sm">
-                  Redirecting to Employer Dashboard...
+            <div className="glass-card rounded-2xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-sm">
+              <div>
+                <h1 className="font-display text-2xl font-bold text-on-surface">
+                  Create & Publish Job Opening
+                </h1>
+                <p className="text-on-surface-variant text-sm font-body-md">
+                  Publishing to NextHire saves the position directly into Neon PostgreSQL.
                 </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Title */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                    Job Role Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Senior Full-Stack Engineer, Lead Cloud Architect"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
 
-                {/* Category & Employment Type */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                      Category
-                    </label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="Engineering">Engineering</option>
-                      <option value="AI/ML">AI / Machine Learning</option>
-                      <option value="Design">Design</option>
-                      <option value="Product">Product</option>
-                      <option value="Operations">Operations</option>
-                    </select>
+              {submitted ? (
+                <div className="text-center py-12 space-y-4">
+                  <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-3xl animate-bounce">
+                    <span className="material-symbols-outlined text-4xl">check_circle</span>
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                      Employment Type
-                    </label>
-                    <select
-                      value={employmentType}
-                      onChange={(e) => setEmploymentType(e.target.value)}
-                      className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="FULL_TIME">Full-Time</option>
-                      <option value="PART_TIME">Part-Time</option>
-                      <option value="CONTRACT">Contract</option>
-                      <option value="HYBRID">Hybrid</option>
-                    </select>
-                  </div>
+                  <h3 className="font-headline-md text-2xl text-on-surface font-bold">
+                    Job Opening Published!
+                  </h3>
+                  <p className="text-on-surface-variant font-body-md text-sm">
+                    Redirecting to Employer Dashboard...
+                  </p>
                 </div>
-
-                {/* Salary Range */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Title */}
                   <div className="space-y-2">
                     <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                      Min Salary ($ / yr)
+                      Job Role Title *
                     </label>
                     <input
-                      type="number"
-                      step={5000}
-                      placeholder="e.g. 120000"
-                      value={salaryMin}
-                      onChange={(e) => setSalaryMin(e.target.value)}
+                      type="text"
+                      required
+                      placeholder="e.g. Senior Full-Stack Engineer, Lead Cloud Architect"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
+                  {/* Category & Employment Type */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                        Category
+                      </label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="Engineering">Engineering</option>
+                        <option value="AI/ML">AI / Machine Learning</option>
+                        <option value="Design">Design</option>
+                        <option value="Product">Product</option>
+                        <option value="Operations">Operations</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                        Employment Type
+                      </label>
+                      <select
+                        value={employmentType}
+                        onChange={(e) => setEmploymentType(e.target.value)}
+                        className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="FULL_TIME">Full-Time</option>
+                        <option value="PART_TIME">Part-Time</option>
+                        <option value="CONTRACT">Contract</option>
+                        <option value="HYBRID">Hybrid</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Salary Range */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                        Min Salary ($ / yr)
+                      </label>
+                      <input
+                        type="number"
+                        step={5000}
+                        placeholder="e.g. 120000"
+                        value={salaryMin}
+                        onChange={(e) => setSalaryMin(e.target.value)}
+                        className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                        Max Salary ($ / yr)
+                      </label>
+                      <input
+                        type="number"
+                        step={5000}
+                        placeholder="e.g. 160000"
+                        value={salaryMax}
+                        onChange={(e) => setSalaryMax(e.target.value)}
+                        className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Workplace Policy & Experience Level */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                        Workplace Policy
+                      </label>
+                      <div className="flex items-center gap-3 p-3 bg-surface border border-outline-variant/30 rounded-xl h-[46px]">
+                        <input
+                          type="checkbox"
+                          id="remoteCheck"
+                          checked={isRemote}
+                          onChange={(e) => setIsRemote(e.target.checked)}
+                          className="w-4 h-4 text-primary rounded border-outline-variant focus:ring-primary cursor-pointer"
+                        />
+                        <label htmlFor="remoteCheck" className="text-xs font-label-md font-bold text-on-surface cursor-pointer select-none">
+                          Allow 100% Remote Candidates
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                        Experience Level
+                      </label>
+                      <select
+                        value={experienceLevel}
+                        onChange={(e) => setExperienceLevel(e.target.value)}
+                        className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary h-[46px]"
+                      >
+                        <option value="Junior">Junior (1-3 yrs)</option>
+                        <option value="Mid-Senior">Mid-Senior (3-5 yrs)</option>
+                        <option value="Senior">Senior (5-8 yrs)</option>
+                        <option value="Lead">Lead / Staff (8+ yrs)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Location */}
                   <div className="space-y-2">
                     <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                      Max Salary ($ / yr)
+                      Job Location
                     </label>
                     <input
-                      type="number"
-                      step={5000}
-                      placeholder="e.g. 160000"
-                      value={salaryMax}
-                      onChange={(e) => setSalaryMax(e.target.value)}
+                      type="text"
+                      placeholder="e.g. Austin, TX or Remote"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
                       className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
-                </div>
 
-                {/* Remote Checkbox & Experience */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                  <div className="flex items-center gap-3 p-3 bg-surface border border-outline-variant/30 rounded-xl">
-                    <input
-                      type="checkbox"
-                      id="remoteCheck"
-                      checked={isRemote}
-                      onChange={(e) => setIsRemote(e.target.checked)}
-                      className="w-4 h-4 text-primary rounded border-outline-variant focus:ring-primary cursor-pointer"
-                    />
-                    <label htmlFor="remoteCheck" className="text-xs font-label-md font-bold text-on-surface cursor-pointer">
-                      Allow 100% Remote Candidates
-                    </label>
-                  </div>
-
+                  {/* Tags */}
                   <div className="space-y-2">
                     <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                      Experience Level
+                      Required Skills / Tags (Comma separated)
                     </label>
-                    <select
-                      value={experienceLevel}
-                      onChange={(e) => setExperienceLevel(e.target.value)}
+                    <input
+                      type="text"
+                      placeholder="e.g. TypeScript, React, Node.js, PostgreSQL"
+                      value={skills}
+                      onChange={(e) => setSkills(e.target.value)}
                       className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  {/* Role Description */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
+                      Job Description & Expectations *
+                    </label>
+                    <textarea
+                      rows={5}
+                      required
+                      placeholder="Describe the opportunity, main responsibilities, and team context..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-outline-variant/20">
+                    <button
+                      type="button"
+                      onClick={() => router.back()}
+                      className="w-full sm:w-auto px-6 py-3 rounded-full text-on-surface-variant hover:bg-surface-container font-label-md text-xs font-bold text-center touch-target"
                     >
-                      <option value="Junior">Junior (1-3 yrs)</option>
-                      <option value="Mid-Senior">Mid-Senior (3-5 yrs)</option>
-                      <option value="Senior">Senior (5-8 yrs)</option>
-                      <option value="Lead">Lead / Staff (8+ yrs)</option>
-                    </select>
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full sm:w-auto px-8 py-3 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold hover:bg-primary-container transition-all shadow-md disabled:opacity-50 text-center touch-target"
+                    >
+                      {isSubmitting ? "Publishing to Neon..." : "Publish Opening Now"}
+                    </button>
                   </div>
-                </div>
-
-                {/* Location */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                    Job Location
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Austin, TX or Remote"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-
-                {/* Tags */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                    Required Skills / Tags (Comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. TypeScript, React, Node.js, PostgreSQL"
-                    value={skills}
-                    onChange={(e) => setSkills(e.target.value)}
-                    className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-
-                {/* Role Description */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-label-md uppercase font-bold text-on-surface-variant">
-                    Job Description & Expectations *
-                  </label>
-                  <textarea
-                    rows={5}
-                    required
-                    placeholder="Describe the opportunity, main responsibilities, and team context..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-sm font-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-outline-variant/20">
-                  <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="w-full sm:w-auto px-6 py-3 rounded-full text-on-surface-variant hover:bg-surface-container font-label-md text-xs font-bold text-center touch-target"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full sm:w-auto px-8 py-3 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold hover:bg-primary-container transition-all shadow-md disabled:opacity-50 text-center touch-target"
-                  >
-                    {isSubmitting ? "Publishing to Neon..." : "Publish Opening Now"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </main>
+                </form>
+              )}
+            </div>
+          </main>
+        </div>
       </div>
     </ProtectedRoute>
   );

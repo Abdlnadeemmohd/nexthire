@@ -32,19 +32,40 @@ export function ProfileCompletenessWidget({
       return;
     }
 
-    // Default smooth-scroll mapping by section keyword
+    // Default smooth-scroll mapping by explicit semantic section keywords
     const lower = item.toLowerCase();
     let targetId = "";
-    if (lower.includes("experience")) targetId = "section-experience";
-    else if (lower.includes("education")) targetId = "section-education";
-    else if (lower.includes("skill")) targetId = "section-skills";
-    else if (lower.includes("cert")) targetId = "section-certifications";
-    else if (lower.includes("project")) targetId = "section-projects";
-    else if (lower.includes("bio") || lower.includes("headline") || lower.includes("about")) targetId = "section-header";
-    else if (lower.includes("pref") || lower.includes("salary")) targetId = "section-preferences";
-    else if (lower.includes("link") || lower.includes("portfolio")) targetId = "section-links";
-    else if (lower.includes("company") || lower.includes("brand")) targetId = "section-company";
-    else if (lower.includes("value") || lower.includes("culture")) targetId = "section-values";
+    if (lower.includes("about") || lower.includes("bio") || lower.includes("headline") || lower.includes("summary")) {
+      targetId = "section-about";
+    } else if (lower.includes("experience") || lower.includes("work")) {
+      targetId = "section-experience";
+    } else if (lower.includes("education") || lower.includes("degree") || lower.includes("academic")) {
+      targetId = "section-education";
+    } else if (lower.includes("skill") || lower.includes("technolog")) {
+      targetId = "section-skills";
+    } else if (lower.includes("resume") || lower.includes("cv")) {
+      targetId = "section-resume";
+    } else if (lower.includes("cert")) {
+      targetId = "section-certifications";
+    } else if (lower.includes("project")) {
+      targetId = "section-projects";
+    } else if (lower.includes("link") || lower.includes("portfolio")) {
+      targetId = "section-links";
+    } else if (lower.includes("achieve") || lower.includes("award")) {
+      targetId = "section-achievements";
+    } else if (lower.includes("pref") || lower.includes("salary") || lower.includes("visib")) {
+      targetId = "section-preferences";
+    } else if (lower.includes("priorit") || lower.includes("role") || lower.includes("depart") || lower.includes("senior")) {
+      targetId = "section-priorities";
+    } else if (lower.includes("assoc")) {
+      targetId = "section-associations";
+    } else if (lower.includes("expert") || lower.includes("specialt") || lower.includes("domain")) {
+      targetId = "section-expertise";
+    } else if (lower.includes("company") || lower.includes("brand")) {
+      targetId = "section-company";
+    } else if (lower.includes("value") || lower.includes("culture")) {
+      targetId = "section-values";
+    }
 
     if (targetId) {
       const el = document.getElementById(targetId);
