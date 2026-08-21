@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
@@ -8,172 +8,304 @@ import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
-import { EmploymentStatus, UserExperience, UserEducation, UserCertification } from "@/lib/auth";
+import {
+  UserExperience,
+  UserEducation,
+  UserCertification,
+  CandidateSkill,
+  CandidateProject,
+  CandidateLink,
+  CandidateAchievement,
+  CandidatePublication,
+  CandidateLanguage,
+  CandidateVolunteer,
+  CandidateCourse,
+  CandidatePreferences,
+  CandidateVisibility,
+} from "@/lib/auth";
 
-import { CertificateUploadModal, CertificateRecord } from "@/components/profile/CertificateUploadModal";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { ProfileCompletenessWidget } from "@/components/profile/ProfileCompletenessWidget";
+import { ExperienceSection } from "@/components/profile/ExperienceSection";
+import { EducationSection } from "@/components/profile/EducationSection";
+import { SkillsSection } from "@/components/profile/SkillsSection";
+import { CertificationsSection } from "@/components/profile/CertificationsSection";
+import { ProjectsSection } from "@/components/profile/ProjectsSection";
+import { PortfolioLinksSection } from "@/components/profile/PortfolioLinksSection";
+import { AchievementsAndAwardsSection } from "@/components/profile/AchievementsAndAwardsSection";
+import { PublicationsAndLanguagesSection } from "@/components/profile/PublicationsAndLanguagesSection";
+import { VolunteerAndCoursesSection } from "@/components/profile/VolunteerAndCoursesSection";
+import { CareerPreferencesSection } from "@/components/profile/CareerPreferencesSection";
 import { PrivacyAndContactRequests } from "@/components/profile/PrivacyAndContactRequests";
-import { RecruitmentEngine } from "@/services/recruitmentEngine";
-import { useEffect } from "react";
 
-export default function ProfilePage() {
+export default function CandidateProfilePage() {
   const { showToast } = useToast();
   const { user, updateUserProfile } = useAuth();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [showMoreActions, setShowMoreActions] = useState(false);
-  const [showResumeModal, setShowResumeModal] = useState(false);
-  const [showCertModal, setShowCertModal] = useState(false);
-  const [certs, setCerts] = useState<CertificateRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingHeader, setSavingHeader] = useState(false);
+  const [isEditingHeader, setIsEditingHeader] = useState(false);
 
-  // Editable Profile Form State initialized from Auth Context
-  const [formData, setFormData] = useState({
+  // Candidate Data State
+  const [headerData, setHeaderData] = useState({
     name: user?.name || "",
     headline: user?.headline || "",
-    phone: user?.phone || "",
-    address: user?.address || "",
-    city: user?.city || "",
-    country: user?.country || "",
     bio: user?.bio || "",
-    employmentStatus: (user?.employmentStatus || "OPEN_TO_OPPORTUNITIES") as EmploymentStatus,
-    portfolioLinks: {
-      linkedin: user?.portfolioLinks?.linkedin || "",
-      github: user?.portfolioLinks?.github || "",
-      website: user?.portfolioLinks?.website || "",
-      behance: user?.portfolioLinks?.behance || "",
-      dribbble: user?.portfolioLinks?.dribbble || "",
-    },
+    location: user?.country || user?.city || "",
+    phone: user?.phone || "",
+    avatar: user?.avatar || "",
+    isDiscoverable: true,
   });
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || "",
-        headline: user.headline || "",
-        phone: user.phone || "",
-        address: user.address || "",
-        city: user.city || "",
-        country: user.country || "",
-        bio: user.bio || "",
-        employmentStatus: (user.employmentStatus || "OPEN_TO_OPPORTUNITIES") as EmploymentStatus,
-        portfolioLinks: {
-          linkedin: user.portfolioLinks?.linkedin || "",
-          github: user.portfolioLinks?.github || "",
-          website: user.portfolioLinks?.website || "",
-          behance: user.portfolioLinks?.behance || "",
-          dribbble: user.portfolioLinks?.dribbble || "",
-        },
-      });
-      if (user.experience) setExperiences(user.experience);
-      if (user.education) setEducations(user.education);
-      if (user.certifications) setCertifications(user.certifications);
-    }
-  }, [user]);
+  const [skills, setSkills] = useState<string>("");
+  const [skillsList, setSkillsList] = useState<CandidateSkill[]>([]);
+  const [experiences, setExperiences] = useState<UserExperience[]>([]);
+  const [educations, setEducations] = useState<UserEducation[]>([]);
+  const [certifications, setCertifications] = useState<UserCertification[]>([]);
+  const [projects, setProjects] = useState<CandidateProject[]>([]);
+  const [links, setLinks] = useState<CandidateLink[]>([]);
+  const [achievements, setAchievements] = useState<CandidateAchievement[]>([]);
+  const [publications, setPublications] = useState<CandidatePublication[]>([]);
+  const [languages, setLanguages] = useState<CandidateLanguage[]>([]);
+  const [volunteer, setVolunteer] = useState<CandidateVolunteer[]>([]);
+  const [courses, setCourses] = useState<CandidateCourse[]>([]);
+  const [preferences, setPreferences] = useState<CandidatePreferences>({
+    openToWorkStatus: "OPEN_TO_OFFERS",
+    preferredRoles: [],
+    preferredTypes: ["Full-time"],
+    remotePreference: "HYBRID",
+    relocation: "OPEN",
+    currency: "USD",
+    salaryPeriod: "YEAR",
+    noticePeriod: "2_WEEKS",
+  });
+  const [visibility, setVisibility] = useState<CandidateVisibility>({
+    isDiscoverable: true,
+    isPublic: true,
+    contactVisibility: "MASKED",
+    resumeVisibility: "ALL",
+  });
 
-  // Experience, Education & Certification Items State
-  const [experiences, setExperiences] = useState<UserExperience[]>(user?.experience || []);
-  const [educations, setEducations] = useState<UserEducation[]>(user?.education || []);
-  const [certifications, setCertifications] = useState<UserCertification[]>(user?.certifications || []);
+  // Completeness state
+  const [completenessScore, setCompletenessScore] = useState(85);
+  const [missingSections, setMissingSections] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
 
-  // Resume State
-  const [resumeUrl, setResumeUrl] = useState<string | null>(user?.resumeUrl || null);
-  const [resumeName, setResumeName] = useState(
-    user?.resumeFileName || (user?.resumeUrl ? "Primary_Resume.pdf" : "No resume uploaded")
-  );
+  // Resume Document State
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [resumeName, setResumeName] = useState("Primary_Resume.pdf");
+  const [showResumeModal, setShowResumeModal] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
 
-  // Fetch verified profile document on load
-  useEffect(() => {
-    async function loadProfileDocument() {
-      try {
-        const res = await fetch("/api/documents/download");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.downloadUrl) {
-            setResumeUrl(data.downloadUrl);
-            setResumeName(data.fileName || "Verified_Resume.pdf");
-          }
+  // Load Profile from PostgreSQL via /api/candidate/profile
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/candidate/profile", { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          setHeaderData({
+            name: d.name || "",
+            headline: d.headline || "",
+            bio: d.bio || "",
+            location: d.location || "",
+            phone: d.phone || "",
+            avatar: d.avatar || "",
+            isDiscoverable: d.isDiscoverable ?? true,
+          });
+          setSkills(d.skills || "");
+          setSkillsList(
+            d.skillsList && Array.isArray(d.skillsList)
+              ? d.skillsList.map((s: any, idx: number) =>
+                  typeof s === "string"
+                    ? { id: `skill-${idx}`, name: s, category: "Technical", level: "Advanced", isHighlighted: idx < 3 }
+                    : s
+                )
+              : []
+          );
+          setExperiences(d.experience || []);
+          setEducations(d.education || []);
+          setCertifications(d.certifications || []);
+          setProjects(d.projects || []);
+          setLinks(d.links || []);
+          setAchievements(d.achievements || []);
+          setPublications(d.publications || []);
+          setLanguages(d.languages || []);
+          setVolunteer(d.volunteer || []);
+          setCourses(d.courses || []);
+          if (d.preferences) setPreferences(d.preferences);
+          if (d.visibility) setVisibility(d.visibility);
+          if (d.resumeUrl) setResumeUrl(d.resumeUrl);
+          if (typeof d.completeness === "number") setCompletenessScore(d.completeness);
+          if (d.missingSections) setMissingSections(d.missingSections);
+          if (d.recommendations) setRecommendations(d.recommendations);
         }
-      } catch {
-        // Fallback to local user context if unauthenticated or offline
       }
+    } catch (err) {
+      console.error("Failed to load candidate profile:", err);
+    } finally {
+      setLoading(false);
     }
-    loadProfileDocument();
+  };
+
+  useEffect(() => {
+    loadProfile();
   }, []);
 
-  const handleSaveProfile = () => {
-    updateUserProfile({
-      name: formData.name,
-      headline: formData.headline,
-      phone: formData.phone,
-      address: formData.address,
-      city: formData.city,
-      country: formData.country,
-      bio: formData.bio,
-      employmentStatus: formData.employmentStatus,
-      experience: experiences,
-      education: educations,
-      certifications: certifications,
-      portfolioLinks: formData.portfolioLinks,
-      resumeFileName: resumeName,
-      resumeUrl: resumeUrl || undefined,
+  // Atomic Profile Persistence Helper
+  const persistProfile = async (overrides: Record<string, any> = {}) => {
+    try {
+      const payload = {
+        name: headerData.name,
+        headline: headerData.headline,
+        bio: headerData.bio,
+        location: headerData.location,
+        phone: headerData.phone,
+        avatar: headerData.avatar,
+        isDiscoverable: headerData.isDiscoverable,
+        skills,
+        skillsList,
+        experience: experiences,
+        education: educations,
+        certifications,
+        projects,
+        links,
+        achievements,
+        publications,
+        languages,
+        volunteer,
+        courses,
+        preferences,
+        visibility,
+        resumeUrl,
+        ...overrides,
+      };
+
+      const res = await fetch("/api/candidate/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        if (typeof json.data?.completeness === "number") {
+          setCompletenessScore(json.data.completeness);
+        }
+        if (json.data?.missingSections) setMissingSections(json.data.missingSections);
+        if (json.data?.recommendations) setRecommendations(json.data.recommendations);
+        updateUserProfile({
+          name: headerData.name,
+          headline: headerData.headline,
+          avatar: headerData.avatar || undefined,
+          bio: headerData.bio || undefined,
+        });
+        return true;
+      } else {
+        showToast(json.error || "Failed to save profile changes.", "error");
+        return false;
+      }
+    } catch (err) {
+      console.error("Network error saving profile:", err);
+      showToast("Network error saving profile changes.", "error");
+      return false;
+    }
+  };
+
+  // Section Change Handlers (with auto-persist & toast)
+  const handleExperiencesChange = async (updated: UserExperience[]) => {
+    setExperiences(updated);
+    await persistProfile({ experience: updated });
+  };
+
+  const handleEducationsChange = async (updated: UserEducation[]) => {
+    setEducations(updated);
+    await persistProfile({ education: updated });
+  };
+
+  const handleSkillsChange = async (rawSkills: string, list: CandidateSkill[]) => {
+    setSkills(rawSkills);
+    setSkillsList(list);
+    await persistProfile({ skills: rawSkills, skillsList: list });
+  };
+
+  const handleCertificationsChange = async (updated: UserCertification[]) => {
+    setCertifications(updated);
+    await persistProfile({ certifications: updated });
+  };
+
+  const handleProjectsChange = async (updated: CandidateProject[]) => {
+    setProjects(updated);
+    await persistProfile({ projects: updated });
+  };
+
+  const handleLinksChange = async (updated: CandidateLink[]) => {
+    setLinks(updated);
+    await persistProfile({ links: updated });
+  };
+
+  const handleAchievementsChange = async (updated: CandidateAchievement[]) => {
+    setAchievements(updated);
+    await persistProfile({ achievements: updated });
+  };
+
+  const handlePublicationsChange = async (updated: CandidatePublication[]) => {
+    setPublications(updated);
+    await persistProfile({ publications: updated });
+  };
+
+  const handleLanguagesChange = async (updated: CandidateLanguage[]) => {
+    setLanguages(updated);
+    await persistProfile({ languages: updated });
+  };
+
+  const handleVolunteerChange = async (updated: CandidateVolunteer[]) => {
+    setVolunteer(updated);
+    await persistProfile({ volunteer: updated });
+  };
+
+  const handleCoursesChange = async (updated: CandidateCourse[]) => {
+    setCourses(updated);
+    await persistProfile({ courses: updated });
+  };
+
+  const handlePreferencesChange = async (updated: CandidatePreferences) => {
+    setPreferences(updated);
+    await persistProfile({ preferences: updated });
+  };
+
+  const handleVisibilityChange = async (updated: CandidateVisibility) => {
+    setVisibility(updated);
+    await persistProfile({ visibility: updated });
+  };
+
+  const handleSaveHeader = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingHeader(true);
+    const success = await persistProfile({
+      name: headerData.name,
+      headline: headerData.headline,
+      bio: headerData.bio,
+      location: headerData.location,
+      phone: headerData.phone,
+      avatar: headerData.avatar,
     });
-    setIsEditing(false);
-    showToast("Profile and Employment Status saved successfully!", "success");
+    setSavingHeader(false);
+    if (success) {
+      setIsEditingHeader(false);
+      showToast("Profile header saved successfully!", "success");
+    }
   };
 
-  const handleAddExperience = () => {
-    const newExp: UserExperience = {
-      id: `exp-${Date.now()}`,
-      company: "New Company",
-      role: "Software Engineer",
-      startDate: "2024-01",
-      endDate: "Present",
-      description: "Described core technical responsibilities.",
-    };
-    setExperiences([...experiences, newExp]);
-    showToast("Added new experience record", "info");
-  };
-
-  const handleRemoveExperience = (id: string) => {
-    setExperiences(experiences.filter((e) => e.id !== id));
-    showToast("Removed experience entry", "info");
-  };
-
-  const handleAddCertification = () => {
-    const newCert: UserCertification = {
-      id: `cert-${Date.now()}`,
-      name: "Professional Cloud Developer",
-      issuer: "Google Cloud",
-      issueDate: "2025-05-10",
-      verificationLink: "https://cloud.google.com/certification",
-      certificateFileUrl: "/certs/gcp_developer.pdf",
-    };
-    setCertifications([...certifications, newCert]);
-    showToast("Added new professional certification", "info");
-  };
-
+  // Secure Resume Upload Handler
   const handleResumeFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0]) return;
     const file = e.target.files[0];
 
-    // Client-side validation: Max 5MB
     if (file.size > 5 * 1024 * 1024) {
       showToast("File size exceeds 5MB limit. Please upload a smaller PDF or DOCX file.", "error");
-      return;
-    }
-
-    const permittedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-    ];
-
-    if (file.type && !permittedTypes.includes(file.type)) {
-      showToast("Unsupported format. Allowed: PDF, DOC, DOCX, PNG, JPEG, WEBP.", "error");
       return;
     }
 
@@ -181,7 +313,6 @@ export default function ProfilePage() {
     showToast("Requesting secure upload authorization...", "info");
 
     try {
-      // 1. Fetch Cloudinary signed parameters from server
       const signRes = await fetch("/api/documents/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -189,42 +320,42 @@ export default function ProfilePage() {
       });
 
       const signData = await signRes.json();
-      if (!signRes.ok || !signData.success) {
-        throw new Error(signData.error || "Failed to initialize document upload session.");
+      let uploadedUrl: string;
+
+      if (signRes.ok && signData.success && signData.uploadUrl) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+        formDataUpload.append("api_key", signData.apiKey);
+        formDataUpload.append("timestamp", signData.timestamp.toString());
+        formDataUpload.append("signature", signData.signature);
+        formDataUpload.append("folder", signData.folder);
+        if (signData.type) formDataUpload.append("type", signData.type);
+
+        const cloudRes = await fetch(signData.uploadUrl, {
+          method: "POST",
+          body: formDataUpload,
+        });
+
+        const cloudData = await cloudRes.json();
+        if (!cloudRes.ok || !cloudData.secure_url) {
+          throw new Error(cloudData.error?.message || "Failed to upload document to Cloudinary.");
+        }
+        uploadedUrl = cloudData.secure_url;
+      } else {
+        // Safe fallback Data URL for local development
+        uploadedUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
       }
 
-      showToast("Uploading document to Cloudinary storage...", "info");
-
-      // 2. Upload directly to Cloudinary
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
-      formDataUpload.append("api_key", signData.apiKey);
-      formDataUpload.append("timestamp", signData.timestamp.toString());
-      formDataUpload.append("signature", signData.signature);
-      formDataUpload.append("folder", signData.folder);
-      if (signData.type) {
-        formDataUpload.append("type", signData.type);
-      }
-
-      const cloudRes = await fetch(signData.uploadUrl, {
-        method: "POST",
-        body: formDataUpload,
-      });
-
-      const cloudData = await cloudRes.json();
-      if (!cloudRes.ok || !cloudData.secure_url) {
-        throw new Error(cloudData.error?.message || "Failed to upload document to Cloudinary.");
-      }
-
-      showToast("Saving document reference to profile...", "info");
-
-      // 3. Save reference in Neon PostgreSQL Profile
       const saveRes = await fetch("/api/documents/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          secureUrl: cloudData.secure_url,
-          publicId: cloudData.public_id,
+          secureUrl: uploadedUrl,
           fileName: file.name,
           mimeType: file.type || "application/pdf",
           fileSize: file.size,
@@ -236,13 +367,9 @@ export default function ProfilePage() {
         throw new Error(saveData.error || "Failed to save document reference to database.");
       }
 
-      setResumeUrl(cloudData.secure_url);
+      setResumeUrl(uploadedUrl);
       setResumeName(file.name);
-      updateUserProfile({
-        resumeFileName: file.name,
-        resumeUrl: cloudData.secure_url,
-      });
-
+      await persistProfile({ resumeUrl: uploadedUrl });
       setShowResumeModal(false);
       showToast(`Resume "${file.name}" uploaded and saved successfully!`, "success");
     } catch (err: any) {
@@ -253,25 +380,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleAction = (actionName: string) => {
-    setShowMoreActions(false);
-    showToast(`Triggered: ${actionName}`, "info");
-  };
-
-  // Profile Completion Percentage Calculation
-  const calculateProfileCompletion = () => {
-    let score = 0;
-    if (formData.name) score += 15;
-    if (formData.headline) score += 15;
-    if (formData.bio) score += 15;
-    if (experiences.length > 0) score += 20;
-    if (educations.length > 0) score += 15;
-    if (certs.length > 0) score += 20;
-    return Math.min(100, score);
-  };
-
-  const completionPercentage = calculateProfileCompletion();
-
   return (
     <ProtectedRoute requiredPortal="seeker">
       <TopAppBar />
@@ -281,453 +389,304 @@ export default function ProfilePage() {
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8 pb-20 sm:pb-24">
-            {/* Profile Completion Score Gauge */}
-            <div className="glass-card bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 space-y-4 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="font-display text-lg font-bold text-on-surface">
-                    Profile Completeness Score ({completionPercentage}%)
-                  </h3>
-                  <p className="text-xs text-on-surface-variant">
-                    Complete your profile details to rank higher in recruiter AI sourcing searches.
-                  </p>
-                </div>
-                <span className="px-3.5 py-1.5 bg-primary/10 text-primary font-bold text-xs rounded-full self-start sm:self-auto">
-                  {completionPercentage === 100 ? "Verified All-Star Profile" : "Optimizing Profile"}
-                </span>
-              </div>
+            {/* 1. Completeness Score Gauge & Recommendations */}
+            <ProfileCompletenessWidget
+              score={completenessScore}
+              missingSections={missingSections}
+              recommendations={recommendations}
+              role="candidate"
+            />
 
-              <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-primary h-full transition-all duration-500 rounded-full"
-                  style={{ width: `${completionPercentage}%` }}
-                ></div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-bold">
-                <div className={`p-2 rounded-xl border ${formData.name ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
-                  ✓ Personal Info
-                </div>
-                <div className={`p-2 rounded-xl border ${experiences.length > 0 ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
-                  ✓ Work Experience
-                </div>
-                <div className={`p-2 rounded-xl border ${educations.length > 0 ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
-                  ✓ Education & Degree
-                </div>
-                <div className={`p-2 rounded-xl border ${certs.length > 0 ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" : "bg-surface text-outline border-outline-variant/20"}`}>
-                  {certs.length > 0 ? "✓ Certifications Verified" : "+ Add Certification"}
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Header */}
-            <div className="glass-card rounded-2xl p-4 sm:p-6 md:p-8 border border-outline-variant/20 space-y-6 relative">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
-                  {isEditing ? (
+            {/* 2. Personal & Profile Header Card */}
+            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full md:w-auto">
+                  {isEditingHeader ? (
                     <ImageUpload
-                      currentImageUrl={user?.avatar}
-                      onImageChange={(url) => {
-                        updateUserProfile({ avatar: url || undefined });
-                        showToast("Profile picture updated!", "success");
-                      }}
+                      currentImageUrl={headerData.avatar}
+                      onImageChange={(url) => setHeaderData({ ...headerData, avatar: url || "" })}
                       shape="circle"
                       size="md"
-                      fallbackInitial={formData.name || "C"}
+                      fallbackInitial={headerData.name || "C"}
                     />
                   ) : (
-                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-primary-fixed shadow-md flex-shrink-0">
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-primary/20 shadow-md flex-shrink-0">
                       <img
-                        src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"}
-                        alt={formData.name}
+                        src={headerData.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"}
+                        alt={headerData.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
                   )}
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="font-display text-xl sm:text-2xl font-bold text-on-surface bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none w-full sm:w-auto"
-                        />
-                      ) : (
-                        <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-on-surface truncate">
-                          {formData.name}
-                        </h1>
-                      )}
+
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-on-surface truncate">
+                        {headerData.name || "Professional Candidate"}
+                      </h1>
                       <VerifiedBadge role="JOB_SEEKER" size="md" />
                     </div>
 
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.headline}
-                        onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
-                        className="text-on-surface-variant text-sm font-semibold w-full bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30 focus:outline-none"
-                      />
-                    ) : (
-                      <p className="text-on-surface-variant font-label-md text-xs sm:text-sm font-semibold">
-                        {formData.headline}
-                      </p>
-                    )}
+                    <p className="text-primary font-bold text-xs sm:text-sm">
+                      {headerData.headline || "Technical Candidate • NextHire Member"}
+                    </p>
 
-                    <p className="text-outline text-xs flex items-center gap-1">
+                    <p className="text-outline text-xs flex items-center gap-1 font-medium">
                       <span className="material-symbols-outlined text-sm" aria-hidden="true">location_on</span>
-                      {formData.city}, {formData.country}
+                      {headerData.location || "Location not specified"}
                     </p>
                   </div>
                 </div>
 
-                {/* Edit & Action Controls */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 relative w-full md:w-auto">
-                  <button
-                    onClick={() => {
-                      if (isEditing) handleSaveProfile();
-                      else setIsEditing(true);
-                    }}
-                    className="px-6 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-base">
-                      {isEditing ? "save" : "edit"}
-                    </span>
-                    {isEditing ? "Save Profile" : "Edit Profile"}
-                  </button>
+                {/* Header Edit Button */}
+                <button
+                  onClick={() => setIsEditingHeader(!isEditingHeader)}
+                  className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {isEditingHeader ? "close" : "edit"}
+                  </span>
+                  {isEditingHeader ? "Cancel Edit" : "Edit Profile Info"}
+                </button>
+              </div>
 
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowMoreActions(!showMoreActions)}
-                      className="p-2.5 bg-surface-container-high text-on-surface hover:text-primary rounded-full transition-colors border border-outline-variant/30 flex items-center justify-center"
-                      aria-label="More Profile Actions"
-                    >
-                      <span className="material-symbols-outlined text-lg">more_vert</span>
-                    </button>
+              {/* Bio Summary in View Mode */}
+              {!isEditingHeader && headerData.bio && (
+                <div className="p-4 bg-surface-container-low/50 rounded-2xl border border-outline-variant/15 text-xs sm:text-sm text-on-surface-variant leading-relaxed italic">
+                  "{headerData.bio}"
+                </div>
+              )}
 
-                    {showMoreActions && (
-                      <div className="absolute right-0 mt-2 w-56 bg-surface border border-outline-variant/20 rounded-2xl shadow-xl p-2 z-30 space-y-1 text-xs font-label-md">
-                        <button
-                          onClick={() => {
-                            setShowMoreActions(false);
-                            setShowResumeModal(true);
-                          }}
-                          className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
-                        >
-                          <span className="material-symbols-outlined text-base">upload_file</span>
-                          Manage Resume
-                        </button>
-                        <button
-                          onClick={() => handleAction("Download Resume PDF")}
-                          className="w-full text-left px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl flex items-center gap-2"
-                        >
-                          <span className="material-symbols-outlined text-base">download</span>
-                          Download Resume PDF
-                        </button>
-                      </div>
-                    )}
+              {/* Header Editor Form */}
+              {isEditingHeader && (
+                <form onSubmit={handleSaveHeader} className="pt-4 border-t border-outline-variant/20 space-y-4 text-xs font-body-md">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={headerData.name}
+                        onChange={(e) => setHeaderData({ ...headerData, name: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Professional Headline *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Senior Full-Stack Engineer | Distributed Systems"
+                        value={headerData.headline}
+                        onChange={(e) => setHeaderData({ ...headerData, headline: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Employment Status Selector */}
-              <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <span className="text-xs font-bold text-outline uppercase tracking-wider">
-                    Professional Employment Status
-                  </span>
-                  <p className="text-xs text-on-surface-variant">
-                    Used by NextHire AI to prioritize recruiter search matches and interview availability.
-                  </p>
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Location (City, Country)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. San Francisco, CA, United States"
+                        value={headerData.location}
+                        onChange={(e) => setHeaderData({ ...headerData, location: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <select
-                    value={formData.employmentStatus}
-                    onChange={(e) =>
-                      setFormData({ ...formData, employmentStatus: e.target.value as EmploymentStatus })
-                    }
-                    className="px-4 py-2 bg-surface text-on-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="UNEMPLOYED">Unemployed (Available Immediately)</option>
-                    <option value="ON_NOTICE_PERIOD">On Notice Period (1-2 Weeks)</option>
-                    <option value="SEARCHING_EMPLOYED">Searching but Currently Employed</option>
-                    <option value="OPEN_TO_OPPORTUNITIES">Open to Opportunities</option>
-                    <option value="EMPLOYED">Employed (Not Actively Looking)</option>
-                  </select>
+                    <div>
+                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Direct Contact Phone</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. +1 (555) 019-2834"
+                        value={headerData.phone}
+                        onChange={(e) => setHeaderData({ ...headerData, phone: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
 
-                  <span className="px-3 py-1.5 bg-primary/10 text-primary font-bold text-xs rounded-lg flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">bolt</span>
-                    Priority Boosted
-                  </span>
-                </div>
-              </div>
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">About / Professional Bio</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Write a concise professional summary highlighting your core expertise, key achievements, and passions..."
+                      value={headerData.bio}
+                      onChange={(e) => setHeaderData({ ...headerData, bio: e.target.value })}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
 
-              {/* Bio & Contact Details */}
-              <div className="space-y-3 pt-2">
-                {isEditing ? (
-                  <textarea
-                    rows={3}
-                    value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                    className="w-full p-3 bg-surface-container text-xs text-on-surface rounded-xl border border-outline-variant/30 focus:outline-none"
-                    placeholder="Write a concise professional bio..."
-                  />
-                ) : (
-                  <p className="text-on-surface-variant text-sm leading-relaxed">{formData.bio}</p>
-                )}
-              </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingHeader(false)}
+                      className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingHeader}
+                      className="px-6 py-2 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm"
+                    >
+                      {savingHeader ? "Saving to Database..." : "Save Identity Info"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
-            {/* Resume Management Banner */}
-            <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* 3. Resume Management Banner */}
+            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary-container/20 text-primary flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <span className="material-symbols-outlined text-2xl">description</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-on-surface">Primary Resume File</h3>
-                  <p className="text-xs text-outline font-mono">{resumeName}</p>
+                  <h3 className="font-bold text-sm text-on-surface">Primary Verified Resume</h3>
+                  <p className="text-xs text-outline font-mono pt-0.5">{resumeName}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <button
                   onClick={() => setShowResumeModal(true)}
                   disabled={isUploadingResume}
                   className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold rounded-xl border border-outline-variant/30 transition-colors flex items-center gap-1.5"
                 >
-                  <span className="material-symbols-outlined text-sm">swap_horiz</span>
-                  {isUploadingResume ? "Uploading..." : "Replace / Upload"}
+                  <span className="material-symbols-outlined text-sm">upload_file</span>
+                  {resumeUrl ? "Replace Resume" : "Upload Resume (PDF)"}
                 </button>
-                {resumeUrl ? (
+
+                {resumeUrl && (
                   <a
                     href={resumeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-xs"
                   >
                     <span className="material-symbols-outlined text-sm">open_in_new</span>
-                    View / Download Resume
+                    View Resume
                   </a>
-                ) : (
-                  <button
-                    onClick={() => setShowResumeModal(true)}
-                    className="px-4 py-2 bg-primary/20 text-primary text-xs font-bold rounded-xl hover:bg-primary/30 transition-colors flex items-center gap-1.5"
-                  >
-                    <span className="material-symbols-outlined text-sm">upload_file</span>
-                    Upload Resume
-                  </button>
                 )}
               </div>
             </div>
 
-            {/* Experience & Certifications */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                {/* Experience CRUD */}
-                <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-headline-sm text-xl font-bold text-on-surface">Work Experience</h3>
-                    <button
-                      onClick={handleAddExperience}
-                      className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-sm">add</span>
-                      Add Position
-                    </button>
-                  </div>
+            {/* 4. Experience Section */}
+            <ExperienceSection
+              experiences={experiences}
+              onChange={handleExperiencesChange}
+            />
 
-                  <div className="space-y-6">
-                    {experiences.map((exp) => (
-                      <div
-                        key={exp.id}
-                        className="flex items-start gap-4 pb-6 border-b border-outline-variant/10 last:border-0 last:pb-0"
-                      >
-                        <div className="w-10 h-10 bg-primary-fixed text-on-primary-fixed rounded-xl flex items-center justify-center font-bold">
-                          <span className="material-symbols-outlined">work</span>
-                        </div>
-                        <div className="space-y-1 flex-1">
-                          <div className="flex justify-between items-start">
-                            <h4 className="font-bold text-on-surface text-base">{exp.role}</h4>
-                            <div className="flex items-center gap-2">
-                              <span className="text-outline text-xs font-label-md">
-                                {exp.startDate} - {exp.endDate}
-                              </span>
-                              <button
-                                onClick={() => handleRemoveExperience(exp.id)}
-                                className="text-outline hover:text-error transition-colors p-1"
-                              >
-                                <span className="material-symbols-outlined text-sm">delete</span>
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-primary font-label-md text-xs font-semibold">{exp.company}</p>
-                          <p className="text-on-surface-variant text-xs leading-relaxed pt-1">
-                            {exp.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* 5. Education Section */}
+            <EducationSection
+              educations={educations}
+              onChange={handleEducationsChange}
+            />
 
-                {/* Certifications with Uploaded Certificate & Document Verification */}
-                <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-headline-sm text-xl font-bold text-on-surface">
-                        Certifications & Document Verification
-                      </h3>
-                      <p className="text-xs text-on-surface-variant font-label-md">
-                        Upload certificates for admin verification & recruiter trust badges.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowCertModal(true)}
-                      className="px-3.5 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs flex items-center gap-1.5"
-                    >
-                      <span className="material-symbols-outlined text-sm">upload_file</span>
-                      Upload Certificate
-                    </button>
-                  </div>
+            {/* 6. Skills Section */}
+            <SkillsSection
+              skills={skills}
+              skillsList={skillsList}
+              onChange={handleSkillsChange}
+            />
 
-                  <div className="space-y-4">
-                    {certs.map((cert) => (
-                      <div
-                        key={cert.id}
-                        className="p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-xs text-on-surface">{cert.name}</h4>
-                            <span
-                              className={`px-2 py-0.5 font-bold text-[10px] rounded-md ${
-                                cert.status === "VERIFIED"
-                                  ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
-                                  : cert.status === "PENDING"
-                                  ? "bg-amber-500/15 text-amber-700 border border-amber-500/30"
-                                  : "bg-error/15 text-error"
-                              }`}
-                            >
-                              {cert.status === "VERIFIED" ? "✓ VERIFIED CREDENTIAL" : "PENDING VERIFICATION"}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-on-surface-variant">
-                            Category: <strong>{cert.category}</strong> • Authority: <strong>{cert.issuingAuthority}</strong>
-                          </p>
-                          <p className="text-[11px] text-outline font-mono">
-                            Issued: {cert.issueDate} {cert.noExpiryDate ? "• No Expiry" : `• Expires: ${cert.expiryDate}`}
-                          </p>
-                        </div>
+            {/* 7. Certifications Section */}
+            <CertificationsSection
+              certifications={certifications}
+              onChange={handleCertificationsChange}
+            />
 
-                        {cert.credentialUrl && (
-                          <a
-                            href={cert.credentialUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
-                          >
-                            Credential Link
-                            <span className="material-symbols-outlined text-sm">open_in_new</span>
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            {/* 8. Projects Section */}
+            <ProjectsSection
+              projects={projects}
+              onChange={handleProjectsChange}
+            />
 
-              {/* Portfolio & Skills */}
-              <div className="space-y-6">
-                <div className="glass-card rounded-2xl p-6 border border-outline-variant/20 space-y-4">
-                  <h3 className="font-headline-sm text-lg font-bold text-on-surface">Portfolio & Links</h3>
-                  <div className="space-y-2 text-xs">
-                    <a
-                      href={formData.portfolioLinks.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl flex items-center justify-between text-on-surface font-medium transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-base">link</span>
-                        LinkedIn Profile
-                      </span>
-                      <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
-                    </a>
-                    <a
-                      href={formData.portfolioLinks.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl flex items-center justify-between text-on-surface font-medium transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-base">code</span>
-                        GitHub Repositories
-                      </span>
-                      <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
-                    </a>
-                    <a
-                      href={formData.portfolioLinks.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl flex items-center justify-between text-on-surface font-medium transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-base">language</span>
-                        Personal Portfolio Site
-                      </span>
-                      <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* 9. Portfolio Links Section */}
+            <PortfolioLinksSection
+              links={links}
+              onChange={handleLinksChange}
+            />
 
-            {/* Candidate Privacy & Recruiter Contact Consent Center */}
+            {/* 10. Achievements Section */}
+            <AchievementsAndAwardsSection
+              achievements={achievements}
+              onChange={handleAchievementsChange}
+            />
+
+            {/* 11. Publications & Languages Dual Section */}
+            <PublicationsAndLanguagesSection
+              publications={publications}
+              languages={languages}
+              onPublicationsChange={handlePublicationsChange}
+              onLanguagesChange={handleLanguagesChange}
+            />
+
+            {/* 12. Volunteer Experience & Specialized Courses */}
+            <VolunteerAndCoursesSection
+              volunteer={volunteer}
+              courses={courses}
+              onVolunteerChange={handleVolunteerChange}
+              onCoursesChange={handleCoursesChange}
+            />
+
+            {/* 13. Career Preferences & Search Visibility */}
+            <CareerPreferencesSection
+              preferences={preferences}
+              visibility={visibility}
+              onPreferencesChange={handlePreferencesChange}
+              onVisibilityChange={handleVisibilityChange}
+            />
+
+            {/* 14. Candidate Privacy & Recruiter Consent Center */}
             <PrivacyAndContactRequests />
           </main>
+
           <Footer />
         </div>
       </div>
 
       {/* Resume Upload Modal */}
       {showResumeModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl max-w-md w-full p-6 border border-outline-variant/30 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface rounded-3xl max-w-md w-full p-6 border border-outline-variant/30 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-lg text-on-surface">Upload Resume File</h3>
+              <h3 className="font-bold text-lg text-on-surface">Upload Primary Resume</h3>
               <button
                 onClick={() => !isUploadingResume && setShowResumeModal(false)}
                 disabled={isUploadingResume}
-                className="text-outline hover:text-on-surface disabled:opacity-40"
+                className="text-outline hover:text-on-surface p-1"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
             <p className="text-xs text-on-surface-variant">
-              Supported formats: PDF, DOC, DOCX, PNG, JPEG, WEBP (Max size 5MB).
+              Supported formats: PDF, DOC, DOCX (Max size 5MB).
             </p>
 
-            <div className="border-2 border-dashed border-outline-variant/40 rounded-2xl p-8 text-center space-y-3">
+            <div className="border-2 border-dashed border-outline-variant/40 rounded-2xl p-8 text-center space-y-3 bg-surface-container-low/50">
               {isUploadingResume ? (
                 <div className="flex flex-col items-center justify-center py-4 space-y-3">
                   <span className="material-symbols-outlined text-3xl text-primary animate-spin">
                     progress_activity
                   </span>
                   <p className="text-xs font-bold text-on-surface">Uploading to secure storage...</p>
-                  <p className="text-[11px] text-on-surface-variant">Saving reference to database</p>
                 </div>
               ) : (
                 <>
                   <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
-                  <p className="text-xs font-bold text-on-surface">Drag & drop your resume file here</p>
+                  <p className="text-xs font-bold text-on-surface">Select your resume file</p>
                   <label className="inline-block px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl cursor-pointer hover:bg-primary-container transition-colors">
                     Browse Files
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp"
+                      accept=".pdf,.doc,.docx,application/pdf"
                       onChange={handleResumeFileSelected}
                       disabled={isUploadingResume}
                       className="hidden"
@@ -739,14 +698,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      <CertificateUploadModal
-        isOpen={showCertModal}
-        onClose={() => setShowCertModal(false)}
-        onCertificateUploaded={(cert) => {
-          RecruitmentEngine.addCertificate(cert);
-        }}
-      />
     </ProtectedRoute>
   );
 }

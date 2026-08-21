@@ -63,10 +63,25 @@ model Company {
   id            String   @id @default(uuid())
   name          String
   logo          String?
+  coverImage    String?
   industry      String
   location      String
   description   String
   website       String?
+  companyType   String?
+  companySize   String?
+  foundedYear   Int?
+  tagline       String?
+  mission       String?
+  vision        String?
+  values        String?  @default("[]")
+  culture       String?
+  techStack     String?  @default("[]")
+  benefits      String?  @default("[]")
+  locations     String?  @default("[]")
+  links         String?  @default("[]")
+  media         String?  @default("[]")
+  remotePolicy  String?
   isVerified    Boolean  @default(true)
   slaDays       Int      @default(7)
   autoCloseDays Int      @default(20)
@@ -184,16 +199,28 @@ model Notification {
 }
 
 model Profile {
-  id          String   @id @default(uuid())
-  skills      String
-  experience  String
-  education   String
-  portfolio   String
-  resumeUrl   String?
-  resumeScore Int      @default(92)
-  updatedAt   DateTime @updatedAt
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid())
+  skills           String   @default("")
+  experience       String   @default("[]")
+  education        String   @default("[]")
+  portfolio        String   @default("{}")
+  certifications   String?  @default("[]")
+  projects         String?  @default("[]")
+  links            String?  @default("[]")
+  achievements     String?  @default("[]")
+  publications     String?  @default("[]")
+  languages        String?  @default("[]")
+  volunteer        String?  @default("[]")
+  courses          String?  @default("[]")
+  preferences      String?  @default("{}")
+  visibility       String?  @default("{}")
+  recruiterProfile String?  @default("{}")
+  completeness     Int?     @default(0)
+  resumeUrl        String?
+  resumeScore      Int      @default(92)
+  updatedAt        DateTime @updatedAt
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ApplicationEvent {

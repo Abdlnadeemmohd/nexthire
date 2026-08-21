@@ -92,38 +92,39 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/30 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-6 animate-scale-in">
-        <div className="flex items-center justify-between border-b border-outline-variant/20 dark:border-slate-800 pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/30 dark:border-slate-800 rounded-3xl p-4 sm:p-6 md:p-8 max-w-lg w-full max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl animate-scale-in">
+        <div className="flex items-center justify-between border-b border-outline-variant/20 dark:border-slate-800 pb-3 sm:pb-4 flex-shrink-0">
           <div>
             <span className="text-[10px] font-label-sm font-bold text-outline dark:text-slate-400 uppercase tracking-wider block">
               Quick Application
             </span>
-            <h2 className="font-display text-xl font-bold text-on-surface dark:text-slate-100">
+            <h2 className="font-display text-lg sm:text-xl font-bold text-on-surface dark:text-slate-100">
               Apply to {companyName}
             </h2>
-            <p className="text-xs text-on-surface-variant dark:text-slate-400">{jobTitle}</p>
+            <p className="text-xs text-on-surface-variant dark:text-slate-400 truncate max-w-[240px] sm:max-w-none">{jobTitle}</p>
           </div>
 
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-2 text-on-surface-variant dark:text-slate-400 hover:text-on-surface dark:hover:text-white hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-40"
+            className="p-2 text-on-surface-variant dark:text-slate-400 hover:text-on-surface dark:hover:text-white hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-40 touch-target"
+            aria-label="Close modal"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 overflow-y-auto pt-4 pr-1">
           {/* Default Resume Option */}
-          <div className="p-4 bg-surface-container-low dark:bg-slate-800/60 rounded-2xl border border-outline-variant/20 dark:border-slate-700 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-2xl">description</span>
-              <div>
-                <h4 className="text-xs font-bold text-on-surface dark:text-slate-100">
+          <div className="p-3 sm:p-4 bg-surface-container-low dark:bg-slate-800/60 rounded-2xl border border-outline-variant/20 dark:border-slate-700 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0">description</span>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold text-on-surface dark:text-slate-100 truncate">
                   {profileResumeUrl || user?.resumeUrl ? "Primary Resume Attached" : "No Resume on Profile"}
                 </h4>
-                <p className="text-[11px] text-on-surface-variant dark:text-slate-400 font-mono">
+                <p className="text-[11px] text-on-surface-variant dark:text-slate-400 font-mono truncate">
                   {resumeDisplayName}
                 </p>
               </div>
@@ -133,7 +134,7 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
               type="checkbox"
               checked={useDefaultResume}
               onChange={(e) => setUseDefaultResume(e.target.checked)}
-              className="w-4 h-4 text-primary rounded border-outline-variant/40 dark:border-slate-700"
+              className="w-4 h-4 text-primary rounded border-outline-variant/40 dark:border-slate-700 flex-shrink-0 cursor-pointer"
             />
           </div>
 
@@ -147,24 +148,24 @@ export function JobApplyModal({ jobId, jobTitle, companyName, isOpen, onClose }:
               value={coverNote}
               onChange={(e) => setCoverNote(e.target.value)}
               placeholder="Highlight key engineering achievements or why you are a strong fit..."
-              className="w-full px-4 py-3 bg-surface-container dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-2xl text-xs text-on-surface dark:text-slate-100 placeholder-outline dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-surface-container dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-2xl text-xs text-on-surface dark:text-slate-100 placeholder-outline dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-2 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2.5 text-xs font-label-md font-bold text-on-surface-variant dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-40"
+              className="px-4 sm:px-5 py-2.5 text-xs font-label-md font-bold text-on-surface-variant dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-40 touch-target"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
+              className="px-5 sm:px-6 py-2.5 text-xs font-label-md font-bold bg-primary text-on-primary rounded-xl hover:bg-primary-container transition-all shadow-sm disabled:opacity-50 flex items-center gap-2 touch-target"
             >
               {isSubmitting ? (
                 <>

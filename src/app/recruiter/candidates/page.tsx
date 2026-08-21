@@ -407,28 +407,29 @@ export default function CandidateSearchPage() {
 
       {/* Candidate Preview Modal */}
       {previewModalOpen && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 md:p-8 max-w-lg w-full max-h-[calc(100dvh-2rem)] flex flex-col overflow-y-auto space-y-4 sm:space-y-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <img
                   src={selectedCandidate.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
                   alt={selectedCandidate.name}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-primary/20"
+                  className="w-12 sm:w-16 h-12 sm:h-16 rounded-2xl object-cover border-2 border-primary/20 flex-shrink-0"
                 />
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-lg text-on-surface">{selectedCandidate.name}</h3>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="font-bold text-base sm:text-lg text-on-surface truncate">{selectedCandidate.name}</h3>
                     <VerifiedBadge role="JOB_SEEKER" size="sm" />
                   </div>
-                  <p className="text-xs text-primary font-bold">{selectedCandidate.headline || "Technical Candidate"}</p>
-                  <p className="text-[11px] text-on-surface-variant">📍 {selectedCandidate.location || "Location not specified"}</p>
+                  <p className="text-xs text-primary font-bold truncate">{selectedCandidate.headline || "Technical Candidate"}</p>
+                  <p className="text-[11px] text-on-surface-variant truncate">📍 {selectedCandidate.location || "Location not specified"}</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setPreviewModalOpen(false)}
-                className="p-1 text-on-surface-variant hover:text-on-surface rounded-full"
+                className="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-full transition-colors flex-shrink-0 touch-target"
+                aria-label="Close preview"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -442,12 +443,12 @@ export default function CandidateSearchPage() {
             )}
 
             {/* Contact Information Box */}
-            <div className="p-4 bg-surface-container-low rounded-2xl space-y-2 border border-outline-variant/20">
-              <div className="flex items-center justify-between text-xs">
+            <div className="p-3.5 sm:p-4 bg-surface-container-low rounded-2xl space-y-2 border border-outline-variant/20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
                 <span className="text-on-surface-variant font-medium">Email Address:</span>
-                <span className="font-mono text-on-surface font-bold">{selectedCandidate.email}</span>
+                <span className="font-mono text-on-surface font-bold break-all">{selectedCandidate.email}</span>
               </div>
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
                 <span className="text-on-surface-variant font-medium">Direct Phone:</span>
                 <span className="font-mono text-on-surface font-bold">{selectedCandidate.phone || "Protected"}</span>
               </div>
@@ -459,12 +460,12 @@ export default function CandidateSearchPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 pt-2">
               {!selectedCandidate.isUnlocked && (
                 <button
                   onClick={() => handleUnlockCandidate(selectedCandidate)}
                   disabled={actionLoading}
-                  className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 touch-target"
                 >
                   <span className="material-symbols-outlined text-xs">lock_open</span>
                   Unlock Full Profile
@@ -477,7 +478,7 @@ export default function CandidateSearchPage() {
                     setPreviewModalOpen(false);
                     setContactRequestModalOpen(true);
                   }}
-                  className="px-4 py-2 bg-secondary text-on-secondary font-bold text-xs rounded-xl hover:bg-secondary-container transition-all"
+                  className="px-4 py-2 bg-secondary text-on-secondary font-bold text-xs rounded-xl hover:bg-secondary-container transition-all touch-target"
                 >
                   Request Contact Consent
                 </button>
@@ -485,7 +486,7 @@ export default function CandidateSearchPage() {
 
               <button
                 onClick={() => setPreviewModalOpen(false)}
-                className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-highest transition-all"
+                className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-highest transition-all touch-target"
               >
                 Close
               </button>
@@ -496,17 +497,17 @@ export default function CandidateSearchPage() {
 
       {/* Trial Exhausted / Upgrade Modal */}
       {trialUpgradeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-6 shadow-2xl text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-              <span className="material-symbols-outlined text-3xl">workspace_premium</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 md:p-8 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 sm:space-y-6 shadow-2xl text-center">
+            <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-2xl sm:text-3xl">workspace_premium</span>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-display text-xl sm:text-2xl font-bold text-on-surface">
+              <h3 className="font-display text-lg sm:text-2xl font-bold text-on-surface">
                 Trial Sourcing Complete
               </h3>
-              <p className="text-xs sm:text-sm text-on-surface-variant">
+              <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
                 You have reached your 5 free candidate searches. Choose a flexible recruiter subscription plan to unlock unlimited marketplace searches, verified resume downloads, and direct candidate sourcing.
               </p>
             </div>
@@ -515,16 +516,16 @@ export default function CandidateSearchPage() {
               Plans start from only ₹10 / month (Silver Tier)
             </div>
 
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
               <button
                 onClick={() => setTrialUpgradeModalOpen(false)}
-                className="px-4 py-2.5 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-highest transition-all"
+                className="w-full sm:w-auto px-4 py-2.5 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-highest transition-all touch-target"
               >
                 Cancel
               </button>
               <Link
                 href="/recruiter/billing"
-                className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-md"
+                className="w-full sm:w-auto px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-md touch-target"
               >
                 View Subscription Plans
               </Link>
@@ -535,9 +536,9 @@ export default function CandidateSearchPage() {
 
       {/* Contact Request Consent Modal (Diamond/Platinum) */}
       {contactRequestModalOpen && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-4 shadow-2xl">
-            <h3 className="font-display text-lg font-bold text-on-surface">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 md:p-8 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-2xl">
+            <h3 className="font-display text-base sm:text-lg font-bold text-on-surface">
               Request Contact Details from {selectedCandidate.name}
             </h3>
             <p className="text-xs text-on-surface-variant">
@@ -552,17 +553,17 @@ export default function CandidateSearchPage() {
               className="w-full p-3 bg-surface border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
             />
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 pt-2">
               <button
                 onClick={() => setContactRequestModalOpen(false)}
-                className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl"
+                className="px-4 py-2 bg-surface-container-high text-on-surface font-bold text-xs rounded-xl touch-target"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSendContactRequest}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all"
+                className="px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all touch-target"
               >
                 {actionLoading ? "Sending..." : "Send Request"}
               </button>

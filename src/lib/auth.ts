@@ -11,10 +11,17 @@ export interface UserExperience {
   id: string;
   company: string;
   role: string;
+  employmentType?: "Full-time" | "Part-time" | "Contract" | "Internship" | "Freelance";
+  location?: string;
+  workModel?: "Onsite" | "Hybrid" | "Remote";
   startDate: string;
-  endDate: string;
+  endDate?: string;
+  isCurrent?: boolean;
   description: string;
+  responsibilities?: string[];
   achievements?: string[];
+  skills?: string[];
+  companyUrl?: string;
 }
 
 export interface UserEducation {
@@ -22,17 +29,233 @@ export interface UserEducation {
   institution: string;
   degree: string;
   fieldOfStudy: string;
-  graduationYear: string;
+  startDate?: string;
+  endDate?: string;
+  graduationYear?: string;
+  gradeGpa?: string;
+  description?: string;
+  institutionUrl?: string;
+  activities?: string;
+  isCurrent?: boolean;
 }
 
 export interface UserCertification {
   id: string;
   name: string;
   issuer: string;
+  category?: string;
   issueDate: string;
   expiryDate?: string;
+  noExpiryDate?: boolean;
+  credentialId?: string;
   verificationLink?: string;
   certificateFileUrl?: string;
+  status?: "PENDING" | "VERIFIED" | "EXPIRED" | "REJECTED" | "UNVERIFIED";
+  description?: string;
+}
+
+export interface CandidateSkill {
+  id: string;
+  name: string;
+  category: "Technical" | "Business" | "Tools" | "Domain";
+  level?: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+  isHighlighted?: boolean;
+}
+
+export interface CandidateProject {
+  id: string;
+  title: string;
+  role?: string;
+  description: string;
+  techStack?: string[];
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  projectUrl?: string;
+  githubUrl?: string;
+  demoUrl?: string;
+  imageUrl?: string;
+  companyName?: string;
+}
+
+export interface CandidateLink {
+  id: string;
+  platform:
+    | "LinkedIn"
+    | "GitHub"
+    | "Website"
+    | "Portfolio"
+    | "Behance"
+    | "Dribbble"
+    | "Kaggle"
+    | "Stack Overflow"
+    | "Medium"
+    | "YouTube"
+    | "Twitter"
+    | "Scholar"
+    | "Other";
+  label: string;
+  url: string;
+  note?: string;
+  isPublic?: boolean;
+}
+
+export interface CandidateAchievement {
+  id: string;
+  title: string;
+  issuer?: string;
+  date?: string;
+  category?: "Award" | "Honor" | "Hackathon" | "Competition" | "Milestone" | "Other";
+  description?: string;
+  url?: string;
+}
+
+export interface CandidatePublication {
+  id: string;
+  title: string;
+  publisher?: string;
+  date?: string;
+  url?: string;
+  description?: string;
+  authors?: string;
+}
+
+export interface CandidateLanguage {
+  id: string;
+  language: string;
+  proficiency: "Native" | "Fluent" | "Professional" | "Conversational" | "Elementary";
+}
+
+export interface CandidateVolunteer {
+  id: string;
+  organization: string;
+  role: string;
+  cause?: string;
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  description?: string;
+  url?: string;
+}
+
+export interface CandidateCourse {
+  id: string;
+  title: string;
+  name?: string;
+  provider?: string;
+  institution?: string;
+  date?: string;
+  completionDate?: string;
+  certificateUrl?: string;
+  url?: string;
+  description?: string;
+}
+
+export interface CandidatePreferences {
+  openToWorkStatus:
+    | "ACTIVELY_LOOKING"
+    | "OPEN_TO_OFFERS"
+    | "OPEN_TO_RECRUITERS"
+    | "FREELANCE_CONTRACT"
+    | "NOT_LOOKING";
+  preferredRoles: string[];
+  preferredTypes: string[];
+  remotePreference: "REMOTE" | "HYBRID" | "ONSITE" | "ANY";
+  relocation: "YES" | "NO" | "OPEN";
+  expectedSalaryMin?: number;
+  expectedSalaryMax?: number;
+  currency: string;
+  salaryPeriod: "YEAR" | "MONTH";
+  noticePeriod: "IMMEDIATE" | "1_WEEK" | "2_WEEKS" | "1_MONTH" | "2_MONTHS" | "3_MONTHS_PLUS";
+}
+
+export interface CandidateVisibility {
+  isDiscoverable: boolean;
+  isPublic: boolean;
+  contactVisibility: "DIRECT" | "ON_REQUEST" | "MASKED";
+  resumeVisibility: "ALL" | "UNLOCKED_ONLY";
+}
+
+export type RecruiterHiringStatus =
+  | "ACTIVELY_HIRING"
+  | "HIRING"
+  | "OPEN_TO_OUTREACH"
+  | "BUILDING_PIPELINE"
+  | "HIRING_MULTIPLE"
+  | "NOT_HIRING"
+  | "INACTIVE";
+
+export interface CompanyAssociation {
+  companyId: string;
+  companyName: string;
+  relationship:
+    | "CURRENT_EMPLOYER"
+    | "PREVIOUS_EMPLOYER"
+    | "RECRUITING_PARTNER"
+    | "RETAINED_AGENCY"
+    | "AGENCY_CLIENT"
+    | "VENTURE_PORTFOLIO"
+    | "ADVISORY"
+    | "OTHER";
+  role: string;
+  startDate?: string;
+  endDate?: string;
+  isCurrent: boolean;
+  logoUrl?: string;
+  isVerifiedCompany?: boolean;
+}
+
+export interface RecruiterProfileData {
+  status: RecruiterHiringStatus;
+  headline?: string;
+  recruiterRole?: string;
+  yearsExperience?: number;
+  industryFocus?: string[];
+  recruitingSpecialties?: string[];
+  recruitingSkills?: string[];
+  languages?: string[];
+  targetRoles?: string[];
+  departments?: string[];
+  seniorityLevels?: string[];
+  hiringLocations?: string[];
+  remotePreferences?: string[];
+  employmentTypes?: string[];
+  hiringVolume?: string;
+  links?: CandidateLink[];
+  achievements?: string[];
+  companyAssociations?: CompanyAssociation[];
+}
+
+export interface CompanyValue {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface CompanyBenefit {
+  id?: string;
+  category: string;
+  title?: string;
+  description?: string;
+  perks?: string[];
+}
+
+export interface CompanyLocation {
+  id?: string;
+  name?: string;
+  city: string;
+  state?: string;
+  country: string;
+  isHQ?: boolean;
+  isHeadquarters?: boolean;
+  address?: string;
+}
+
+export interface CompanyMediaItem {
+  id: string;
+  url: string;
+  caption?: string;
+  type: "OFFICE" | "CULTURE" | "TEAM" | "BRAND";
 }
 
 export interface VerificationDocument {
@@ -66,6 +289,17 @@ export interface AuthUser {
   experience?: UserExperience[];
   education?: UserEducation[];
   certifications?: UserCertification[];
+  skillsList?: CandidateSkill[];
+  projects?: CandidateProject[];
+  portfolioLinksList?: CandidateLink[];
+  achievements?: CandidateAchievement[];
+  publications?: CandidatePublication[];
+  languages?: CandidateLanguage[];
+  volunteer?: CandidateVolunteer[];
+  courses?: CandidateCourse[];
+  preferences?: CandidatePreferences;
+  visibility?: CandidateVisibility;
+  recruiterData?: RecruiterProfileData;
   verificationDocs?: VerificationDocument[];
   portfolioLinks?: {
     linkedin?: string;

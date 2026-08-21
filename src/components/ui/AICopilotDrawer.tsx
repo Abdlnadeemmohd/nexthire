@@ -170,10 +170,10 @@ export function AICopilotDrawer() {
             aria-hidden="true"
           />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
             <div className="w-screen max-w-md bg-surface-container-lowest border-l border-outline-variant/30 shadow-2xl flex flex-col">
               {/* Drawer Header */}
-              <div className="p-5 border-b border-outline-variant/20 flex items-center justify-between bg-gradient-to-r from-primary/10 to-transparent">
+              <div className="p-4 sm:p-5 border-b border-outline-variant/20 flex items-center justify-between bg-gradient-to-r from-primary/10 to-transparent">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-primary text-on-primary rounded-2xl shadow-xs">
                     <span className="material-symbols-outlined text-xl" aria-hidden="true">auto_awesome</span>

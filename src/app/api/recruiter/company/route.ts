@@ -4,6 +4,39 @@ import { getAuthenticatedUser } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
+function calculateCompanyCompleteness(company: any): { score: number; missing: string[]; recommendations: string[] } {
+  let score = 0;
+  const missing: string[] = [];
+  const recommendations: string[] = [];
+
+  if (company.name) score += 15;
+  if (company.industry) score += 10; else missing.push("Industry");
+  if (company.location) score += 10; else missing.push("Location / HQ");
+  if (company.description) score += 15; else missing.push("About / Company Story");
+  if (company.website) score += 10; else missing.push("Website URL");
+  if (company.logo) score += 10; else recommendations.push("Upload company logo for verified brand recognition");
+  if (company.coverImage) score += 5; else recommendations.push("Add a branded cover/banner image");
+  if (company.mission || company.vision) score += 5;
+
+  let values: any[] = [];
+  try { values = JSON.parse(company.values || "[]"); } catch {}
+  if (values.length > 0) score += 5;
+
+  let techStack: any[] = [];
+  try { techStack = JSON.parse(company.techStack || "[]"); } catch {}
+  if (techStack.length > 0) score += 5;
+
+  let benefits: any[] = [];
+  try { benefits = JSON.parse(company.benefits || "[]"); } catch {}
+  if (benefits.length > 0) score += 5;
+
+  let locations: any[] = [];
+  try { locations = JSON.parse(company.locations || "[]"); } catch {}
+  if (locations.length > 0) score += 5;
+
+  return { score: Math.min(100, Math.max(0, score)), missing, recommendations };
+}
+
 export async function GET() {
   const authUser = await getAuthenticatedUser();
   if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
@@ -34,7 +67,7 @@ export async function GET() {
       );
     }
 
-    // Live counts calculated from Neon PostgreSQL
+    // Live counts from PostgreSQL
     const activeJobsCount = await prisma.job.count({
       where: { companyId: company.id, status: "ACTIVE" },
     });
@@ -42,6 +75,22 @@ export async function GET() {
     const totalApplicantsCount = await prisma.application.count({
       where: { job: { companyId: company.id } },
     });
+
+    let values: any[] = [];
+    let techStack: any[] = [];
+    let benefits: any[] = [];
+    let locations: any[] = [];
+    let links: any[] = [];
+    let media: any[] = [];
+
+    try { values = JSON.parse(company.values || "[]"); } catch {}
+    try { techStack = JSON.parse(company.techStack || "[]"); } catch {}
+    try { benefits = JSON.parse(company.benefits || "[]"); } catch {}
+    try { locations = JSON.parse(company.locations || "[]"); } catch {}
+    try { links = JSON.parse(company.links || "[]"); } catch {}
+    try { media = JSON.parse(company.media || "[]"); } catch {}
+
+    const { score, missing, recommendations } = calculateCompanyCompleteness(company);
 
     return NextResponse.json({
       success: true,
@@ -56,11 +105,29 @@ export async function GET() {
         about: company.description,
         logo: company.logo || null,
         logoUrl: company.logo || null,
+        coverImage: company.coverImage || null,
+        companyType: company.companyType || "Private",
+        companySize: company.companySize || "11-50 employees",
+        foundedYear: company.foundedYear || null,
+        tagline: company.tagline || null,
+        mission: company.mission || null,
+        vision: company.vision || null,
+        culture: company.culture || null,
+        remotePolicy: company.remotePolicy || "Hybrid",
+        values,
+        techStack,
+        benefits,
+        locations,
+        links,
+        media,
         isVerified: company.isVerified,
         slaDays: company.slaDays,
         autoCloseDays: company.autoCloseDays,
         activeRoles: activeJobsCount,
         totalApplicants: totalApplicantsCount,
+        completeness: score,
+        missingSections: missing,
+        recommendations,
         createdAt: company.createdAt.toISOString(),
       },
     });
@@ -91,12 +158,26 @@ export async function PUT(request: Request) {
       description,
       website,
       logo,
+      coverImage,
+      companyType,
+      companySize,
+      foundedYear,
+      tagline,
+      mission,
+      vision,
+      culture,
+      remotePolicy,
+      values,
+      techStack,
+      benefits,
+      locations,
+      links,
+      media,
     } = body;
 
     let targetCompanyId = authUser.companyId;
 
     if (!targetCompanyId) {
-      // Recruiter is creating company profile for the first time
       if (!name || typeof name !== "string" || !name.trim()) {
         return NextResponse.json(
           { success: false, error: "Company name is required." },
@@ -130,6 +211,21 @@ export async function PUT(request: Request) {
           description: description.trim(),
           website: website?.trim() || null,
           logo: logo || null,
+          coverImage: coverImage || null,
+          companyType: companyType || "Private",
+          companySize: companySize || "11-50 employees",
+          foundedYear: foundedYear ? Number(foundedYear) : null,
+          tagline: tagline?.trim() || null,
+          mission: mission?.trim() || null,
+          vision: vision?.trim() || null,
+          culture: culture?.trim() || null,
+          remotePolicy: remotePolicy || "Hybrid",
+          values: Array.isArray(values) ? JSON.stringify(values) : "[]",
+          techStack: Array.isArray(techStack) ? JSON.stringify(techStack) : "[]",
+          benefits: Array.isArray(benefits) ? JSON.stringify(benefits) : "[]",
+          locations: Array.isArray(locations) ? JSON.stringify(locations) : "[]",
+          links: Array.isArray(links) ? JSON.stringify(links) : "[]",
+          media: Array.isArray(media) ? JSON.stringify(media) : "[]",
           isVerified: false,
         },
       });
@@ -141,30 +237,60 @@ export async function PUT(request: Request) {
         data: { companyId: targetCompanyId },
       });
 
+      const { score, missing, recommendations } = calculateCompanyCompleteness(created);
+
       return NextResponse.json({
         success: true,
         message: "Company profile created successfully in Neon PostgreSQL",
-        data: created,
+        data: {
+          ...created,
+          completeness: score,
+          missingSections: missing,
+          recommendations,
+        },
       });
     }
 
     // Updating existing company profile
+    const updateData: any = {};
+    if (name !== undefined && name.trim()) updateData.name = name.trim();
+    if (industry !== undefined && industry.trim()) updateData.industry = industry.trim();
+    if (location !== undefined && location.trim()) updateData.location = location.trim();
+    if (description !== undefined && description.trim()) updateData.description = description.trim();
+    if (website !== undefined) updateData.website = website.trim() || null;
+    if (logo !== undefined) updateData.logo = logo;
+    if (coverImage !== undefined) updateData.coverImage = coverImage;
+    if (companyType !== undefined) updateData.companyType = companyType;
+    if (companySize !== undefined) updateData.companySize = companySize;
+    if (foundedYear !== undefined) updateData.foundedYear = foundedYear ? Number(foundedYear) : null;
+    if (tagline !== undefined) updateData.tagline = tagline?.trim() || null;
+    if (mission !== undefined) updateData.mission = mission?.trim() || null;
+    if (vision !== undefined) updateData.vision = vision?.trim() || null;
+    if (culture !== undefined) updateData.culture = culture?.trim() || null;
+    if (remotePolicy !== undefined) updateData.remotePolicy = remotePolicy;
+    if (Array.isArray(values)) updateData.values = JSON.stringify(values);
+    if (Array.isArray(techStack)) updateData.techStack = JSON.stringify(techStack);
+    if (Array.isArray(benefits)) updateData.benefits = JSON.stringify(benefits);
+    if (Array.isArray(locations)) updateData.locations = JSON.stringify(locations);
+    if (Array.isArray(links)) updateData.links = JSON.stringify(links);
+    if (Array.isArray(media)) updateData.media = JSON.stringify(media);
+
     const updatedCompany = await prisma.company.update({
       where: { id: targetCompanyId },
-      data: {
-        name: name !== undefined && name.trim() ? name.trim() : undefined,
-        industry: industry !== undefined && industry.trim() ? industry.trim() : undefined,
-        location: location !== undefined && location.trim() ? location.trim() : undefined,
-        description: description !== undefined && description.trim() ? description.trim() : undefined,
-        website: website !== undefined ? website.trim() || null : undefined,
-        logo: logo !== undefined ? logo : undefined,
-      },
+      data: updateData,
     });
+
+    const { score, missing, recommendations } = calculateCompanyCompleteness(updatedCompany);
 
     return NextResponse.json({
       success: true,
       message: "Company profile updated successfully in Neon PostgreSQL",
-      data: updatedCompany,
+      data: {
+        ...updatedCompany,
+        completeness: score,
+        missingSections: missing,
+        recommendations,
+      },
     });
   } catch (err: any) {
     console.error("[PUT /api/recruiter/company Error]:", err);

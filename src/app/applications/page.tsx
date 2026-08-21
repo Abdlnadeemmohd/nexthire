@@ -93,48 +93,50 @@ export default function ApplicationTrackerPage() {
       <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="seeker" />
 
-        <main className="flex-1 lg:ml-72 p-6 md:p-10 space-y-8 max-w-7xl">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="font-display text-3xl font-bold text-on-surface">
-                Application Pipeline Tracker
-              </h1>
-              <p className="text-on-surface-variant text-sm font-body-md">
-                Track your active applications, interviews, recruiter feedback, and offers in real-time.
-              </p>
-            </div>
-
-            {selectedApp && (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowTimelineModal(true)}
-                  className="px-4 py-2 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold text-xs rounded-full flex items-center gap-1.5 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-base text-primary">history</span>
-                  Application History
-                </button>
-
-                {isActiveApplicationStatus(selectedApp.status) && (
-                  <button
-                    onClick={() => handleWithdraw(selectedApp.id, selectedApp.jobTitle)}
-                    className="px-4 py-2 bg-error/10 hover:bg-error/20 text-error border border-error/30 font-bold text-xs rounded-full transition-colors"
-                  >
-                    Withdraw Application
-                  </button>
-                )}
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] w-full pb-20 sm:pb-24">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                  Application Pipeline Tracker
+                </h1>
+                <p className="text-on-surface-variant text-xs sm:text-sm font-body-md">
+                  Track your active applications, interviews, recruiter feedback, and offers in real-time.
+                </p>
               </div>
-            )}
-          </div>
 
-          {loading ? (
-            <div className="py-16 text-center text-xs text-on-surface-variant">
-              Loading applications pipeline from database...
+              {selectedApp && (
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() => setShowTimelineModal(true)}
+                    className="px-4 py-2 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold text-xs rounded-full flex items-center gap-1.5 transition-colors touch-target"
+                  >
+                    <span className="material-symbols-outlined text-base text-primary">history</span>
+                    Application History
+                  </button>
+
+                  {isActiveApplicationStatus(selectedApp.status) && (
+                    <button
+                      onClick={() => handleWithdraw(selectedApp.id, selectedApp.jobTitle)}
+                      className="px-4 py-2 bg-error-container/30 hover:bg-error-container/50 text-error font-bold text-xs rounded-full flex items-center gap-1.5 transition-colors touch-target"
+                    >
+                      <span className="material-symbols-outlined text-base">cancel</span>
+                      Withdraw Application
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          ) : apps.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Applications List */}
-              <div className="space-y-3">
+
+            {loading ? (
+              <div className="py-16 text-center text-xs text-on-surface-variant">
+                Loading applications pipeline from database...
+              </div>
+            ) : apps.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Applications List */}
+                <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-outline uppercase tracking-wider">
                     Applications ({filteredApps.length})
@@ -376,33 +378,34 @@ export default function ApplicationTrackerPage() {
             />
           )}
         </main>
+
+        <Footer />
       </div>
+    </div>
 
-      {/* Candidate History Timeline Modal */}
-      {selectedApp && (
-        <CandidateTimelineModal
-          isOpen={showTimelineModal}
-          onClose={() => setShowTimelineModal(false)}
-          candidateName={selectedApp.candidateName || "Candidate"}
-          jobTitle={selectedApp.jobTitle || "Job Requisition"}
-          events={(selectedApp.events || []).map((e: any) => ({
-            id: e.id,
-            timestamp: e.timestamp ? new Date(e.timestamp).toLocaleString() : "Recently",
-            stage: e.type || "STATUS_CHANGED",
-            actorName: e.actorId === selectedApp.candidateId ? "Candidate" : "Recruiter",
-            actorRole: "RECRUITER",
-            description: e.notes || e.type || "Application event logged",
-            badgeType:
-              e.type === "REJECTION_SUBMITTED"
-                ? "REJECTED"
-                : e.type === "INTERVIEW_SCHEDULED"
-                ? "INTERVIEW"
-                : "APPLIED",
-          }))}
-        />
-      )}
-
-      <Footer />
-    </ProtectedRoute>
+    {/* Candidate History Timeline Modal */}
+    {selectedApp && (
+      <CandidateTimelineModal
+        isOpen={showTimelineModal}
+        onClose={() => setShowTimelineModal(false)}
+        candidateName={selectedApp.candidateName || "Candidate"}
+        jobTitle={selectedApp.jobTitle || "Job Requisition"}
+        events={(selectedApp.events || []).map((e: any) => ({
+          id: e.id,
+          timestamp: e.timestamp ? new Date(e.timestamp).toLocaleString() : "Recently",
+          stage: e.type || "STATUS_CHANGED",
+          actorName: e.actorId === selectedApp.candidateId ? "Candidate" : "Recruiter",
+          actorRole: "RECRUITER",
+          description: e.notes || e.type || "Application event logged",
+          badgeType:
+            e.type === "REJECTION_SUBMITTED"
+              ? "REJECTED"
+              : e.type === "INTERVIEW_SCHEDULED"
+              ? "INTERVIEW"
+              : "APPLIED",
+        }))}
+      />
+    )}
+  </ProtectedRoute>
   );
 }

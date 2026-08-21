@@ -240,8 +240,8 @@ export default function AdminUsersPage() {
               </div>
             ) : filteredUsers.length > 0 ? (
               <div className="glass-card rounded-2xl border border-outline-variant/20 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-body-sm">
+                <div className="overflow-x-auto no-scrollbar">
+                  <table className="w-full text-left text-xs font-body-sm min-w-[700px]">
                     <thead>
                       <tr className="border-b border-outline-variant/20 text-outline uppercase font-semibold bg-surface-container-low">
                         <th className="py-3 px-4">User</th>

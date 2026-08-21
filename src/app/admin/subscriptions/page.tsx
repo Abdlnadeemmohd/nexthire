@@ -253,11 +253,11 @@ export default function AdminSubscriptionsPage() {
 
             {/* Tab 2: Subscribers Table */}
             {activeTab === "SUBSCRIBERS" && (
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-4">
-                <h3 className="font-bold text-lg text-on-surface">Commercial Subscribers Directory</h3>
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 space-y-4">
+                <h3 className="font-bold text-base sm:text-lg text-on-surface">Commercial Subscribers Directory</h3>
                 {subscriptions.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                  <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left text-xs border-collapse min-w-[640px]">
                       <thead>
                         <tr className="border-b border-outline-variant/20 text-on-surface-variant">
                           <th className="py-3 px-4">Recruiter / Employer</th>
@@ -302,11 +302,11 @@ export default function AdminSubscriptionsPage() {
 
             {/* Tab 3: Recruiter Trials Table */}
             {activeTab === "TRIALS" && (
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-4">
-                <h3 className="font-bold text-lg text-on-surface">Recruiter Trial Mode Monitoring</h3>
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-4 sm:p-6 space-y-4">
+                <h3 className="font-bold text-base sm:text-lg text-on-surface">Recruiter Trial Mode Monitoring</h3>
                 {trials.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                  <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left text-xs border-collapse min-w-[640px]">
                       <thead>
                         <tr className="border-b border-outline-variant/20 text-on-surface-variant">
                           <th className="py-3 px-4">Recruiter</th>

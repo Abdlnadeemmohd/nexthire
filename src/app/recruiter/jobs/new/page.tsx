@@ -263,18 +263,18 @@ export default function PostJobPage() {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/20">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-outline-variant/20">
                   <button
                     type="button"
                     onClick={() => router.back()}
-                    className="px-6 py-3 rounded-full text-on-surface-variant hover:bg-surface-container font-label-md text-xs font-bold"
+                    className="w-full sm:w-auto px-6 py-3 rounded-full text-on-surface-variant hover:bg-surface-container font-label-md text-xs font-bold text-center touch-target"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-8 py-3 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold hover:bg-primary-container transition-all shadow-md disabled:opacity-50"
+                    className="w-full sm:w-auto px-8 py-3 bg-primary text-on-primary rounded-full font-label-md text-xs font-bold hover:bg-primary-container transition-all shadow-md disabled:opacity-50 text-center touch-target"
                   >
                     {isSubmitting ? "Publishing to Neon..." : "Publish Opening Now"}
                   </button>
