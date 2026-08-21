@@ -18,20 +18,6 @@ export async function GET(
 
   const { id: candidateId } = params;
 
-  if (authUser.role === "RECRUITER") {
-    try {
-      await assertUserVerified(authUser, "downloading verified candidate resumes");
-    } catch (err: any) {
-      if (err instanceof VerificationRequiredError || err.name === "VerificationRequiredError") {
-        return NextResponse.json(
-          { success: false, error: err.message, status: err.status },
-          { status: 403 }
-        );
-      }
-      throw err;
-    }
-  }
-
   try {
     const candidate = await prisma.user.findUnique({
       where: { id: candidateId, role: "JOB_SEEKER" },
@@ -46,13 +32,33 @@ export async function GET(
     }
 
     if (authUser.role === "RECRUITER") {
-      await consumeResumeUnlock(authUser.id, candidateId);
+      const isAlreadyUnlocked = await prisma.candidateUnlock.findUnique({
+        where: {
+          recruiterId_candidateId: {
+            recruiterId: authUser.id,
+            candidateId,
+          },
+        },
+      });
+
+      const hasApplied = authUser.companyId
+        ? await prisma.application.findFirst({
+            where: {
+              applicantId: candidateId,
+              job: { companyId: authUser.companyId },
+            },
+          })
+        : null;
+
+      if (!isAlreadyUnlocked && !hasApplied) {
+        await consumeResumeUnlock(authUser.id, candidateId);
+      }
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        resumeUrl: candidate.profile.resumeUrl,
+        resumeUrl: `/api/documents/download?userId=${candidateId}`,
         candidateName: candidate.name,
         accessedAt: new Date().toISOString(),
         audited: true,

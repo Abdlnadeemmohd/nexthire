@@ -108,19 +108,72 @@ export async function GET(request: Request) {
       resolvedDocumentUrl = app.resumeUrl || app.applicant?.profile?.resumeUrl || null;
       documentName = `${app.applicant.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume.pdf`;
     } else if (requestedUserId) {
-      // Direct user document access (only self or platform admin)
-      if (requestedUserId !== authUser.id && authUser.role !== "PLATFORM_ADMIN") {
+      let isAuthorized = false;
+
+      // 1. Self access or Platform Admin
+      if (requestedUserId === authUser.id || authUser.role === "PLATFORM_ADMIN") {
+        isAuthorized = true;
+      }
+
+      // 2. Recruiter accessing candidate resume
+      if (!isAuthorized && authUser.role === "RECRUITER") {
+        // Check if candidate applied to any job from recruiter's company
+        const hasApplied = authUser.companyId
+          ? await prisma.application.findFirst({
+              where: {
+                applicantId: requestedUserId,
+                job: { companyId: authUser.companyId },
+              },
+            })
+          : null;
+
+        if (hasApplied) {
+          isAuthorized = true;
+        } else {
+          // Check if candidate is already unlocked
+          const isUnlocked = await prisma.candidateUnlock.findUnique({
+            where: {
+              recruiterId_candidateId: {
+                recruiterId: authUser.id,
+                candidateId: requestedUserId,
+              },
+            },
+          });
+
+          if (isUnlocked) {
+            isAuthorized = true;
+          } else {
+            // Check recruiter subscription entitlements for resume download
+            try {
+              const { getRecruiterEntitlements, consumeResumeUnlock } = await import("@/lib/billing/entitlements");
+              const entitlements = await getRecruiterEntitlements(authUser.id);
+              if (entitlements.canDownloadResume && entitlements.resumeUnlocksRemainingToday > 0) {
+                await consumeResumeUnlock(authUser.id, requestedUserId);
+                isAuthorized = true;
+              }
+            } catch (entErr) {
+              console.error("[Download Entitlement Check Error]:", entErr);
+            }
+          }
+        }
+      }
+
+      if (!isAuthorized) {
         return NextResponse.json(
-          { success: false, error: "You are not authorized to access this document." },
+          { success: false, error: "Unauthorized: Active resume entitlement or candidate unlock required." },
           { status: 403, headers: { "Content-Type": "application/json" } }
         );
       }
 
-      const profile = await prisma.profile.findUnique({
-        where: { userId: requestedUserId },
+      const targetUser = await prisma.user.findUnique({
+        where: { id: requestedUserId },
+        include: { profile: true },
       });
-      resolvedDocumentUrl = profile?.resumeUrl || null;
-      documentName = `${authUser.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume.pdf`;
+
+      resolvedDocumentUrl = targetUser?.profile?.resumeUrl || null;
+      documentName = targetUser?.name
+        ? `${targetUser.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume.pdf`
+        : "Candidate_Resume.pdf";
     } else {
       // Current authenticated user's own profile document
       const profile = await prisma.profile.findUnique({

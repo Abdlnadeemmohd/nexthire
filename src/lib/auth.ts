@@ -281,6 +281,8 @@ export interface AuthUser {
   role: UserRole;
   avatar: string;
   status: "VERIFIED" | "PENDING" | "BLOCKED";
+  isVerified?: boolean;
+  subscriptionTier?: string;
   verificationStatus?: "PENDING" | "VERIFIED" | "REJECTED" | "SUSPENDED";
   badgeStatus?: "APPROVED" | "PENDING" | "SUSPENDED" | "REJECTED";
   companyId?: string;

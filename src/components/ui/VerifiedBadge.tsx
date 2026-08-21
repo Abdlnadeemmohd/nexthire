@@ -34,31 +34,31 @@ export function VerifiedBadge({
       case "PREMIUM_RECRUITER":
         if (tier === "PLATINUM" || tier === "DIAMOND") {
           return {
-            label: customLabel || "Verified Recruiter",
-            colorClasses: "bg-amber-500/10 text-amber-900 border-amber-500/30",
-            iconColor: "text-amber-600",
+            label: customLabel || "Verified Recruiter (Diamond)",
+            colorClasses: "bg-cyan-50 text-cyan-900 border-cyan-400 font-bold",
+            iconColor: "text-cyan-600",
             ariaLabel: "Verified Recruiter Profile (Diamond Partner)",
           };
         }
         if (tier === "GOLD") {
           return {
-            label: customLabel || "Verified Recruiter",
-            colorClasses: "bg-amber-50 text-amber-800 border-amber-300",
-            iconColor: "text-amber-700",
+            label: customLabel || "Verified Recruiter (Gold)",
+            colorClasses: "bg-amber-100/80 text-amber-950 border-amber-400 font-bold",
+            iconColor: "text-amber-600",
             ariaLabel: "Verified Recruiter Profile (Gold Tier)",
           };
         }
         if (tier === "SILVER") {
           return {
-            label: customLabel || "Verified Recruiter",
-            colorClasses: "bg-slate-100 text-slate-800 border-slate-300",
-            iconColor: "text-slate-700",
+            label: customLabel || "Verified Recruiter (Silver)",
+            colorClasses: "bg-slate-100 text-slate-800 border-slate-300 font-bold",
+            iconColor: "text-slate-600",
             ariaLabel: "Verified Recruiter Profile (Silver Tier)",
           };
         }
         return {
           label: customLabel || "Verified Recruiter",
-          colorClasses: "bg-blue-50 text-blue-800 border-blue-200",
+          colorClasses: "bg-blue-50 text-blue-800 border-blue-200 font-bold",
           iconColor: "text-blue-700",
           ariaLabel: "Verified Recruiter Profile",
         };

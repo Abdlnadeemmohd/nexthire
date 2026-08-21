@@ -62,13 +62,26 @@ export async function GET(request: Request) {
     };
 
     if (q) {
-      whereConditions.OR = [
-        { name: { contains: q, mode: "insensitive" } },
-        { headline: { contains: q, mode: "insensitive" } },
-        { bio: { contains: q, mode: "insensitive" } },
-        { location: { contains: q, mode: "insensitive" } },
-        { profile: { skills: { contains: q, mode: "insensitive" } } },
-      ];
+      const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+      const orConditions: any[] = [];
+      tokens.forEach((token) => {
+        orConditions.push(
+          { name: { contains: token, mode: "insensitive" } },
+          { headline: { contains: token, mode: "insensitive" } },
+          { bio: { contains: token, mode: "insensitive" } },
+          { location: { contains: token, mode: "insensitive" } },
+          { profile: { skills: { contains: token, mode: "insensitive" } } }
+        );
+      });
+      if (tokens.length > 1) {
+        orConditions.push(
+          { name: { contains: q, mode: "insensitive" } },
+          { headline: { contains: q, mode: "insensitive" } },
+          { bio: { contains: q, mode: "insensitive" } },
+          { profile: { skills: { contains: q, mode: "insensitive" } } }
+        );
+      }
+      whereConditions.OR = orConditions;
     }
 
     if (filterTitle) {
@@ -128,13 +141,37 @@ export async function GET(request: Request) {
             ? "Not Looking"
             : "Open to Opportunities");
 
+        const cleanHeadline =
+          cand.headline && !cand.headline.includes("Verified via Firebase")
+            ? cand.headline
+            : "Technical Professional";
+
         // Compute matching criteria explanations
         const matchedReasons: string[] = [];
         if (q) {
-          if (cand.name.toLowerCase().includes(q.toLowerCase())) matchedReasons.push("Name match");
-          if (cand.headline?.toLowerCase().includes(q.toLowerCase())) matchedReasons.push("Role match");
-          if (skillsArray.some((s) => s.toLowerCase().includes(q.toLowerCase()))) matchedReasons.push("Skill match");
+          const qLower = q.toLowerCase();
+          const tokens = qLower.split(/\s+/).filter(Boolean);
+          const fullText = `${cand.name} ${cleanHeadline} ${cand.bio || ""} ${skillsArray.join(" ")} ${previousCompanies.join(" ")} ${cand.location || ""}`.toLowerCase();
+
+          const hasMatch = tokens.some((t) => fullText.includes(t)) || fullText.includes(qLower);
+          if (!hasMatch) return null;
+
+          if (cand.name.toLowerCase().includes(qLower) || tokens.some((t) => cand.name.toLowerCase().includes(t))) {
+            matchedReasons.push("Name match");
+          }
+          if (cleanHeadline.toLowerCase().includes(qLower) || tokens.some((t) => cleanHeadline.toLowerCase().includes(t))) {
+            matchedReasons.push(`Role: ${cleanHeadline}`);
+          }
+          const matchedSkills = skillsArray.filter((s) => tokens.some((t) => s.toLowerCase().includes(t)) || s.toLowerCase().includes(qLower));
+          if (matchedSkills.length > 0) {
+            matchedReasons.push(`Skill: ${matchedSkills.slice(0, 2).join(", ")}`);
+          }
+          const matchedComp = previousCompanies.find((c) => tokens.some((t) => c.toLowerCase().includes(t)) || c.toLowerCase().includes(qLower));
+          if (matchedComp) {
+            matchedReasons.push(`Experience: ${matchedComp}`);
+          }
         }
+
         if (filterSkill) {
           const reqSkills = filterSkill.toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
           const hasMatchingSkill = reqSkills.some((rs) =>
@@ -159,10 +196,6 @@ export async function GET(request: Request) {
         }
 
         const isUnlocked = unlockedCandidateIds.has(cand.id);
-        const cleanHeadline =
-          cand.headline && !cand.headline.includes("Verified via Firebase")
-            ? cand.headline
-            : "Technical Professional";
 
         return {
           id: cand.id,
@@ -176,11 +209,12 @@ export async function GET(request: Request) {
           bio: cand.bio || null,
           avatar: cand.avatar || null,
           resumeScore: cand.profile?.resumeScore || null,
-          resumeUrl: isUnlocked && entitlements.canDownloadResume ? cand.profile?.resumeUrl : null,
+          resumeUrl: isUnlocked && entitlements.canDownloadResume ? `/api/documents/download?userId=${cand.id}` : null,
           hasResume: Boolean(cand.profile?.resumeUrl),
           email: isUnlocked ? cand.email : maskEmail(cand.email),
           phone: isUnlocked ? cand.phone || null : maskPhone(cand.phone),
           isUnlocked,
+          isVerified: Boolean(cand.companyId) || false,
           canDownloadResume: entitlements.canDownloadResume,
           joinedDate: cand.createdAt.toISOString().split("T")[0],
         };

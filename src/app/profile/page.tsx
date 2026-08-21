@@ -614,7 +614,7 @@ export default function CandidateProfilePage() {
 
                 {resumeUrl && (
                   <a
-                    href={resumeUrl}
+                    href="/api/documents/download"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-xs"

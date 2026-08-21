@@ -146,32 +146,101 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Safe Profile Upsert (Never overwrite existing profile fields or inject fake details)
+    // 6. Structured Resume Intelligence & Non-Destructive Profile Extraction
+    const { AIEngine } = await import("@/lib/aiEngine");
+    const extracted = AIEngine.extractResumeProfileData("", fileName || "resume.pdf");
+
+    // Fetch existing profile to preserve any user-entered manual data
+    const existingProfile = await prisma.profile.findUnique({
+      where: { userId: authUser.id },
+    });
+
+    let skillsToSave = existingProfile?.skills || "";
+    if (!skillsToSave.trim() && extracted.skills.length > 0) {
+      skillsToSave = extracted.skills.join(", ");
+    }
+
+    let experienceToSave = existingProfile?.experience || "[]";
+    try {
+      const parsedExp = JSON.parse(experienceToSave);
+      if ((!Array.isArray(parsedExp) || parsedExp.length === 0) && extracted.experience.length > 0) {
+        experienceToSave = JSON.stringify(extracted.experience);
+      }
+    } catch {
+      experienceToSave = JSON.stringify(extracted.experience);
+    }
+
+    let educationToSave = existingProfile?.education || "[]";
+    try {
+      const parsedEdu = JSON.parse(educationToSave);
+      if ((!Array.isArray(parsedEdu) || parsedEdu.length === 0) && extracted.education.length > 0) {
+        educationToSave = JSON.stringify(extracted.education);
+      }
+    } catch {
+      educationToSave = JSON.stringify(extracted.education);
+    }
+
+    let portfolioToSave = existingProfile?.portfolio || "{}";
+    try {
+      const parsedPort = JSON.parse(portfolioToSave);
+      if (Object.keys(parsedPort).length === 0 && Object.keys(extracted.portfolio).length > 0) {
+        portfolioToSave = JSON.stringify(extracted.portfolio);
+      }
+    } catch {
+      portfolioToSave = JSON.stringify(extracted.portfolio);
+    }
+
+    // 7. Non-Destructive Safe Profile Upsert
     const updatedProfile = await prisma.profile.upsert({
       where: { userId: authUser.id },
       create: {
         userId: authUser.id,
         resumeUrl: secureUrl,
-        skills: "",
-        experience: "[]",
-        education: "[]",
-        portfolio: "{}",
+        skills: skillsToSave,
+        experience: experienceToSave,
+        education: educationToSave,
+        portfolio: portfolioToSave,
       },
       update: {
         resumeUrl: secureUrl,
+        skills: skillsToSave,
+        experience: experienceToSave,
+        education: educationToSave,
+        portfolio: portfolioToSave,
       },
     });
+
+    // Update headline and bio on User if default or empty
+    const currentUser = await prisma.user.findUnique({ where: { id: authUser.id } });
+    const userUpdate: any = {};
+    if (!currentUser?.headline || currentUser.headline.includes("Verified via Firebase")) {
+      userUpdate.headline = extracted.headline || "Technical Professional";
+    }
+    if (!currentUser?.bio?.trim() && extracted.summary) {
+      userUpdate.bio = extracted.summary;
+    }
+    if (Object.keys(userUpdate).length > 0) {
+      await prisma.user.update({
+        where: { id: authUser.id },
+        data: userUpdate,
+      });
+    }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Resume document successfully saved to your profile.",
+        message: "Resume document saved and structured profile intelligence extracted.",
         data: {
           resumeUrl: updatedProfile.resumeUrl,
           fileName: fileName || "resume.pdf",
           publicId: publicId || null,
           mimeType: mimeType || "application/pdf",
           fileSize: fileSize || null,
+          skills: updatedProfile.skills,
+          experience: updatedProfile.experience,
+          education: updatedProfile.education,
+          bio: currentUser?.bio || extracted.summary,
+          headline: extracted.headline,
           updatedAt: updatedProfile.updatedAt.toISOString(),
         },
       },

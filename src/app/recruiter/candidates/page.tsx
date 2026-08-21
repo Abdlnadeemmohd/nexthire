@@ -27,6 +27,7 @@ interface Candidate {
   email?: string;
   phone?: string | null;
   isUnlocked?: boolean;
+  isVerified?: boolean;
   canDownloadResume?: boolean;
 }
 
@@ -413,7 +414,7 @@ export default function CandidateSearchPage() {
                         <div className="space-y-1 flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="font-bold text-sm text-on-surface truncate">{cand.name}</h3>
-                            <VerifiedBadge role="JOB_SEEKER" size="sm" />
+                            {cand.isVerified && <VerifiedBadge role="JOB_SEEKER" size="sm" />}
                           </div>
                           <p className="text-xs text-primary font-bold truncate">
                             {cand.headline || "Technical Professional"}
@@ -551,7 +552,7 @@ export default function CandidateSearchPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <h3 className="font-bold text-base sm:text-lg text-on-surface truncate">{selectedCandidate.name}</h3>
-                    <VerifiedBadge role="JOB_SEEKER" size="sm" />
+                    {selectedCandidate.isVerified && <VerifiedBadge role="JOB_SEEKER" size="sm" />}
                     {selectedCandidate.employmentStatus && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                         {selectedCandidate.employmentStatus}

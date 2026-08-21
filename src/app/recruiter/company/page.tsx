@@ -179,19 +179,21 @@ export default function RecruiterCompanyProfilePage() {
   // Trigger External Company Suggestion (No scraping, official DB/metadata provider)
   const handleFetchEnrichment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!enrichDomainInput.trim() && !company.name) {
+    const searchInput = enrichDomainInput.trim();
+    if (!searchInput) {
       showToast("Please provide a company domain or name.", "error");
       return;
     }
 
     try {
       setEnrichLoading(true);
+      const isDomain = searchInput.includes(".");
       const res = await fetch("/api/companies/enrich", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          domain: enrichDomainInput.trim(),
-          name: company.name,
+          domain: isDomain ? searchInput : "",
+          name: isDomain ? "" : searchInput,
         }),
       });
 
@@ -199,9 +201,10 @@ export default function RecruiterCompanyProfilePage() {
       const suggestionData = json.data || json.suggestion;
       if (res.ok && json.success && suggestionData) {
         setEnrichSuggestions(suggestionData);
-        showToast("Enrichment suggestions loaded for review.", "info");
+        showToast(`Enrichment suggestions loaded for ${suggestionData.name}.`, "info");
       } else {
-        showToast(json.error || json.message || "No verified enrichment profile found for this domain.", "info");
+        setEnrichSuggestions(null);
+        showToast(json.error || json.message || "No verified enrichment profile found for this search.", "info");
       }
     } catch (err) {
       console.error("Enrichment error:", err);
@@ -683,62 +686,96 @@ export default function RecruiterCompanyProfilePage() {
               Lookup company verified brand data, mission, and technologies without web scraping. All fetched information requires your confirmation before applying.
             </p>
 
-            <form onSubmit={handleFetchEnrichment} className="flex gap-2">
-              <input
-                type="text"
-                required
-                placeholder="Company domain (e.g. acme.com or stripe.com)"
-                value={enrichDomainInput}
-                onChange={(e) => setEnrichDomainInput(e.target.value)}
-                className="flex-1 p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <form onSubmit={handleFetchEnrichment} className="flex flex-col sm:flex-row gap-2.5">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter company name or domain (e.g. Amazon, Google, Stripe, amazon.com)"
+                  value={enrichDomainInput}
+                  onChange={(e) => setEnrichDomainInput(e.target.value)}
+                  className="w-full h-11 px-3.5 bg-surface border border-outline-variant/30 rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
               <button
                 type="submit"
-                disabled={enrichLoading}
-                className="px-4 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container flex items-center gap-1 flex-shrink-0"
+                disabled={enrichLoading || !enrichDomainInput.trim()}
+                className="h-11 px-5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 flex-shrink-0"
               >
                 {enrichLoading ? (
                   <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
                 ) : (
                   <span className="material-symbols-outlined text-sm">search</span>
                 )}
-                Fetch Suggestions
+                <span>Fetch Suggestions</span>
               </button>
             </form>
 
             {enrichSuggestions && (
-              <div className="p-4 bg-surface-container-low rounded-2xl border border-primary/30 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-primary text-xs uppercase tracking-wider">
-                    Verified Suggestions Found
-                  </span>
-                  <span className="text-[10px] text-outline font-mono">
-                    Provider: {enrichSuggestions.source}
+              <div className="p-4 sm:p-5 bg-surface-container-low rounded-2xl border border-primary/30 space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between gap-2 border-b border-outline-variant/15 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span className="font-bold text-on-surface text-sm">
+                      {enrichSuggestions.name}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-outline font-mono bg-surface px-2 py-0.5 rounded border border-outline-variant/20">
+                    Source: {enrichSuggestions.source}
                   </span>
                 </div>
 
-                <div className="space-y-2 text-xs">
-                  <p><strong>Suggested Tagline:</strong> {enrichSuggestions.tagline || "N/A"}</p>
-                  <p><strong>Description:</strong> {enrichSuggestions.description?.slice(0, 140)}...</p>
-                  <p><strong>Industry:</strong> {enrichSuggestions.industry}</p>
-                  <p><strong>HQ Location:</strong> {enrichSuggestions.headquarters}</p>
-                  <p><strong>Tech Stack:</strong> {enrichSuggestions.techStack?.join(", ")}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-outline uppercase block">Industry & HQ</span>
+                    <p className="text-on-surface font-medium pt-0.5">{enrichSuggestions.industry} • {enrichSuggestions.headquarters}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-outline uppercase block">Website</span>
+                    <a href={enrichSuggestions.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-[11px] pt-0.5 block truncate">
+                      {enrichSuggestions.website}
+                    </a>
+                  </div>
                 </div>
 
-                <div className="pt-2 border-t border-outline-variant/20 flex justify-end gap-2">
+                <div>
+                  <span className="text-[10px] font-bold text-outline uppercase block">Tagline</span>
+                  <p className="text-on-surface-variant italic pt-0.5">"{enrichSuggestions.tagline || "N/A"}"</p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-outline uppercase block">Description</span>
+                  <p className="text-on-surface leading-relaxed text-xs pt-0.5 line-clamp-3">{enrichSuggestions.description}</p>
+                </div>
+
+                {enrichSuggestions.techStack && enrichSuggestions.techStack.length > 0 && (
+                  <div>
+                    <span className="text-[10px] font-bold text-outline uppercase block pb-1">Tech Stack</span>
+                    <div className="flex flex-wrap gap-1">
+                      {enrichSuggestions.techStack.map((tech: string, i: number) => (
+                        <span key={i} className="px-2 py-0.5 bg-surface text-primary border border-outline-variant/20 rounded-md text-[10px] font-mono">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-outline-variant/20 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setEnrichSuggestions(null)}
-                    className="px-3 py-1.5 bg-surface-container text-on-surface font-bold text-xs rounded-lg"
+                    className="px-4 py-2 bg-surface-container text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-high"
                   >
                     Reject
                   </button>
                   <button
                     type="button"
                     onClick={handleApplySuggestion}
-                    className="px-4 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-lg hover:bg-primary-container shadow-xs"
+                    className="px-5 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container shadow-xs flex items-center gap-1"
                   >
-                    Apply Suggestions to Profile
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    Apply to Profile
                   </button>
                 </div>
               </div>
