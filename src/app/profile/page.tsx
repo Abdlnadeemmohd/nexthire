@@ -55,6 +55,8 @@ export default function CandidateProfilePage() {
     phone: user?.phone || "",
     avatar: user?.avatar || "",
     isDiscoverable: true,
+    employmentStatus: "Open to Opportunities",
+    isVerified: false,
   });
 
   const [skills, setSkills] = useState<string>("");
@@ -106,6 +108,14 @@ export default function CandidateProfilePage() {
         const json = await res.json();
         if (json.success && json.data) {
           const d = json.data;
+          const empStatus =
+            d.preferences?.employmentStatus ||
+            (d.preferences?.openToWorkStatus === "ACTIVELY_LOOKING"
+              ? "Available for Work"
+              : d.preferences?.openToWorkStatus === "NOT_LOOKING"
+              ? "Not Looking"
+              : "Open to Opportunities");
+
           setHeaderData({
             name: d.name || "",
             headline: d.headline || "",
@@ -114,6 +124,8 @@ export default function CandidateProfilePage() {
             phone: d.phone || "",
             avatar: d.avatar || "",
             isDiscoverable: d.isDiscoverable ?? true,
+            employmentStatus: empStatus,
+            isVerified: !!d.isVerified,
           });
           setSkills(d.skills || "");
           setSkillsList(
@@ -284,6 +296,11 @@ export default function CandidateProfilePage() {
   const handleSaveHeader = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingHeader(true);
+    const updatedPreferences: CandidatePreferences = {
+      ...preferences,
+      employmentStatus: headerData.employmentStatus,
+    };
+    setPreferences(updatedPreferences);
     const success = await persistProfile({
       name: headerData.name,
       headline: headerData.headline,
@@ -291,11 +308,12 @@ export default function CandidateProfilePage() {
       location: headerData.location,
       phone: headerData.phone,
       avatar: headerData.avatar,
+      preferences: updatedPreferences,
     });
     setSavingHeader(false);
     if (success) {
       setIsEditingHeader(false);
-      showToast("Profile header saved successfully!", "success");
+      showToast("Profile header & employment status saved successfully!", "success");
     }
   };
 
@@ -398,7 +416,7 @@ export default function CandidateProfilePage() {
             />
 
             {/* 2. Personal & Profile Header Card */}
-            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative">
+            <div id="section-header" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full md:w-auto">
                   {isEditingHeader ? (
@@ -420,11 +438,21 @@ export default function CandidateProfilePage() {
                   )}
 
                   <div className="space-y-1.5 min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-on-surface truncate">
                         {headerData.name || "Professional Candidate"}
                       </h1>
-                      <VerifiedBadge role="JOB_SEEKER" size="md" />
+
+                      {/* Professional Employment / Availability Status */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/25 select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                        {headerData.employmentStatus || "Open to Opportunities"}
+                      </span>
+
+                      {/* Genuine Verification Badge (only shown when platform-verified) */}
+                      {headerData.isVerified && (
+                        <VerifiedBadge role="JOB_SEEKER" size="md" />
+                      )}
                     </div>
 
                     <p className="text-primary font-bold text-xs sm:text-sm">
@@ -441,7 +469,7 @@ export default function CandidateProfilePage() {
                 {/* Header Edit Button */}
                 <button
                   onClick={() => setIsEditingHeader(!isEditingHeader)}
-                  className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto"
+                  className="px-5 py-2.5 bg-primary text-on-primary font-label-md font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto touch-target"
                 >
                   <span className="material-symbols-outlined text-base">
                     {isEditingHeader ? "close" : "edit"}
@@ -473,6 +501,23 @@ export default function CandidateProfilePage() {
                     </div>
 
                     <div>
+                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Employment / Availability Status *</label>
+                      <select
+                        value={headerData.employmentStatus}
+                        onChange={(e) => setHeaderData({ ...headerData, employmentStatus: e.target.value })}
+                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="Open to Opportunities">Open to Opportunities</option>
+                        <option value="Available for Work">Available for Work</option>
+                        <option value="Employed">Employed</option>
+                        <option value="Unemployed">Unemployed</option>
+                        <option value="Not Looking">Not Looking</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
                       <label className="block font-bold text-outline uppercase text-[10px] pb-1">Professional Headline *</label>
                       <input
                         type="text"
@@ -483,9 +528,7 @@ export default function CandidateProfilePage() {
                         className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block font-bold text-outline uppercase text-[10px] pb-1">Location (City, Country)</label>
                       <input
@@ -496,17 +539,17 @@ export default function CandidateProfilePage() {
                         className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Direct Contact Phone</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. +1 (555) 019-2834"
-                        value={headerData.phone}
-                        onChange={(e) => setHeaderData({ ...headerData, phone: e.target.value })}
-                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">Direct Contact Phone</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. +1 (555) 019-2834"
+                      value={headerData.phone}
+                      onChange={(e) => setHeaderData({ ...headerData, phone: e.target.value })}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
 
                   <div>
@@ -541,7 +584,7 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 3. Resume Management Banner */}
-            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div id="section-resume" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <span className="material-symbols-outlined text-2xl">description</span>
@@ -577,47 +620,61 @@ export default function CandidateProfilePage() {
             </div>
 
             {/* 4. Experience Section */}
-            <ExperienceSection
-              experiences={experiences}
-              onChange={handleExperiencesChange}
-            />
+            <div id="section-experience">
+              <ExperienceSection
+                experiences={experiences}
+                onChange={handleExperiencesChange}
+              />
+            </div>
 
             {/* 5. Education Section */}
-            <EducationSection
-              educations={educations}
-              onChange={handleEducationsChange}
-            />
+            <div id="section-education">
+              <EducationSection
+                educations={educations}
+                onChange={handleEducationsChange}
+              />
+            </div>
 
             {/* 6. Skills Section */}
-            <SkillsSection
-              skills={skills}
-              skillsList={skillsList}
-              onChange={handleSkillsChange}
-            />
+            <div id="section-skills">
+              <SkillsSection
+                skills={skills}
+                skillsList={skillsList}
+                onChange={handleSkillsChange}
+              />
+            </div>
 
             {/* 7. Certifications Section */}
-            <CertificationsSection
-              certifications={certifications}
-              onChange={handleCertificationsChange}
-            />
+            <div id="section-certifications">
+              <CertificationsSection
+                certifications={certifications}
+                onChange={handleCertificationsChange}
+              />
+            </div>
 
             {/* 8. Projects Section */}
-            <ProjectsSection
-              projects={projects}
-              onChange={handleProjectsChange}
-            />
+            <div id="section-projects">
+              <ProjectsSection
+                projects={projects}
+                onChange={handleProjectsChange}
+              />
+            </div>
 
             {/* 9. Portfolio Links Section */}
-            <PortfolioLinksSection
-              links={links}
-              onChange={handleLinksChange}
-            />
+            <div id="section-links">
+              <PortfolioLinksSection
+                links={links}
+                onChange={handleLinksChange}
+              />
+            </div>
 
             {/* 10. Achievements Section */}
-            <AchievementsAndAwardsSection
-              achievements={achievements}
-              onChange={handleAchievementsChange}
-            />
+            <div id="section-achievements">
+              <AchievementsAndAwardsSection
+                achievements={achievements}
+                onChange={handleAchievementsChange}
+              />
+            </div>
 
             {/* 11. Publications & Languages Dual Section */}
             <PublicationsAndLanguagesSection
@@ -636,12 +693,14 @@ export default function CandidateProfilePage() {
             />
 
             {/* 13. Career Preferences & Search Visibility */}
-            <CareerPreferencesSection
-              preferences={preferences}
-              visibility={visibility}
-              onPreferencesChange={handlePreferencesChange}
-              onVisibilityChange={handleVisibilityChange}
-            />
+            <div id="section-preferences">
+              <CareerPreferencesSection
+                preferences={preferences}
+                visibility={visibility}
+                onPreferencesChange={handlePreferencesChange}
+                onVisibilityChange={handleVisibilityChange}
+              />
+            </div>
 
             {/* 14. Candidate Privacy & Recruiter Consent Center */}
             <PrivacyAndContactRequests />

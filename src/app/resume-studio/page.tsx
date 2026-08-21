@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
@@ -16,25 +16,106 @@ export default function ResumeStudioPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"builder" | "preview" | "ats">("builder");
   const [resumeTitle, setResumeTitle] = useState(
-    user?.name ? `${user.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume_2026` : "NextHire_ATS_Resume_2026"
+    user?.name ? `${user.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume` : "NextHire_ATS_Resume"
   );
-  const [targetRole, setTargetRole] = useState("Senior Product Designer / Lead UX Engineer");
+  const [targetRole, setTargetRole] = useState(
+    user?.headline || "Senior Full-Stack Engineer / Technical Lead"
+  );
+  const [bio, setBio] = useState(
+    user?.bio ||
+      "Passionate software engineer and technical leader with 6+ years of experience building high-scale enterprise platforms, cloud-native distributed systems, and delightful user experiences."
+  );
+  const [candidateLocation, setCandidateLocation] = useState(
+    user?.city ? `${user.city}${user.country ? `, ${user.country}` : ""}` : "San Francisco, CA"
+  );
+  const [experiences, setExperiences] = useState<any[]>([
+    {
+      company: "NextHire Platform",
+      role: "Lead Software Engineer",
+      startDate: "2023",
+      endDate: "Present",
+      isCurrent: true,
+      description: "Architected distributed talent matching systems, optimized full-text search pipelines, and engineered high-performance web applications using Next.js and PostgreSQL.",
+    },
+  ]);
+  const [educations, setEducations] = useState<any[]>([
+    {
+      institution: "University of Technology",
+      degree: "Bachelor of Science",
+      fieldOfStudy: "Computer Science",
+      graduationYear: "2021",
+    },
+  ]);
   const [selectedTemplate, setSelectedTemplate] = useState<"modern" | "classic" | "minimal">("modern");
-  const [selectedVersion, setSelectedVersion] = useState("v2.0 (AI Optimized - Current)");
+  const [selectedVersion, setSelectedVersion] = useState("v2.0 (ATS Optimized - Master)");
+  const [rawPreferences, setRawPreferences] = useState<any>({});
   const [showShareModal, setShowShareModal] = useState(false);
   const [atsResult, setAtsResult] = useState<ATSAnalysisResult | null>(null);
 
   const [skills, setSkills] = useState([
-    "Design Systems",
-    "Figma",
+    "TypeScript",
     "React",
     "Next.js",
+    "Node.js",
+    "PostgreSQL",
     "Tailwind CSS",
-    "TypeScript",
-    "User Research",
-    "AI UX",
+    "System Design",
+    "Cloud Architecture",
   ]);
   const [newSkill, setNewSkill] = useState("");
+
+  // Hydrate candidate data from database
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/candidate/profile", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const d = json.data;
+            if (d.name) setResumeTitle(`${d.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume`);
+            if (d.headline) setTargetRole(d.headline);
+            if (d.bio) setBio(d.bio);
+            if (d.location) setCandidateLocation(d.location);
+            if (d.preferences) {
+              setRawPreferences(d.preferences);
+              if (d.preferences.resumeTemplate && ["modern", "classic", "minimal"].includes(d.preferences.resumeTemplate)) {
+                setSelectedTemplate(d.preferences.resumeTemplate);
+              }
+            }
+            if (d.skillsList && Array.isArray(d.skillsList) && d.skillsList.length > 0) {
+              setSkills(d.skillsList.map((s: any) => (typeof s === "string" ? s : s.name)));
+            }
+            if (d.experience && Array.isArray(d.experience) && d.experience.length > 0) {
+              setExperiences(d.experience);
+            }
+            if (d.education && Array.isArray(d.education) && d.education.length > 0) {
+              setEducations(d.education);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load profile for resume:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleSelectTemplate = async (tmpl: "modern" | "classic" | "minimal") => {
+    setSelectedTemplate(tmpl);
+    showToast(`Applied ${tmpl.toUpperCase()} resume template`, "success");
+    try {
+      const updatedPrefs = { ...rawPreferences, resumeTemplate: tmpl };
+      setRawPreferences(updatedPrefs);
+      await fetch("/api/candidate/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferences: updatedPrefs }),
+      });
+    } catch (err) {
+      console.error("Failed to persist template preference:", err);
+    }
+  };
 
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,28 +128,68 @@ export default function ResumeStudioPage() {
 
   const handleRemoveSkill = (skillToRemove: string) => {
     setSkills(skills.filter((s) => s !== skillToRemove));
-    showToast(`Skill removed.`, "info");
+    showToast("Skill removed from resume.", "info");
   };
 
   const handleRunAtsScan = () => {
     const candidateName = user?.name || "Candidate";
-    const resumeContentText = `${candidateName} ${targetRole} Skills: ${skills.join(", ")} Senior Lead Years Experience Frontend Architect`;
-    const result = AIEngine.analyzeResumeATS(resumeContentText, ["React", "TypeScript", "Next.js", "AI UX", "System Design"]);
+    const resumeContentText = `${candidateName} ${targetRole} ${bio} Skills: ${skills.join(", ")} Senior Lead Years Experience Distributed Systems Full-Stack`;
+    const result = AIEngine.analyzeResumeATS(resumeContentText, [
+      "React",
+      "TypeScript",
+      "Next.js",
+      "PostgreSQL",
+      "System Design",
+    ]);
     setAtsResult(result);
     setActiveTab("ats");
     showToast(`ATS Optimization Scan Complete! Score: ${result.score}/100`, "success");
   };
 
   const handleDownloadPdf = () => {
-    showToast("Generating high-resolution ATS-formatted PDF resume...", "info");
-    const downloadFilename = `${resumeTitle}.pdf`;
+    setActiveTab("preview");
+    showToast("Preparing ATS resume sheet for PDF export...", "info");
     setTimeout(() => {
-      showToast(`Download started: ${downloadFilename}`, "success");
-    }, 1500);
+      window.print();
+    }, 400);
   };
+
+  const candidateShareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/candidate/${user?.id || "me"}/resume`
+      : "https://www.nexthire.cloud/resume";
 
   return (
     <ProtectedRoute requiredPortal="seeker">
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #printable-resume,
+          #printable-resume * {
+            visibility: visible !important;
+          }
+          #printable-resume {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 24px !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          @page {
+            size: letter;
+            margin: 12mm;
+          }
+        }
+      `}</style>
+
       <TopAppBar />
 
       <div className="flex pt-16 min-h-screen bg-surface">
@@ -86,7 +207,7 @@ export default function ResumeStudioPage() {
                   </h1>
                 </div>
                 <p className="text-on-surface-variant text-xs sm:text-sm">
-                  Build, optimize, and export high-conversion ATS resumes tailored to target job descriptions.
+                  Build, optimize, and export high-conversion ATS resumes formatted cleanly for recruiter evaluation.
                 </p>
               </div>
 
@@ -123,13 +244,13 @@ export default function ResumeStudioPage() {
                   value={selectedVersion}
                   onChange={(e) => {
                     setSelectedVersion(e.target.value);
-                    showToast(`Switched to version: ${e.target.value}`, "info");
+                    showToast(`Switched to: ${e.target.value}`, "info");
                   }}
                   className="px-3 py-1.5 bg-surface text-on-surface border border-outline-variant/30 rounded-xl font-bold focus:outline-none"
                 >
-                  <option value="v2.0 (AI Optimized - Current)">v2.0 (AI Optimized - Current)</option>
-                  <option value="v1.2 (Frontend Engineering)">v1.2 (Frontend Engineering)</option>
-                  <option value="v1.0 (Baseline Master)">v1.0 (Baseline Master)</option>
+                  <option value="v2.0 (ATS Optimized - Master)">v2.0 (ATS Optimized - Master)</option>
+                  <option value="v1.2 (Technical Leadership)">v1.2 (Technical Leadership)</option>
+                  <option value="v1.0 (Full-Stack Engineer)">v1.0 (Full-Stack Engineer)</option>
                 </select>
               </div>
 
@@ -139,10 +260,7 @@ export default function ResumeStudioPage() {
                   {(["modern", "classic", "minimal"] as const).map((tmpl) => (
                     <button
                       key={tmpl}
-                      onClick={() => {
-                        setSelectedTemplate(tmpl);
-                        showToast(`Applied ${tmpl.toUpperCase()} resume template`, "success");
-                      }}
+                      onClick={() => handleSelectTemplate(tmpl)}
                       className={`px-3 py-1.5 rounded-xl font-bold uppercase text-[10px] transition-all ${
                         selectedTemplate === tmpl
                           ? "bg-primary text-on-primary shadow-xs"
@@ -161,7 +279,7 @@ export default function ResumeStudioPage() {
               items={[
                 { id: "builder", label: "Resume Editor", icon: "edit_note" },
                 { id: "preview", label: "Live PDF Preview", icon: "visibility" },
-                { id: "ats", label: "ATS Optimization Score", count: atsResult ? atsResult.score : 92, icon: "analytics" },
+                { id: "ats", label: "ATS Compatibility Score", count: atsResult ? atsResult.score : 95, icon: "analytics" },
               ]}
               activeId={activeTab}
               onChange={(id) => setActiveTab(id as any)}
@@ -192,12 +310,23 @@ export default function ResumeStudioPage() {
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-outline uppercase mb-1">
-                          Target Role / Heading
+                          Target Role / Headline
                         </label>
                         <input
                           type="text"
                           value={targetRole}
                           onChange={(e) => setTargetRole(e.target.value)}
+                          className="w-full px-3.5 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-outline uppercase mb-1">
+                          Professional Summary
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
                           className="w-full px-3.5 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface"
                         />
                       </div>
@@ -216,7 +345,7 @@ export default function ResumeStudioPage() {
                         type="text"
                         value={newSkill}
                         onChange={(e) => setNewSkill(e.target.value)}
-                        placeholder="Add a new skill (e.g. GraphQL, Figma, Node)..."
+                        placeholder="Add a new skill (e.g. Next.js, Docker, GraphQL)..."
                         className="flex-1 px-3.5 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface"
                       />
                       <button
@@ -235,6 +364,7 @@ export default function ResumeStudioPage() {
                         >
                           {skill}
                           <button
+                            type="button"
                             onClick={() => handleRemoveSkill(skill)}
                             className="text-outline hover:text-error text-sm font-bold"
                           >
@@ -250,60 +380,218 @@ export default function ResumeStudioPage() {
                 <div className="space-y-6">
                   <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-4 text-center">
                     <span className="text-xs font-bold uppercase tracking-wider text-outline">
-                      ATS Compatibility Score
+                      ATS Readability & Keyword Match
                     </span>
-                    <div className="text-4xl font-display font-bold text-primary">98%</div>
+                    <div className="text-4xl font-display font-bold text-primary">
+                      {atsResult ? `${atsResult.score}%` : "95%"}
+                    </div>
                     <p className="text-xs text-on-surface-variant leading-relaxed">
-                      Your resume contains high-frequency keywords found in senior recruiter searches across Enterprise SaaS roles.
+                      Your resume is formatted with industry-standard semantic sections matching Greenhouse, Ashby, and Workday ATS parsers.
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Live Preview Tab */}
+            {/* Live PDF Preview Tab */}
             {activeTab === "preview" && (
-              <div className="surface-card bg-surface-container-lowest border border-outline-variant/30 rounded-2xl sm:rounded-3xl p-4 sm:p-8 max-w-4xl mx-auto space-y-6 shadow-md">
-                <div className="border-b border-outline-variant/20 pb-4 text-center space-y-1">
-                  <h2 className="text-xl sm:text-2xl font-bold text-on-surface">{user?.name || "Candidate Name"}</h2>
-                  <p className="text-xs text-primary font-bold">{targetRole}</p>
-                  <p className="text-[11px] text-outline break-anywhere">
-                    {user?.email || "candidate@nexthire.cloud"}{user?.city ? ` • ${user.city}` : ""}
-                  </p>
-                </div>
+              <div
+                id="printable-resume"
+                className={`bg-white text-slate-900 border border-outline-variant/30 rounded-2xl sm:rounded-3xl p-6 sm:p-10 max-w-4xl mx-auto shadow-md transition-all ${
+                  selectedTemplate === "classic"
+                    ? "font-serif"
+                    : selectedTemplate === "minimal"
+                    ? "font-mono text-[11px]"
+                    : "font-sans"
+                }`}
+              >
+                {/* Header for Modern Template */}
+                {selectedTemplate === "modern" && (
+                  <div className="border-b border-primary/20 pb-5 mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                          {user?.name || "Professional Candidate"}
+                        </h2>
+                        <p className="text-sm font-bold text-primary mt-0.5">{targetRole}</p>
+                      </div>
+                      <div className="text-xs text-slate-500 sm:text-right space-y-0.5 font-sans">
+                        <p>{user?.email || "candidate@nexthire.cloud"}</p>
+                        <p>{candidateLocation}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <h3 className="font-bold text-on-surface uppercase border-b border-outline-variant/20 pb-1 mb-2">
-                      Executive Summary
-                    </h3>
-                    <p className="text-on-surface-variant leading-relaxed">
-                      Passionate product designer and engineer with 7+ years of experience building enterprise SaaS platforms, complex design systems, and AI-driven interfaces.
+                {/* Header for Classic Template */}
+                {selectedTemplate === "classic" && (
+                  <div className="border-b-2 border-slate-900 pb-4 mb-6 text-center space-y-1">
+                    <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-wider text-slate-900">
+                      {user?.name || "Professional Candidate"}
+                    </h2>
+                    <p className="text-sm italic text-slate-700">{targetRole}</p>
+                    <p className="text-xs text-slate-600">
+                      {user?.email || "candidate@nexthire.cloud"} • {candidateLocation}
                     </p>
                   </div>
+                )}
 
+                {/* Header for Minimal Template */}
+                {selectedTemplate === "minimal" && (
+                  <div className="border-b border-slate-300 pb-4 mb-6 space-y-1">
+                    <div className="flex justify-between items-baseline flex-wrap gap-2">
+                      <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                        {user?.name || "Candidate Name"}
+                      </h2>
+                      <span className="text-xs text-slate-500">
+                        {user?.email || "candidate@nexthire.cloud"} | {candidateLocation}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-700">{targetRole}</p>
+                  </div>
+                )}
+
+                {/* Resume Body Sections */}
+                <div className="space-y-6 text-xs text-slate-800 leading-relaxed">
+                  {/* Summary */}
                   <div>
-                    <h3 className="font-bold text-on-surface uppercase border-b border-outline-variant/20 pb-1 mb-2">
-                      Key Competencies
+                    <h3
+                      className={`font-bold uppercase tracking-wider mb-2 ${
+                        selectedTemplate === "modern"
+                          ? "text-primary text-xs border-b border-slate-200 pb-1"
+                          : selectedTemplate === "classic"
+                          ? "text-slate-900 text-xs border-b border-slate-300 pb-1"
+                          : "text-slate-700 text-[11px] border-b border-slate-200 pb-0.5"
+                      }`}
+                    >
+                      Professional Summary
                     </h3>
-                    <div className="flex flex-wrap gap-1.5">
-                      {skills.map((s, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-surface-container-low text-on-surface rounded text-[11px]">
-                          {s}
-                        </span>
+                    <p className="text-slate-700 leading-relaxed">{bio}</p>
+                  </div>
+
+                  {/* Experience */}
+                  <div>
+                    <h3
+                      className={`font-bold uppercase tracking-wider mb-3 ${
+                        selectedTemplate === "modern"
+                          ? "text-primary text-xs border-b border-slate-200 pb-1"
+                          : selectedTemplate === "classic"
+                          ? "text-slate-900 text-xs border-b border-slate-300 pb-1"
+                          : "text-slate-700 text-[11px] border-b border-slate-200 pb-0.5"
+                      }`}
+                    >
+                      Experience
+                    </h3>
+                    <div className="space-y-4">
+                      {experiences.map((exp, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex justify-between items-baseline font-bold text-slate-900">
+                            <span>
+                              {exp.role} — <span className="font-semibold text-slate-700">{exp.company}</span>
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-normal">
+                              {exp.startDate || "2023"} – {exp.isCurrent ? "Present" : exp.endDate || "2026"}
+                            </span>
+                          </div>
+                          {exp.description && (
+                            <p className="text-slate-600 text-xs leading-relaxed">{exp.description}</p>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
+
+                  {/* Skills */}
+                  <div>
+                    <h3
+                      className={`font-bold uppercase tracking-wider mb-2.5 ${
+                        selectedTemplate === "modern"
+                          ? "text-primary text-xs border-b border-slate-200 pb-1"
+                          : selectedTemplate === "classic"
+                          ? "text-slate-900 text-xs border-b border-slate-300 pb-1"
+                          : "text-slate-700 text-[11px] border-b border-slate-200 pb-0.5"
+                      }`}
+                    >
+                      Core Skills & Technologies
+                    </h3>
+                    {selectedTemplate === "modern" ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {skills.map((s, i) => (
+                          <span
+                            key={i}
+                            className="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-md text-[11px] font-medium border border-slate-200"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    ) : selectedTemplate === "classic" ? (
+                      <p className="text-slate-700 text-xs">{skills.join(" • ")}</p>
+                    ) : (
+                      <p className="text-slate-700 text-[11px] font-mono">{skills.join(", ")}</p>
+                    )}
+                  </div>
+
+                  {/* Education */}
+                  {educations.length > 0 && (
+                    <div>
+                      <h3
+                        className={`font-bold uppercase tracking-wider mb-2 ${
+                          selectedTemplate === "modern"
+                            ? "text-primary text-xs border-b border-slate-200 pb-1"
+                            : selectedTemplate === "classic"
+                            ? "text-slate-900 text-xs border-b border-slate-300 pb-1"
+                            : "text-slate-700 text-[11px] border-b border-slate-200 pb-0.5"
+                        }`}
+                      >
+                        Education
+                      </h3>
+                      <div className="space-y-2">
+                        {educations.map((edu, idx) => (
+                          <div key={idx} className="flex justify-between items-baseline">
+                            <span className="font-semibold text-slate-800">
+                              {edu.degree} in {edu.fieldOfStudy || "Engineering"} — {edu.institution}
+                            </span>
+                            <span className="text-[11px] text-slate-500">{edu.graduationYear || "2021"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* ATS Analysis Tab */}
             {activeTab === "ats" && (
-              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-6">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 space-y-6">
                 <div className="flex items-center gap-3 text-emerald-600 bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20 text-xs font-bold">
                   <span className="material-symbols-outlined text-xl">check_circle</span>
-                  <span>Your resume passes 100% of standard ATS parser checks (Greenhouse, Ashby, Workday, Lever).</span>
+                  <span>
+                    ATS Parsing Check: 100% standard format compatibility across Greenhouse, Lever, Ashby, and Workday.
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 text-center space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-outline">Keyword Density</span>
+                    <p className="text-xl font-bold text-primary">High (96%)</p>
+                  </div>
+                  <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 text-center space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-outline">Semantic Structure</span>
+                    <p className="text-xl font-bold text-emerald-600">Standardized</p>
+                  </div>
+                  <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 text-center space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-outline">Typography Score</span>
+                    <p className="text-xl font-bold text-primary">ATS Safe</p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-surface-container-low/50 rounded-2xl border border-outline-variant/15 text-xs text-on-surface-variant">
+                  <p className="font-semibold text-on-surface mb-1">Upcoming Deep Neural ATS Optimization</p>
+                  <p>
+                    Full cross-job vector matching and LLM-powered resume rewriting will be enabled in the dedicated AI Copilot milestone.
+                  </p>
                 </div>
               </div>
             )}
@@ -316,25 +604,30 @@ export default function ResumeStudioPage() {
       <Modal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title="Share Public Resume Link"
+        title="Share Candidate Resume Link"
       >
         <div className="space-y-4 text-xs font-body-md">
           <p className="text-on-surface-variant">
-            Generate a secure, password-protected public link to share your live ATS resume with recruiters or hiring managers.
+            Copy your verified resume link to share directly with hiring managers, recruiters, or across professional networks.
           </p>
-          <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/30 font-mono text-[11px] text-primary flex items-center justify-between">
-            <span>https://nexthire.ai/r/alex-rivers-2026</span>
+          <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/30 font-mono text-[11px] text-primary flex items-center justify-between gap-2">
+            <span className="truncate">{candidateShareUrl}</span>
             <button
               onClick={() => {
-                navigator.clipboard.writeText("https://nexthire.ai/r/alex-rivers-2026");
-                showToast("Public resume link copied to clipboard!", "success");
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(candidateShareUrl);
+                }
+                showToast("Shareable resume link copied to clipboard!", "success");
                 setShowShareModal(false);
               }}
-              className="px-3 py-1 bg-primary text-on-primary font-bold rounded-lg text-[10px] hover:bg-primary-container"
+              className="px-3 py-1.5 bg-primary text-on-primary font-bold rounded-lg text-[10px] hover:bg-primary-container flex-shrink-0"
             >
               Copy Link
             </button>
           </div>
+          <p className="text-[10px] text-outline">
+            Note: Recruiter discoverability is managed in your Profile Privacy & Preferences.
+          </p>
         </div>
       </Modal>
     </ProtectedRoute>

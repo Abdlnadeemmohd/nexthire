@@ -7,6 +7,7 @@ interface ProfileCompletenessWidgetProps {
   missingSections?: string[];
   recommendations?: string[];
   role?: "candidate" | "recruiter" | "company";
+  onSectionClick?: (section: string) => void;
 }
 
 export function ProfileCompletenessWidget({
@@ -14,6 +15,7 @@ export function ProfileCompletenessWidget({
   missingSections = [],
   recommendations = [],
   role = "candidate",
+  onSectionClick,
 }: ProfileCompletenessWidgetProps) {
   const getScoreBadge = () => {
     if (score >= 90) return { label: "Verified All-Star", color: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30" };
@@ -23,6 +25,34 @@ export function ProfileCompletenessWidget({
   };
 
   const badge = getScoreBadge();
+
+  const handleChipClick = (item: string) => {
+    if (onSectionClick) {
+      onSectionClick(item);
+      return;
+    }
+
+    // Default smooth-scroll mapping by section keyword
+    const lower = item.toLowerCase();
+    let targetId = "";
+    if (lower.includes("experience")) targetId = "section-experience";
+    else if (lower.includes("education")) targetId = "section-education";
+    else if (lower.includes("skill")) targetId = "section-skills";
+    else if (lower.includes("cert")) targetId = "section-certifications";
+    else if (lower.includes("project")) targetId = "section-projects";
+    else if (lower.includes("bio") || lower.includes("headline") || lower.includes("about")) targetId = "section-header";
+    else if (lower.includes("pref") || lower.includes("salary")) targetId = "section-preferences";
+    else if (lower.includes("link") || lower.includes("portfolio")) targetId = "section-links";
+    else if (lower.includes("company") || lower.includes("brand")) targetId = "section-company";
+    else if (lower.includes("value") || lower.includes("culture")) targetId = "section-values";
+
+    if (targetId) {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
 
   return (
     <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 space-y-5 shadow-xs">
@@ -51,7 +81,7 @@ export function ProfileCompletenessWidget({
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden p-0.5 border border-outline-variant/20">
+      <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden p-0.5 border border-outline-variant/20">
         <div
           className={`h-full rounded-full transition-all duration-700 ${
             score >= 90 ? "bg-emerald-500" : score >= 60 ? "bg-primary" : "bg-amber-500"
@@ -60,34 +90,45 @@ export function ProfileCompletenessWidget({
         ></div>
       </div>
 
-      {/* Checklist / Recommendations */}
+      {/* Recommended Improvements - Clean Compact Chips */}
       {(missingSections.length > 0 || recommendations.length > 0) && (
-        <div className="pt-2 border-t border-outline-variant/15 space-y-3">
+        <div className="pt-3 border-t border-outline-variant/15 space-y-3">
           <span className="text-[11px] font-bold text-outline uppercase tracking-wider block">
             Recommended Improvements
           </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {missingSections.map((item, idx) => (
-              <div
-                key={`missing-${idx}`}
-                className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base text-amber-600">add_circle</span>
-                <span>Add <strong>{item}</strong></span>
-              </div>
-            ))}
+          {missingSections.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center">
+              {missingSections.map((item, idx) => {
+                const cleanName = item.replace(/^Add\s+/i, "");
+                return (
+                  <button
+                    key={`missing-${idx}`}
+                    type="button"
+                    onClick={() => handleChipClick(item)}
+                    className="px-3.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface border border-outline-variant/30 hover:border-primary/50 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 touch-target active:scale-95 shadow-2xs group"
+                    title={`Go to ${cleanName}`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary group-hover:scale-125 transition-transform" aria-hidden="true"></span>
+                    <span>{cleanName}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-            {recommendations.slice(0, 3).map((rec, idx) => (
-              <div
-                key={`rec-${idx}`}
-                className="p-2.5 rounded-xl bg-primary/5 border border-primary/20 text-on-surface-variant flex items-start gap-2"
-              >
-                <span className="material-symbols-outlined text-base text-primary flex-shrink-0 mt-0.5">tips_and_updates</span>
-                <span>{rec}</span>
-              </div>
-            ))}
-          </div>
+          {recommendations.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              {recommendations.slice(0, 2).map((rec, idx) => (
+                <p key={`rec-${idx}`} className="text-xs text-on-surface-variant flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-primary flex-shrink-0" aria-hidden="true">
+                    lightbulb
+                  </span>
+                  <span>{rec}</span>
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

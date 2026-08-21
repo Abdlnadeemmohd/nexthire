@@ -152,6 +152,14 @@ export interface CandidateCourse {
 }
 
 export interface CandidatePreferences {
+  resumeTemplate?: "modern" | "classic" | "minimal" | string;
+  employmentStatus?:
+    | "Open to Opportunities"
+    | "Available for Work"
+    | "Employed"
+    | "Unemployed"
+    | "Not Looking"
+    | string;
   openToWorkStatus:
     | "ACTIVELY_LOOKING"
     | "OPEN_TO_OFFERS"

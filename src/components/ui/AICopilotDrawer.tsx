@@ -134,12 +134,12 @@ export function AICopilotDrawer() {
 
   return (
     <>
-      {/* Minimized Floating Action Button (FAB) with Dynamic Safe-Area & Footer Elevation */}
+      {/* Compact Circular Floating Action Button (FAB) with Dynamic Safe-Area & Footer Elevation */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open NextHire AI Copilot"
-        className={`fixed z-30 p-2.5 sm:p-3.5 bg-gradient-to-r from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group touch-target focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+        className={`fixed z-30 w-12 h-12 sm:w-13 sm:h-13 bg-gradient-to-tr from-primary via-primary-container to-tertiary text-on-primary rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group touch-target focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
           !isFabVisible || isOpen ? "opacity-0 pointer-events-none scale-75 translate-y-4" : "opacity-100 scale-100 translate-y-0"
         }`}
         style={{
@@ -149,15 +149,14 @@ export function AICopilotDrawer() {
             ? `calc(1.5rem + env(safe-area-inset-bottom, 0px) + ${footerOffset}px)`
             : "calc(1.25rem + env(safe-area-inset-bottom, 0px))",
           right: "calc(1.25rem + env(safe-area-inset-right, 0px))",
-          transition: "bottom 0.15s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out",
+          transition: "bottom 0.15s ease-out, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease-out",
         }}
         title="Open NextHire AI Copilot"
       >
-        <span className="material-symbols-outlined text-xl sm:text-2xl group-hover:rotate-12 transition-transform" aria-hidden="true">
+        <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform select-none" aria-hidden="true">
           auto_awesome
         </span>
-        <span className="font-bold text-xs pr-1 hidden sm:inline">AI Copilot</span>
-        <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-400 rounded-full animate-ping" aria-hidden="true"></span>
+        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-surface rounded-full" aria-hidden="true"></span>
       </button>
 
       {/* Right-Side Slide-Over Panel */}
