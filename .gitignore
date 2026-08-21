@@ -4,3 +4,9 @@ node_modules/
 .env*.local
 firebase-service-account.json
 *firebase-adminsdk*.json
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Local scratch / temporary QA files
+scratch/
