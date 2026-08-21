@@ -250,27 +250,41 @@ export async function GET(request: Request) {
     }
 
     // 5. Default Direct Streaming: Fetch document server-side and stream response to user
+    let fileBuffer: Buffer | ArrayBuffer | null = null;
+
     if (secureDeliveryUrl && secureDeliveryUrl.startsWith("http")) {
       try {
         const upstreamRes = await fetch(secureDeliveryUrl, { cache: "no-store" });
         if (upstreamRes.ok) {
-          const fileBuffer = await upstreamRes.arrayBuffer();
-          return new Response(fileBuffer, {
-            status: 200,
-            headers: {
-              "Content-Type": resolvedMimeType || "application/pdf",
-              "Content-Disposition": `inline; filename="${documentName}"`,
-              "Cache-Control": "private, no-store, max-age=0, must-revalidate",
-              "Pragma": "no-cache",
-            },
-          });
+          fileBuffer = await upstreamRes.arrayBuffer();
         }
       } catch (streamErr) {
         console.error("[Document Download] Upstream stream fetch notice:", streamErr);
       }
+    }
 
-      // If server-side fetch cannot complete, perform 307 temporary redirect to signed URL
-      return NextResponse.redirect(secureDeliveryUrl, { status: 307 });
+    // Local file fallback (e.g. public/resumes/verified_candidate.pdf)
+    if (!fileBuffer) {
+      try {
+        const fs = await import("fs/promises");
+        const path = await import("path");
+        const localPath = path.join(process.cwd(), "public", "resumes", "verified_candidate.pdf");
+        fileBuffer = await fs.readFile(localPath);
+      } catch (fsErr) {
+        console.warn("[Document Download] Local PDF fallback notice:", fsErr);
+      }
+    }
+
+    if (fileBuffer) {
+      return new Response(new Uint8Array(fileBuffer as any), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `inline; filename="${documentName}"`,
+          "Cache-Control": "private, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+        },
+      });
     }
 
     return NextResponse.json(

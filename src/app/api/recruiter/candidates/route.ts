@@ -55,41 +55,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 2. Query candidates who are discoverable (isDiscoverable === true)
-    const whereConditions: any = {
-      role: "JOB_SEEKER",
-      isDiscoverable: true,
-    };
-
-    if (q) {
-      const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
-      const orConditions: any[] = [];
-      tokens.forEach((token) => {
-        orConditions.push(
-          { name: { contains: token, mode: "insensitive" } },
-          { headline: { contains: token, mode: "insensitive" } },
-          { bio: { contains: token, mode: "insensitive" } },
-          { location: { contains: token, mode: "insensitive" } },
-          { profile: { skills: { contains: token, mode: "insensitive" } } }
-        );
-      });
-      if (tokens.length > 1) {
-        orConditions.push(
-          { name: { contains: q, mode: "insensitive" } },
-          { headline: { contains: q, mode: "insensitive" } },
-          { bio: { contains: q, mode: "insensitive" } },
-          { profile: { skills: { contains: q, mode: "insensitive" } } }
-        );
-      }
-      whereConditions.OR = orConditions;
-    }
-
-    if (filterTitle) {
-      whereConditions.headline = { contains: filterTitle, mode: "insensitive" };
-    }
-
+    // 2. Query discoverable candidates from PostgreSQL
     const candidates = await prisma.user.findMany({
-      where: whereConditions,
+      where: {
+        role: "JOB_SEEKER",
+        isDiscoverable: true,
+      },
       include: {
         profile: true,
       },
@@ -105,6 +76,10 @@ export async function GET(request: Request) {
 
     // 4. Fetch entitlements for client UI
     const entitlements = await getRecruiterEntitlements(authUser.id);
+
+    // Helper to normalize search text
+    const normalize = (txt: string) =>
+      txt.toLowerCase().replace(/[-_./,\t]/g, " ").replace(/\s+/g, " ").trim();
 
     // 5. Post-process candidates for multi-criteria matching & contact protection
     const formatted = candidates
@@ -131,7 +106,32 @@ export async function GET(request: Request) {
           }
         } catch {}
 
+        let education: any[] = [];
+        try {
+          if (cand.profile?.education && cand.profile.education !== "[]") {
+            education = JSON.parse(cand.profile.education);
+          }
+        } catch {}
+
+        let projects: any[] = [];
+        try {
+          if (cand.profile?.projects && cand.profile.projects !== "[]") {
+            projects = JSON.parse(cand.profile.projects);
+          }
+        } catch {}
+
+        let certs: any[] = [];
+        try {
+          if (cand.profile?.certifications && cand.profile.certifications !== "[]") {
+            certs = JSON.parse(cand.profile.certifications);
+          }
+        } catch {}
+
         const previousCompanies = experience.map((e) => e.company).filter(Boolean);
+        const roles = experience.map((e) => e.role || e.title).filter(Boolean);
+        const degrees = education.map((e) => `${e.degree || ""} ${e.school || ""} ${e.fieldOfStudy || ""}`).filter(Boolean);
+        const projectNames = projects.map((p) => p.title || p.name).filter(Boolean);
+        const certNames = certs.map((c) => c.name || c.title).filter(Boolean);
 
         const employmentStatus =
           preferences.employmentStatus ||
@@ -146,52 +146,87 @@ export async function GET(request: Request) {
             ? cand.headline
             : "Technical Professional";
 
+        // Construct complete normalized searchable corpus for the candidate
+        const searchableCorpus = normalize(
+          `${cand.name} ${cleanHeadline} ${cand.bio || ""} ${cand.location || ""} ${skillsArray.join(" ")} ${cand.profile?.skills || ""} ${previousCompanies.join(" ")} ${roles.join(" ")} ${degrees.join(" ")} ${projectNames.join(" ")} ${certNames.join(" ")}`
+        );
+
         // Compute matching criteria explanations
         const matchedReasons: string[] = [];
         if (q) {
-          const qLower = q.toLowerCase();
-          const tokens = qLower.split(/\s+/).filter(Boolean);
-          const fullText = `${cand.name} ${cleanHeadline} ${cand.bio || ""} ${skillsArray.join(" ")} ${previousCompanies.join(" ")} ${cand.location || ""}`.toLowerCase();
+          const normQ = normalize(q);
+          const tokens = normQ.split(/\s+/).filter(Boolean);
 
-          const hasMatch = tokens.some((t) => fullText.includes(t)) || fullText.includes(qLower);
+          const hasMatch =
+            searchableCorpus.includes(normQ) ||
+            tokens.some((t) => searchableCorpus.includes(t));
+
           if (!hasMatch) return null;
 
-          if (cand.name.toLowerCase().includes(qLower) || tokens.some((t) => cand.name.toLowerCase().includes(t))) {
+          if (normalize(cand.name).includes(normQ) || tokens.some((t) => normalize(cand.name).includes(t))) {
             matchedReasons.push("Name match");
           }
-          if (cleanHeadline.toLowerCase().includes(qLower) || tokens.some((t) => cleanHeadline.toLowerCase().includes(t))) {
+          if (normalize(cleanHeadline).includes(normQ) || tokens.some((t) => normalize(cleanHeadline).includes(t))) {
             matchedReasons.push(`Role: ${cleanHeadline}`);
           }
-          const matchedSkills = skillsArray.filter((s) => tokens.some((t) => s.toLowerCase().includes(t)) || s.toLowerCase().includes(qLower));
+          const matchedSkills = skillsArray.filter((s) =>
+            tokens.some((t) => normalize(s).includes(t)) || normalize(s).includes(normQ)
+          );
           if (matchedSkills.length > 0) {
             matchedReasons.push(`Skill: ${matchedSkills.slice(0, 2).join(", ")}`);
           }
-          const matchedComp = previousCompanies.find((c) => tokens.some((t) => c.toLowerCase().includes(t)) || c.toLowerCase().includes(qLower));
+          const matchedComp = previousCompanies.find((c) =>
+            tokens.some((t) => normalize(c).includes(t)) || normalize(c).includes(normQ)
+          );
           if (matchedComp) {
             matchedReasons.push(`Experience: ${matchedComp}`);
+          }
+          if (matchedReasons.length === 0) {
+            matchedReasons.push("Search Match");
+          }
+        }
+
+        if (filterTitle) {
+          const normTitle = normalize(filterTitle);
+          const hasTitle =
+            normalize(cleanHeadline).includes(normTitle) ||
+            roles.some((r) => normalize(r).includes(normTitle));
+          if (hasTitle) {
+            matchedReasons.push(`Title: ${filterTitle}`);
+          } else {
+            return null;
           }
         }
 
         if (filterSkill) {
-          const reqSkills = filterSkill.toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
+          const reqSkills = filterSkill.split(",").map((s) => normalize(s)).filter(Boolean);
           const hasMatchingSkill = reqSkills.some((rs) =>
-            skillsArray.some((s) => s.toLowerCase().includes(rs))
+            skillsArray.some((s) => normalize(s).includes(rs))
           );
-          if (hasMatchingSkill) matchedReasons.push(`Skill: ${filterSkill}`);
-          else if (reqSkills.length > 0) return null; // Exclude if skill filter specified but not matched
+          if (hasMatchingSkill) {
+            matchedReasons.push(`Skill: ${filterSkill}`);
+          } else if (reqSkills.length > 0) {
+            return null;
+          }
         }
+
         if (filterCompany) {
+          const normComp = normalize(filterCompany);
           const hasCompany = previousCompanies.some((c) =>
-            c.toLowerCase().includes(filterCompany.toLowerCase())
+            normalize(c).includes(normComp)
           );
-          if (hasCompany) matchedReasons.push(`Previous Company: ${filterCompany}`);
-          else return null; // Exclude if company filter specified but not matched
+          if (hasCompany) {
+            matchedReasons.push(`Previous Company: ${filterCompany}`);
+          } else {
+            return null;
+          }
         }
-        if (filterStatus) {
+
+        if (filterStatus && filterStatus !== "ALL") {
           if (employmentStatus.toLowerCase() === filterStatus.toLowerCase()) {
             matchedReasons.push(`Status: ${employmentStatus}`);
           } else {
-            return null; // Exclude if status specified but not matched
+            return null;
           }
         }
 

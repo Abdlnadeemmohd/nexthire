@@ -147,8 +147,31 @@ export async function POST(request: Request) {
     }
 
     // 6. Structured Resume Intelligence & Non-Destructive Profile Extraction
+    let extractedText = "";
+    try {
+      if (secureUrl && secureUrl.startsWith("http")) {
+        const docRes = await fetch(secureUrl, { cache: "no-store" });
+        if (docRes.ok) {
+          const buffer = await docRes.arrayBuffer();
+          const rawBytes = Buffer.from(buffer);
+          // Match PDF text operators Tj and TJ
+          const textMatches = rawBytes.toString("latin1").match(/\(([^)]+)\)\s*Tj/g) || [];
+          extractedText = textMatches.map((m) => m.replace(/^\(/, "").replace(/\)\s*Tj$/, "")).join(" ");
+          if (!extractedText || extractedText.length < 40) {
+            const tjMatches = rawBytes.toString("latin1").match(/\[([^\]]+)\]\s*TJ/g) || [];
+            extractedText = tjMatches.map((m) => m.replace(/\[|\]\s*TJ/g, "").replace(/\(([^)]+)\)/g, "$1 ")).join(" ");
+          }
+          if (!extractedText || extractedText.length < 40) {
+            extractedText = rawBytes.toString("utf8").replace(/[^\x20-\x7E\n\r\t]/g, " ");
+          }
+        }
+      }
+    } catch (fetchErr) {
+      console.warn("[PDF Text Extraction Warning]:", fetchErr);
+    }
+
     const { AIEngine } = await import("@/lib/aiEngine");
-    const extracted = AIEngine.extractResumeProfileData("", fileName || "resume.pdf");
+    const extracted = AIEngine.extractResumeProfileData(extractedText, fileName || "resume.pdf");
 
     // Fetch existing profile to preserve any user-entered manual data
     const existingProfile = await prisma.profile.findUnique({

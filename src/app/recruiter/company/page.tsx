@@ -61,6 +61,8 @@ export default function RecruiterCompanyProfilePage() {
       { id: "loc-1", city: "San Francisco", state: "CA", country: "United States", isHeadquarters: true, address: "500 Howard St" },
       { id: "loc-2", city: "Remote", country: "Global", isHeadquarters: false },
     ] as CompanyLocation[],
+    values: [] as any[],
+    links: [] as any[],
     completeness: 85,
     missingSections: [] as string[],
     recommendations: [] as string[],
@@ -100,6 +102,8 @@ export default function RecruiterCompanyProfilePage() {
             techStack: Array.isArray(d.techStack) && d.techStack.length > 0 ? d.techStack : company.techStack,
             benefits: Array.isArray(d.benefits) && d.benefits.length > 0 ? d.benefits : company.benefits,
             locations: Array.isArray(d.locations) && d.locations.length > 0 ? d.locations : company.locations,
+            values: Array.isArray(d.values) ? d.values : [],
+            links: Array.isArray(d.links) ? d.links : [],
             completeness: typeof d.completeness === "number" ? d.completeness : 85,
             missingSections: d.missingSections || [],
             recommendations: d.recommendations || [],
@@ -219,8 +223,13 @@ export default function RecruiterCompanyProfilePage() {
 
     const updated = {
       ...company,
+      name: enrichSuggestions.name || company.name,
+      website: enrichSuggestions.website || company.website,
       tagline: enrichSuggestions.tagline || company.tagline,
       description: enrichSuggestions.description || company.description,
+      mission: enrichSuggestions.mission || company.mission,
+      culture: enrichSuggestions.culture || company.culture,
+      remotePolicy: enrichSuggestions.remotePolicy || company.remotePolicy,
       industry: enrichSuggestions.industry || company.industry,
       companySize: enrichSuggestions.companySize || company.companySize,
       foundedYear: enrichSuggestions.foundedYear || company.foundedYear,
@@ -229,6 +238,9 @@ export default function RecruiterCompanyProfilePage() {
       coverImage: enrichSuggestions.coverImageUrl || company.coverImage,
       techStack: enrichSuggestions.techStack?.length ? enrichSuggestions.techStack : company.techStack,
       benefits: enrichSuggestions.benefits?.length ? enrichSuggestions.benefits : company.benefits,
+      values: enrichSuggestions.values?.length ? enrichSuggestions.values : company.values,
+      locations: enrichSuggestions.locations?.length ? enrichSuggestions.locations : company.locations,
+      links: enrichSuggestions.links?.length ? enrichSuggestions.links : company.links,
     };
 
     setCompany(updated);
@@ -236,6 +248,8 @@ export default function RecruiterCompanyProfilePage() {
     await saveCompany(updated);
     setEnrichModalOpen(false);
     setEnrichSuggestions(null);
+    setEnrichDomainInput("");
+    await loadCompany();
     showToast("Enrichment suggestions confirmed and applied!", "success");
   };
 

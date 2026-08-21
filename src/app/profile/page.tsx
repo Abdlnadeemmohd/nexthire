@@ -387,9 +387,9 @@ export default function CandidateProfilePage() {
 
       setResumeUrl(uploadedUrl);
       setResumeName(file.name);
-      await persistProfile({ resumeUrl: uploadedUrl });
+      await loadProfile();
       setShowResumeModal(false);
-      showToast(`Resume "${file.name}" uploaded and saved successfully!`, "success");
+      showToast(`Resume "${file.name}" uploaded and profile updated successfully!`, "success");
     } catch (err: any) {
       console.error("[Resume Upload Error]:", err);
       showToast(err.message || "Failed to upload resume. Please try again.", "error");
