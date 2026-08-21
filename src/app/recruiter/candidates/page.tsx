@@ -51,6 +51,11 @@ export default function CandidateSearchPage() {
   const [entitlements, setEntitlements] = useState<EntitlementsMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterSkill, setFilterSkill] = useState("");
+  const [filterTitle, setFilterTitle] = useState("");
+  const [filterCompany, setFilterCompany] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [trialUpgradeModalOpen, setTrialUpgradeModalOpen] = useState(false);
@@ -58,10 +63,18 @@ export default function CandidateSearchPage() {
   const [contactMessage, setContactMessage] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  const loadCandidates = async (query = "") => {
+  const loadCandidates = async (query = "", skill = "", title = "", company = "", status = "") => {
     try {
       setLoading(true);
-      const url = query ? `/api/recruiter/candidates?q=${encodeURIComponent(query)}` : "/api/recruiter/candidates";
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      if (skill) params.set("skill", skill);
+      if (title) params.set("title", title);
+      if (company) params.set("company", company);
+      if (status && status !== "ALL") params.set("status", status);
+
+      const qs = params.toString();
+      const url = qs ? `/api/recruiter/candidates?${qs}` : "/api/recruiter/candidates";
       const res = await fetch(url);
       const data = await res.json();
 
@@ -93,7 +106,16 @@ export default function CandidateSearchPage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadCandidates(searchQuery);
+    loadCandidates(searchQuery, filterSkill, filterTitle, filterCompany, filterStatus);
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setFilterSkill("");
+    setFilterTitle("");
+    setFilterCompany("");
+    setFilterStatus("ALL");
+    loadCandidates("", "", "", "", "ALL");
   };
 
   const handleUnlockCandidate = async (candidate: Candidate) => {
@@ -259,27 +281,113 @@ export default function CandidateSearchPage() {
               )}
             </div>
 
-            {/* Search Input Bar */}
-            <form onSubmit={handleSearchSubmit} className="relative flex gap-2">
-              <div className="relative flex-1">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-lg">
-                  search
-                </span>
-                <input
-                  type="text"
-                  placeholder="Search by candidate name, skill (e.g. Next.js, TypeScript, PostgreSQL), or location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+            {/* Search Input Bar & Criteria Filters */}
+            <form onSubmit={handleSearchSubmit} className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-lg">
+                    search
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search candidate by name, skills, title, or keywords..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`px-4 py-3 border rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                      showFilters || filterSkill || filterTitle || filterCompany || filterStatus !== "ALL"
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "bg-surface-container-high border-outline-variant/30 text-on-surface"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-sm">tune</span>
+                    Filters {(filterSkill || filterTitle || filterCompany || filterStatus !== "ALL") && "•"}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-3 bg-primary text-on-primary font-bold text-xs sm:text-sm rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-2xs touch-target"
+                  >
+                    <span className="material-symbols-outlined text-sm">filter_list</span>
+                    Search Talent
+                  </button>
+                </div>
               </div>
-              <button
-                type="submit"
-                className="px-5 py-3 bg-primary text-on-primary font-bold text-xs sm:text-sm rounded-xl hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-2xs touch-target"
-              >
-                <span className="material-symbols-outlined text-sm">filter_list</span>
-                Search Talent
-              </button>
+
+              {/* Multi-Criteria Sourcing Filters */}
+              {showFilters && (
+                <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/25 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">Skills (e.g. React, AWS)</label>
+                    <input
+                      type="text"
+                      placeholder="React, TypeScript, AWS..."
+                      value={filterSkill}
+                      onChange={(e) => setFilterSkill(e.target.value)}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">Job Title / Role</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Senior Software Engineer"
+                      value={filterTitle}
+                      onChange={(e) => setFilterTitle(e.target.value)}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">Previous Company</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Amazon, Google, Stripe..."
+                      value={filterCompany}
+                      onChange={(e) => setFilterCompany(e.target.value)}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">Employment Status</label>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface text-xs focus:outline-none focus:ring-2 focus:ring-primary font-semibold"
+                    >
+                      <option value="ALL">All Employment Statuses</option>
+                      <option value="Available for Work">Available for Work</option>
+                      <option value="Open to Opportunities">Open to Opportunities</option>
+                      <option value="Employed">Employed</option>
+                      <option value="Unemployed">Unemployed</option>
+                      <option value="Not Looking">Not Looking</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2 lg:col-span-4 flex justify-end gap-2 pt-1 border-t border-outline-variant/15">
+                    <button
+                      type="button"
+                      onClick={handleResetFilters}
+                      className="px-3.5 py-1.5 bg-surface text-outline hover:text-on-surface text-xs font-bold rounded-lg transition-colors"
+                    >
+                      Reset All
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 bg-primary text-on-primary text-xs font-bold rounded-lg hover:bg-primary-container transition-all"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              )}
             </form>
 
             {/* Candidates Grid */}
@@ -290,10 +398,10 @@ export default function CandidateSearchPage() {
               </div>
             ) : candidates.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {candidates.map((cand) => (
+                {candidates.map((cand: any) => (
                   <div
                     key={cand.id}
-                    className="glass-card rounded-2xl p-6 border border-outline-variant/20 hover:border-primary/40 transition-all flex flex-col justify-between space-y-4"
+                    className="glass-card rounded-2xl p-6 border border-outline-variant/20 hover:border-primary/40 transition-all flex flex-col justify-between space-y-4 shadow-sm"
                   >
                     <div className="space-y-3">
                       <div className="flex items-start gap-4">
@@ -302,24 +410,62 @@ export default function CandidateSearchPage() {
                           alt={cand.name}
                           className="w-14 h-14 rounded-2xl object-cover border-2 border-primary/20 flex-shrink-0"
                         />
-                        <div className="space-y-0.5 flex-1 min-w-0">
+                        <div className="space-y-1 flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="font-bold text-sm text-on-surface truncate">{cand.name}</h3>
                             <VerifiedBadge role="JOB_SEEKER" size="sm" />
                           </div>
                           <p className="text-xs text-primary font-bold truncate">
-                            {cand.headline || "Technical Candidate"}
+                            {cand.headline || "Technical Professional"}
                           </p>
-                          <p className="text-[11px] text-on-surface-variant truncate">
-                            📍 {cand.location || "Location not specified"}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                            <span className="text-on-surface-variant truncate">
+                              📍 {cand.location || "Location not specified"}
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                              {cand.employmentStatus}
+                            </span>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Matched Reasons Tags */}
+                      {cand.matchedReasons && cand.matchedReasons.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {cand.matchedReasons.map((reason: string, rIdx: number) => (
+                            <span
+                              key={rIdx}
+                              className="px-2 py-0.5 bg-primary/10 text-primary rounded-md text-[10px] font-semibold border border-primary/20"
+                            >
+                              ✓ {reason}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {cand.bio && (
                         <p className="text-xs text-on-surface-variant line-clamp-2 italic">
                           "{cand.bio}"
                         </p>
+                      )}
+
+                      {/* Skills Tags */}
+                      {cand.skills && cand.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {cand.skills.slice(0, 5).map((skill: string, sIdx: number) => (
+                            <span
+                              key={sIdx}
+                              className="px-2 py-0.5 bg-surface-container-high text-on-surface rounded text-[10px] font-semibold border border-outline-variant/20"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {cand.skills.length > 5 && (
+                            <span className="px-1.5 py-0.5 text-[10px] text-outline font-bold">
+                              +{cand.skills.length - 5}
+                            </span>
+                          )}
+                        </div>
                       )}
 
                       {/* Contact Preview (Masked or Unlocked) */}
@@ -333,20 +479,6 @@ export default function CandidateSearchPage() {
                           <span className="font-mono text-on-surface font-semibold">{cand.phone || "Protected"}</span>
                         </div>
                       </div>
-
-                      {/* Skills Badges */}
-                      {cand.skills && cand.skills.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {cand.skills.slice(0, 5).map((skill, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-0.5 bg-surface-container-high text-on-surface text-[10px] font-bold rounded-lg"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
 
                     <div className="pt-3 border-t border-outline-variant/10 flex items-center justify-between gap-2 flex-wrap">
@@ -420,8 +552,13 @@ export default function CandidateSearchPage() {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <h3 className="font-bold text-base sm:text-lg text-on-surface truncate">{selectedCandidate.name}</h3>
                     <VerifiedBadge role="JOB_SEEKER" size="sm" />
+                    {selectedCandidate.employmentStatus && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                        {selectedCandidate.employmentStatus}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-primary font-bold truncate">{selectedCandidate.headline || "Technical Candidate"}</p>
+                  <p className="text-xs text-primary font-bold truncate">{selectedCandidate.headline || "Technical Professional"}</p>
                   <p className="text-[11px] text-on-surface-variant truncate">📍 {selectedCandidate.location || "Location not specified"}</p>
                 </div>
               </div>

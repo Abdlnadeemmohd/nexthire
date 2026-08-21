@@ -5,6 +5,7 @@ import { UserRole } from "@/lib/auth";
 
 export interface VerifiedBadgeProps {
   role?: UserRole | "COMPANY" | "PREMIUM_RECRUITER" | "HIRING_PARTNER";
+  tier?: "TRIAL" | "SILVER" | "GOLD" | "DIAMOND" | "PLATINUM" | string;
   size?: "sm" | "md" | "lg";
   customLabel?: string;
   showIconOnly?: boolean;
@@ -13,12 +14,13 @@ export interface VerifiedBadgeProps {
 
 export function VerifiedBadge({
   role = "JOB_SEEKER",
+  tier,
   size = "sm",
   customLabel,
   showIconOnly = false,
   className = "",
 }: VerifiedBadgeProps) {
-  // Determine role specifications with honest trust labels
+  // Determine role specifications with honest trust labels & tier styling
   const getBadgeSpecs = () => {
     switch (role) {
       case "PLATFORM_ADMIN":
@@ -30,6 +32,30 @@ export function VerifiedBadge({
         };
       case "RECRUITER":
       case "PREMIUM_RECRUITER":
+        if (tier === "PLATINUM" || tier === "DIAMOND") {
+          return {
+            label: customLabel || "Verified Recruiter",
+            colorClasses: "bg-amber-500/10 text-amber-900 border-amber-500/30",
+            iconColor: "text-amber-600",
+            ariaLabel: "Verified Recruiter Profile (Diamond Partner)",
+          };
+        }
+        if (tier === "GOLD") {
+          return {
+            label: customLabel || "Verified Recruiter",
+            colorClasses: "bg-amber-50 text-amber-800 border-amber-300",
+            iconColor: "text-amber-700",
+            ariaLabel: "Verified Recruiter Profile (Gold Tier)",
+          };
+        }
+        if (tier === "SILVER") {
+          return {
+            label: customLabel || "Verified Recruiter",
+            colorClasses: "bg-slate-100 text-slate-800 border-slate-300",
+            iconColor: "text-slate-700",
+            ariaLabel: "Verified Recruiter Profile (Silver Tier)",
+          };
+        }
         return {
           label: customLabel || "Verified Recruiter",
           colorClasses: "bg-blue-50 text-blue-800 border-blue-200",

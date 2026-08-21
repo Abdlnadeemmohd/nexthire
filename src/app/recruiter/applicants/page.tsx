@@ -25,6 +25,7 @@ export default function RecruiterApplicantsPage() {
   const { showToast } = useToast();
   const [applicants, setApplicants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pipelineTab, setPipelineTab] = useState<"ACTIVE" | "ARCHIVED">("ACTIVE");
   const [selectedStage, setSelectedStage] = useState<string>("ALL");
   const [scheduleModalCandidate, setScheduleModalCandidate] = useState<any | null>(null);
   const [rejectionModalCandidate, setRejectionModalCandidate] = useState<any | null>(null);
@@ -52,7 +53,11 @@ export default function RecruiterApplicantsPage() {
     loadApplicants();
   }, []);
 
-  const filteredApplicants = applicants.filter((app) => {
+  // Compute active vs archived counts
+  const activeApplicants = applicants.filter((app) => !isTerminalStatus(app.status));
+  const archivedApplicants = applicants.filter((app) => isTerminalStatus(app.status));
+
+  const filteredApplicants = (pipelineTab === "ACTIVE" ? activeApplicants : archivedApplicants).filter((app) => {
     if (selectedStage === "ALL") return true;
     if (selectedStage === "INTERVIEW_SCHEDULED") {
       return app.status.startsWith("INTERVIEW");
@@ -133,7 +138,7 @@ export default function RecruiterApplicantsPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(`Candidate marked as Rejected. Constructive feedback delivered.`, "success");
+        showToast(`Candidate marked as Rejected and archived. Constructive feedback delivered.`, "success");
         loadApplicants();
       } else {
         showToast(data.error || "Failed to submit rejection", "error");
@@ -161,11 +166,11 @@ export default function RecruiterApplicantsPage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-6 max-w-[1600px] w-full">
+          <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-6 max-w-[1600px] w-full pb-20 sm:pb-24">
             <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "ATS Candidate Pipeline" }]} />
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant/20 pb-4">
+            {/* Header & Tabs */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-4">
               <div>
                 <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
                   ATS Candidate Pipeline
@@ -175,6 +180,66 @@ export default function RecruiterApplicantsPage() {
                 </p>
               </div>
 
+              {/* View Mode Tabs: Active Pipeline vs History / Closed */}
+              <div className="flex items-center gap-2 bg-surface-container-high p-1 rounded-2xl border border-outline-variant/20">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPipelineTab("ACTIVE");
+                    setSelectedStage("ALL");
+                  }}
+                  className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all ${
+                    pipelineTab === "ACTIVE"
+                      ? "bg-primary text-on-primary shadow-sm"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-sm">view_kanban</span>
+                  Active Pipeline
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                      pipelineTab === "ACTIVE" ? "bg-white/20 text-white" : "bg-surface text-outline"
+                    }`}
+                  >
+                    {activeApplicants.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPipelineTab("ARCHIVED");
+                    setSelectedStage("ALL");
+                  }}
+                  className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all ${
+                    pipelineTab === "ARCHIVED"
+                      ? "bg-primary text-on-primary shadow-sm"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-sm">archive</span>
+                  History & Archived
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                      pipelineTab === "ARCHIVED" ? "bg-white/20 text-white" : "bg-surface text-outline"
+                    }`}
+                  >
+                    {archivedApplicants.length}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-bold text-outline uppercase text-[10px]">Showing:</span>
+                <span className="font-bold text-on-surface">
+                  {pipelineTab === "ACTIVE" ? "Active Candidates Requiring Action" : "Terminal Records & Retained History"}
+                </span>
+                <span className="text-outline">({filteredApplicants.length} applications)</span>
+              </div>
+
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-outline uppercase">Filter Stage:</span>
                 <select
@@ -182,14 +247,28 @@ export default function RecruiterApplicantsPage() {
                   onChange={(e) => setSelectedStage(e.target.value)}
                   className="px-3 py-1.5 bg-surface-container border border-outline-variant/30 rounded-xl text-xs font-bold text-on-surface focus:outline-none"
                 >
-                  <option value="ALL">All Stages ({applicants.length})</option>
-                  <option value="SUBMITTED">Submitted</option>
-                  <option value="UNDER_REVIEW">Under Review</option>
-                  <option value="INTERVIEW_SCHEDULED">Interview</option>
-                  <option value="FINAL_DECISION">Final Decision</option>
-                  <option value="OFFER_EXTENDED">Selected</option>
-                  <option value="REJECTED">Rejected</option>
-                  <option value="APPLICATION_CLOSED">Closed</option>
+                  <option value="ALL">
+                    {pipelineTab === "ACTIVE"
+                      ? `All Active Stages (${activeApplicants.length})`
+                      : `All Terminal Stages (${archivedApplicants.length})`}
+                  </option>
+                  {pipelineTab === "ACTIVE" ? (
+                    <>
+                      <option value="SUBMITTED">Submitted</option>
+                      <option value="UNDER_REVIEW">Under Review</option>
+                      <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
+                      <option value="FINAL_DECISION">Final Decision</option>
+                      <option value="OFFER_EXTENDED">Offer Extended</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="REJECTED">Rejected</option>
+                      <option value="APPLICATION_CLOSED">Application Closed</option>
+                      <option value="HIRED">Hired</option>
+                      <option value="WITHDRAWN">Withdrawn</option>
+                      <option value="OFFER_DECLINED">Offer Declined</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>

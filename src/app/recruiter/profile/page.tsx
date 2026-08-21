@@ -33,6 +33,8 @@ export default function RecruiterProfilePage() {
     avatar: user?.avatar || "",
     company: user?.companyName || "",
     companyId: user?.companyId || "",
+    isVerified: false,
+    subscriptionTier: "TRIAL",
     recruiterData: {
       status: "ACTIVELY_HIRING" as RecruiterHiringStatus,
       recruiterRole: "Technical Talent Partner",
@@ -68,6 +70,7 @@ export default function RecruiterProfilePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchingCompanies, setSearchingCompanies] = useState(false);
+  const [selectedEnrichedDetails, setSelectedEnrichedDetails] = useState<any | null>(null);
   const [newAssoc, setNewAssoc] = useState<CompanyAssociation>({
     companyId: "",
     companyName: "",
@@ -94,6 +97,8 @@ export default function RecruiterProfilePage() {
             avatar: d.avatar || "",
             company: d.company || "",
             companyId: d.companyId || "",
+            isVerified: d.isVerified ?? false,
+            subscriptionTier: d.subscriptionTier || "TRIAL",
             recruiterData: d.recruiterData || profileData.recruiterData,
             metrics: d.metrics || profileData.metrics,
             completeness: typeof d.completeness === "number" ? d.completeness : 85,
@@ -164,21 +169,66 @@ export default function RecruiterProfilePage() {
     }
   };
 
-  // Search Companies for Association
+  // Search Companies for Association (Directory + Enrichment Provider)
   const handleSearchCompanies = async (q: string) => {
     setSearchQuery(q);
-    if (!q || q.length < 2) {
+    if (!q || q.trim().length < 2) {
       setSearchResults([]);
       return;
     }
 
     try {
       setSearchingCompanies(true);
-      const res = await fetch(`/api/companies?q=${encodeURIComponent(q)}`);
-      if (res.ok) {
-        const json = await res.json();
-        setSearchResults(json.companies || json.data || []);
+      const directoryPromise = fetch(`/api/companies?q=${encodeURIComponent(q)}`).then((r) =>
+        r.ok ? r.json() : { data: [] }
+      );
+      const enrichPromise =
+        q.trim().length >= 3
+          ? fetch(`/api/companies/enrich`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: q.trim() }),
+            }).then((r) => (r.ok ? r.json() : { success: false }))
+          : Promise.resolve({ success: false });
+
+      const [dirRes, enrichRes] = await Promise.all([directoryPromise, enrichPromise]);
+
+      const dirCompanies = (dirRes.companies || dirRes.data || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        logo: c.logo,
+        industry: c.industry || "Technology",
+        location: c.location || "Headquarters",
+        website: c.website || "",
+        description: c.description || "",
+        isVerified: !!c.isVerified,
+        source: "NextHire Directory",
+      }));
+
+      const results = [...dirCompanies];
+
+      if (enrichRes.success && enrichRes.data) {
+        const enriched = enrichRes.data;
+        const exists = results.some(
+          (c) => c.name.toLowerCase() === enriched.name.toLowerCase()
+        );
+        if (!exists) {
+          results.unshift({
+            id: "",
+            name: enriched.name,
+            logo: enriched.logoUrl || null,
+            industry: enriched.industry || "Technology",
+            location: enriched.headquarters || "San Francisco, CA",
+            website: enriched.website || "",
+            description: enriched.description || "",
+            isVerified: false,
+            source: enriched.source || "Canonical Company Knowledge",
+            isEnriched: true,
+          });
+        }
       }
+
+      setSearchResults(results);
     } catch (err) {
       console.error("Error searching companies:", err);
     } finally {
@@ -189,10 +239,19 @@ export default function RecruiterProfilePage() {
   const handleSelectCompanyResult = (comp: any) => {
     setNewAssoc({
       ...newAssoc,
-      companyId: comp.id,
+      companyId: comp.id || "",
       companyName: comp.name,
-      logoUrl: comp.logo,
-      isVerifiedCompany: comp.isVerified,
+      logoUrl: comp.logo || comp.logoUrl || null,
+      isVerifiedCompany: !!comp.isVerified,
+    });
+    setSelectedEnrichedDetails({
+      name: comp.name,
+      website: comp.website || "",
+      industry: comp.industry || "Technology",
+      location: comp.location || comp.headquarters || "San Francisco, CA",
+      description: comp.description || "",
+      logoUrl: comp.logo || comp.logoUrl || null,
+      isVerified: !!comp.isVerified,
     });
     setSearchResults([]);
     setSearchQuery(comp.name);
@@ -211,6 +270,8 @@ export default function RecruiterProfilePage() {
       {
         ...newAssoc,
         companyName: newAssoc.companyName.trim(),
+        logoUrl: selectedEnrichedDetails?.logoUrl || newAssoc.logoUrl || null,
+        isVerifiedCompany: selectedEnrichedDetails?.isVerified ?? newAssoc.isVerifiedCompany ?? false,
       },
     ];
 
@@ -219,14 +280,23 @@ export default function RecruiterProfilePage() {
       companyAssociations: updatedAssociations,
     };
 
+    const isCurrent = newAssoc.relationship === "CURRENT_EMPLOYER";
+
     setProfileData((prev) => ({
       ...prev,
+      company: isCurrent ? newAssoc.companyName.trim() : prev.company,
+      companyId: isCurrent && newAssoc.companyId ? newAssoc.companyId : prev.companyId,
+      isVerified: isCurrent && selectedEnrichedDetails?.isVerified ? true : prev.isVerified,
       recruiterData: updatedRecruiterData,
     }));
 
-    await saveRecruiterProfile({ recruiterData: updatedRecruiterData });
+    await saveRecruiterProfile({
+      companyId: isCurrent && newAssoc.companyId ? newAssoc.companyId : profileData.companyId,
+      recruiterData: updatedRecruiterData,
+    });
+
     setAssocModalOpen(false);
-    showToast("Company association saved!", "success");
+    showToast("Company association saved successfully!", "success");
   };
 
   const handleRemoveAssociation = async (compName: string) => {
@@ -273,15 +343,17 @@ export default function RecruiterProfilePage() {
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8 pb-20 sm:pb-24">
             {/* 1. Recruiter Completeness Gauge */}
-            <ProfileCompletenessWidget
-              score={profileData.completeness}
-              missingSections={profileData.missingSections}
-              recommendations={profileData.recommendations}
-              role="recruiter"
-            />
+            <div id="section-completeness">
+              <ProfileCompletenessWidget
+                score={profileData.completeness}
+                missingSections={profileData.missingSections}
+                recommendations={profileData.recommendations}
+                role="recruiter"
+              />
+            </div>
 
             {/* 2. Recruiter Identity Header */}
-            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative">
+            <div id="section-identity" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-md relative">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full md:w-auto">
                   {isEditingHeader ? (
@@ -303,11 +375,31 @@ export default function RecruiterProfilePage() {
                   )}
 
                   <div className="space-y-1.5 min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-on-surface truncate">
-                        {profileData.name || "Verified Talent Partner"}
+                        {profileData.name || "Talent Acquisition Partner"}
                       </h1>
-                      <VerifiedBadge role="RECRUITER" size="md" />
+
+                      {/* Recruiter Hiring Availability Status */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 border border-blue-500/25 select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true"></span>
+                        {profileData.recruiterData?.status === "ACTIVELY_HIRING"
+                          ? "Actively Hiring"
+                          : profileData.recruiterData?.status === "HIRING"
+                          ? "Hiring"
+                          : profileData.recruiterData?.status === "OPEN_TO_OUTREACH"
+                          ? "Open to Outreach"
+                          : profileData.recruiterData?.status === "HIRING_MULTIPLE"
+                          ? "Recruiting for Multiple Roles"
+                          : profileData.recruiterData?.status === "NOT_HIRING"
+                          ? "Not Currently Hiring"
+                          : "Actively Hiring"}
+                      </span>
+
+                      {/* Genuine Verification Badge (only shown when employer/company is verified) */}
+                      {profileData.isVerified && (
+                        <VerifiedBadge role="RECRUITER" tier={profileData.subscriptionTier} size="md" />
+                      )}
                     </div>
 
                     <p className="text-primary font-bold text-xs sm:text-sm">
@@ -324,7 +416,7 @@ export default function RecruiterProfilePage() {
 
                 <button
                   onClick={() => setIsEditingHeader(!isEditingHeader)}
-                  className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto"
+                  className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary-container transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto touch-target"
                 >
                   <span className="material-symbols-outlined text-base">
                     {isEditingHeader ? "close" : "edit"}
@@ -350,6 +442,7 @@ export default function RecruiterProfilePage() {
                       location: profileData.location,
                       phone: profileData.phone,
                       avatar: profileData.avatar,
+                      recruiterData: profileData.recruiterData,
                     });
                     if (ok) setIsEditingHeader(false);
                   }}
@@ -368,6 +461,31 @@ export default function RecruiterProfilePage() {
                     </div>
 
                     <div>
+                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Hiring Availability Status *</label>
+                      <select
+                        value={profileData.recruiterData?.status || "ACTIVELY_HIRING"}
+                        onChange={(e) =>
+                          setProfileData({
+                            ...profileData,
+                            recruiterData: {
+                              ...profileData.recruiterData,
+                              status: e.target.value as RecruiterHiringStatus,
+                            },
+                          })
+                        }
+                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="ACTIVELY_HIRING">Actively Hiring</option>
+                        <option value="HIRING">Hiring</option>
+                        <option value="OPEN_TO_OUTREACH">Open to Outreach</option>
+                        <option value="HIRING_MULTIPLE">Recruiting for Multiple Roles</option>
+                        <option value="NOT_HIRING">Not Currently Hiring</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
                       <label className="block font-bold text-outline uppercase text-[10px] pb-1">Recruiter Headline / Title *</label>
                       <input
                         type="text"
@@ -378,9 +496,7 @@ export default function RecruiterProfilePage() {
                         className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block font-bold text-outline uppercase text-[10px] pb-1">Location</label>
                       <input
@@ -390,16 +506,16 @@ export default function RecruiterProfilePage() {
                         className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block font-bold text-outline uppercase text-[10px] pb-1">Phone</label>
-                      <input
-                        type="text"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                        className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div>
+                    <label className="block font-bold text-outline uppercase text-[10px] pb-1">Phone</label>
+                    <input
+                      type="text"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
 
                   <div>
@@ -434,7 +550,7 @@ export default function RecruiterProfilePage() {
             </div>
 
             {/* 3. Hiring Status & Active Sourcing Priorities */}
-            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-xs">
+            <div id="section-priorities" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/15 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center border border-emerald-500/20">
@@ -474,37 +590,55 @@ export default function RecruiterProfilePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                    <div className="p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/20 space-y-1">
-                      <span className="text-[10px] font-bold text-outline uppercase">Target Roles</span>
-                      <div className="flex flex-wrap gap-1 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs items-stretch">
+                    <div className="flex flex-col justify-between h-full min-h-[140px] p-5 bg-surface-container-lowest/80 rounded-2xl border border-outline-variant/20 space-y-3">
+                      <div className="flex items-center gap-2 text-outline uppercase font-bold text-[10px] pb-1 border-b border-outline-variant/10">
+                        <span className="material-symbols-outlined text-sm text-primary">person_search</span>
+                        <span>Target Roles</span>
+                      </div>
+                      <div className="flex-1 flex flex-wrap gap-1.5 content-start pt-1">
                         {(profileData.recruiterData.targetRoles || []).map((r, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold text-[11px]">
+                          <span key={idx} className="px-2.5 py-1 bg-surface-container-high rounded-lg text-on-surface font-semibold text-[11px] border border-outline-variant/20">
                             {r}
                           </span>
                         ))}
+                        {(!profileData.recruiterData.targetRoles || profileData.recruiterData.targetRoles.length === 0) && (
+                          <span className="text-[11px] text-outline italic">No target roles specified</span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/20 space-y-1">
-                      <span className="text-[10px] font-bold text-outline uppercase">Departments</span>
-                      <div className="flex flex-wrap gap-1 pt-1">
+                    <div className="flex flex-col justify-between h-full min-h-[140px] p-5 bg-surface-container-lowest/80 rounded-2xl border border-outline-variant/20 space-y-3">
+                      <div className="flex items-center gap-2 text-outline uppercase font-bold text-[10px] pb-1 border-b border-outline-variant/10">
+                        <span className="material-symbols-outlined text-sm text-primary">corporate_fare</span>
+                        <span>Departments</span>
+                      </div>
+                      <div className="flex-1 flex flex-wrap gap-1.5 content-start pt-1">
                         {(profileData.recruiterData.departments || []).map((d, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-primary/10 rounded text-primary font-semibold text-[11px]">
+                          <span key={idx} className="px-2.5 py-1 bg-primary/10 rounded-lg text-primary font-semibold text-[11px] border border-primary/20">
                             {d}
                           </span>
                         ))}
+                        {(!profileData.recruiterData.departments || profileData.recruiterData.departments.length === 0) && (
+                          <span className="text-[11px] text-outline italic">No departments specified</span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/20 space-y-1">
-                      <span className="text-[10px] font-bold text-outline uppercase">Seniority Levels</span>
-                      <div className="flex flex-wrap gap-1 pt-1">
+                    <div className="flex flex-col justify-between h-full min-h-[140px] p-5 bg-surface-container-lowest/80 rounded-2xl border border-outline-variant/20 space-y-3">
+                      <div className="flex items-center gap-2 text-outline uppercase font-bold text-[10px] pb-1 border-b border-outline-variant/10">
+                        <span className="material-symbols-outlined text-sm text-primary">trending_up</span>
+                        <span>Seniority Levels</span>
+                      </div>
+                      <div className="flex-1 flex flex-wrap gap-1.5 content-start pt-1">
                         {(profileData.recruiterData.seniorityLevels || []).map((s, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold text-[11px]">
+                          <span key={idx} className="px-2.5 py-1 bg-surface-container-high rounded-lg text-on-surface font-semibold text-[11px] border border-outline-variant/20">
                             {s}
                           </span>
                         ))}
+                        {(!profileData.recruiterData.seniorityLevels || profileData.recruiterData.seniorityLevels.length === 0) && (
+                          <span className="text-[11px] text-outline italic">No seniority levels specified</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -597,7 +731,7 @@ export default function RecruiterProfilePage() {
             </div>
 
             {/* 4. Multi-Company Associations */}
-            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-xs">
+            <div id="section-associations" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/15 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
@@ -638,40 +772,38 @@ export default function RecruiterProfilePage() {
                 {(profileData.recruiterData.companyAssociations || []).map((assoc, idx) => (
                   <div
                     key={idx}
-                    className="p-4 sm:p-5 bg-surface-container-low/50 rounded-2xl border border-outline-variant/20 flex items-start justify-between gap-3"
+                    className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/20 flex items-start justify-between gap-3 relative"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-surface-container-high border border-outline-variant/20 flex items-center justify-center font-bold text-sm text-primary overflow-hidden flex-shrink-0">
                         {assoc.logoUrl ? (
-                          <img src={assoc.logoUrl} alt={assoc.companyName} className="w-full h-full object-cover rounded-xl" />
+                          <img src={assoc.logoUrl} alt={assoc.companyName} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="material-symbols-outlined text-xl">domain</span>
+                          assoc.companyName.charAt(0)
                         )}
                       </div>
-
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <h4 className="font-bold text-xs sm:text-sm text-on-surface">{assoc.companyName}</h4>
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-on-surface text-sm">{assoc.companyName}</span>
                           {assoc.isVerifiedCompany && (
-                            <span className="text-primary material-symbols-outlined text-sm" title="Verified Company">verified</span>
+                            <VerifiedBadge role="COMPANY" size="sm" customLabel="Verified" />
+                          )}
+                          {assoc.isCurrent && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-700 rounded-full border border-emerald-500/20">
+                              Primary Employer
+                            </span>
                           )}
                         </div>
-                        <p className="text-xs text-primary font-semibold">{assoc.role || "Recruiter"}</p>
-                        <span className="inline-block px-2 py-0.5 bg-surface-container-high rounded text-[10px] font-bold text-on-surface-variant">
-                          {assoc.relationship === "CURRENT_EMPLOYER"
-                            ? "Current Employer"
-                            : assoc.relationship === "RETAINED_AGENCY"
-                            ? "Retained Agency Partner"
-                            : assoc.relationship === "VENTURE_PORTFOLIO"
-                            ? "Venture Partner"
-                            : "Talent Advisor"}
-                        </span>
+                        <p className="text-xs text-on-surface-variant font-medium">{assoc.role}</p>
+                        <p className="text-[10px] text-outline">
+                          {assoc.relationship.replace(/_/g, " ")} • Since {assoc.startDate || "2023"}
+                        </p>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleRemoveAssociation(assoc.companyName)}
-                      className="p-1.5 text-outline hover:text-error rounded-lg"
+                      className="p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-lg transition-all"
                       title="Remove Association"
                     >
                       <span className="material-symbols-outlined text-base">delete</span>
@@ -682,7 +814,7 @@ export default function RecruiterProfilePage() {
             </div>
 
             {/* 5. Sourcing Expertise & Domains */}
-            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-xs">
+            <div id="section-expertise" className="glass-card rounded-3xl p-6 sm:p-8 border border-outline-variant/20 space-y-6 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/15 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
@@ -839,13 +971,13 @@ export default function RecruiterProfilePage() {
           <form onSubmit={handleSaveAssociation} className="space-y-4 text-xs font-body-md">
             <div>
               <label className="block font-bold text-outline uppercase text-[10px] pb-1">
-                Company Name * (Search or type new)
+                Company Name * (Search directory or canonical company knowledge)
               </label>
               <div className="relative">
                 <input
                   type="text"
                   required
-                  placeholder="Type to search existing companies (e.g. Acme, NextHire)..."
+                  placeholder="Type company name (e.g. Amazon, Google, Stripe, Acme)..."
                   value={searchQuery}
                   onChange={(e) => {
                     handleSearchCompanies(e.target.value);
@@ -861,21 +993,64 @@ export default function RecruiterProfilePage() {
                 )}
 
                 {searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-outline-variant/30 rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto">
-                    {searchResults.map((comp) => (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-outline-variant/30 rounded-xl shadow-xl z-30 max-h-56 overflow-y-auto divide-y divide-outline-variant/10">
+                    {searchResults.map((comp, idx) => (
                       <div
-                        key={comp.id}
+                        key={comp.id || idx}
                         onClick={() => handleSelectCompanyResult(comp)}
-                        className="p-2.5 hover:bg-primary/10 cursor-pointer flex items-center justify-between"
+                        className="p-3 hover:bg-primary/10 cursor-pointer flex items-center justify-between gap-3 transition-colors"
                       >
-                        <span className="font-bold text-on-surface">{comp.name}</span>
-                        <span className="text-[10px] text-outline">{comp.industry || "Company"}</span>
+                        <div className="flex items-center gap-3 min-w-0">
+                          {comp.logo ? (
+                            <img src={comp.logo} alt={comp.name} className="w-8 h-8 rounded-lg object-contain border border-outline-variant/20 flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
+                              {comp.name.charAt(0)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-bold text-on-surface text-xs truncate">{comp.name}</p>
+                            <p className="text-[10px] text-outline truncate">{comp.website || comp.location || comp.industry}</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full bg-surface-container text-outline border border-outline-variant/20 flex-shrink-0">
+                          {comp.industry || "Company"}
+                        </span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Selected Canonical Company Preview */}
+            {selectedEnrichedDetails && (
+              <div className="p-3.5 bg-surface-container-lowest rounded-2xl border border-primary/25 space-y-2">
+                <div className="flex items-center justify-between gap-2 border-b border-outline-variant/15 pb-2">
+                  <div className="flex items-center gap-2.5">
+                    {selectedEnrichedDetails.logoUrl ? (
+                      <img src={selectedEnrichedDetails.logoUrl} alt={selectedEnrichedDetails.name} className="w-7 h-7 rounded-md object-contain border border-outline-variant/20" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-md bg-primary/15 text-primary font-bold text-xs flex items-center justify-center">
+                        {selectedEnrichedDetails.name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-bold text-on-surface text-xs">{selectedEnrichedDetails.name}</p>
+                      <p className="text-[10px] text-primary">{selectedEnrichedDetails.website}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                    {selectedEnrichedDetails.industry}
+                  </span>
+                </div>
+                {selectedEnrichedDetails.description && (
+                  <p className="text-[11px] text-on-surface-variant line-clamp-2 leading-relaxed">
+                    {selectedEnrichedDetails.description}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div>
               <label className="block font-bold text-outline uppercase text-[10px] pb-1">
@@ -886,7 +1061,7 @@ export default function RecruiterProfilePage() {
                 onChange={(e) => setNewAssoc({ ...newAssoc, relationship: e.target.value as any })}
                 className="w-full p-2.5 bg-surface border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="CURRENT_EMPLOYER">Current In-House Employer</option>
+                <option value="CURRENT_EMPLOYER">Current In-House Employer (Primary Company)</option>
                 <option value="RETAINED_AGENCY">Retained Agency Partner</option>
                 <option value="VENTURE_PORTFOLIO">Venture / Portfolio Company</option>
                 <option value="ADVISORY">Talent Advisor / Consultant</option>

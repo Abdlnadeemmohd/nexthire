@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { getRecruiterEntitlements } from "@/lib/billing/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,9 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
+
+    // Resolve entitlements and plan tier for tier styling
+    const entitlements = await getRecruiterEntitlements(user.id).catch(() => null);
 
     // Active vacancies count from Neon PostgreSQL
     const activeVacancies = await prisma.job.count({
@@ -121,6 +125,8 @@ export async function GET() {
         title: user.headline || null,
         company: user.company?.name || null,
         companyId: user.companyId || null,
+        isVerified: !!user.company?.isVerified,
+        subscriptionTier: entitlements?.planTier || "TRIAL",
         avatar: user.avatar || null,
         bio: user.bio || null,
         location: user.location || null,
