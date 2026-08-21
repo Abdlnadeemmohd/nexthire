@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NextHire — Comprehensive Status & Production Readiness Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-border: #1f293d;
+      --surface-hover: #1e293b;
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
+      --primary-glow: rgba(59, 130, 246, 0.2);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.2);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --radius: 12px;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 32px 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #131d33 0%, #0d1322 100%);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .brand-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title span.badge-pill {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 12px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: var(--primary-light);
+      border-radius: 9999px;
+    }
+
+    .tagline {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-top: 4px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--surface-border);
+      padding: 16px 20px;
+      border-radius: 8px;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .meta-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-value {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .meta-value a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    /* KPI Highlights */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: #2e3d5b;
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .kpi-title {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-icon {
+      font-size: 18px;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+
+    .kpi-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    /* Stage Progression */
+    .stage-section {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      position: relative;
+    }
+
+    .timeline-node {
+      background: #0d1424;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .timeline-node.completed {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+    }
+
+    .timeline-node.active {
+      border-color: rgba(59, 130, 246, 0.6);
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .node-stage {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .node-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-progress {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .badge-upcoming {
+      background: rgba(107, 114, 128, 0.15);
+      color: #9ca3af;
+      border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+
+    .node-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .node-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .progress-bar-wrap {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    /* Tabs & Filters */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: var(--surface-hover);
+      color: #fff;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    /* Tab Content Cards */
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tables */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #0d1424;
+      color: var(--text-dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    td {
+      padding: 16px 18px;
+      border-bottom: 1px solid #1a2234;
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .cell-title {
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .code-pill {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #93c5fd;
+    }
+
+    .method-pill {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .method-get { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .method-post { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+    /* Action Checklist */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .check-card {
+      background: #0d1424;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .check-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .check-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .check-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .check-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .env-box {
+      background: #080c14;
+      border: 1px solid #1a2234;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cbd5e1;
+      word-break: break-all;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+      border-top: 1px solid var(--surface-border);
+      padding-top: 24px;
+    }
+
+    .footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-top">
+      <div>
+        <h1 class="brand-title">
+          NextHire 
+          <span class="badge-pill">Production Audit & Status Report</span>
+        </h1>
+        <p class="tagline">AI-Powered Global Talent Intelligence & Enterprise Recruitment SaaS Platform</p>
+      </div>
+      <div>
+        <span class="node-badge badge-progress" style="font-size: 13px; padding: 6px 14px;">
+          Stage 4 of 5 (Pre-Production)
+        </span>
+      </div>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">Target Domain</span>
+        <span class="meta-value"><a href="https://www.nexthire.cloud" target="_blank">https://www.nexthire.cloud</a></span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Lead Engineer & Author</span>
+        <span class="meta-value">Abdul Nadeem Mohd</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Core Architecture</span>
+        <span class="meta-value">Next.js 14 • PostgreSQL • Prisma • Firebase</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Report Date</span>
+        <span class="meta-value">August 15, 2026</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Grid -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">Overall Readiness</span>
+        <span class="kpi-icon">🚀</span>
+      </div>
+      <div class="kpi-value" style="color: #60a5fa;">88%</div>
+      <div class="kpi-desc">Architecture, Frontend & API Built</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">Completed Views</span>
+        <span class="kpi-icon">💻</span>
+      </div>
+      <div class="kpi-value" style="color: #34d399;">22+</div>
+      <div class="kpi-desc">Candidate, Recruiter & Admin Portals</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">API Endpoints</span>
+        <span class="kpi-icon">⚡</span>
+      </div>
+      <div class="kpi-value" style="color: #a78bfa;">12+</div>
+      <div class="kpi-desc">Auth, Jobs, ATS, Search & Audit</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">Database Models</span>
+        <span class="kpi-icon">🗄️</span>
+      </div>
+      <div class="kpi-value" style="color: #f59e0b;">14</div>
+      <div class="kpi-desc">Prisma PostgreSQL Schema Entities</div>
+    </div>
+  </section>
+
+  <!-- Stage Progress Section -->
+  <section class="stage-section">
+    <h2 class="section-title">🛣️ Platform Development Progression</h2>
+    <div class="timeline">
+      
+      <div class="timeline-node completed">
+        <div class="node-header">
+          <span class="node-stage">Stage 1</span>
+          <span class="node-badge badge-success">100% Done</span>
+        </div>
+        <div class="node-title">UI/UX & Design System</div>
+        <p class="node-desc">Tokens, typography, theme toggles, responsive shell, and atomic components.</p>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: 100%; background: #10b981;"></div>
+        </div>
+      </div>
+
+      <div class="timeline-node completed">
+        <div class="node-header">
+          <span class="node-stage">Stage 2</span>
+          <span class="node-badge badge-success">100% Done</span>
+        </div>
+        <div class="node-title">Frontend & Portals</div>
+        <p class="node-desc">Candidate seeker, Recruiter ATS, Admin consoles, and public search boards.</p>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: 100%; background: #10b981;"></div>
+        </div>
+      </div>
+
+      <div class="timeline-node completed">
+        <div class="node-header">
+          <span class="node-stage">Stage 3</span>
+          <span class="node-badge badge-success">95% Done</span>
+        </div>
+        <div class="node-title">Data & Security Layer</div>
+        <p class="node-desc">Prisma ORM, state machine validation, Edge RBAC middleware & multi-tenant UUID isolation.</p>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: 95%; background: #10b981;"></div>
+        </div>
+      </div>
+
+      <div class="timeline-node active">
+        <div class="node-header">
+          <span class="node-stage">Stage 4</span>
+          <span class="node-badge badge-progress">Current (85%)</span>
+        </div>
+        <div class="node-title">Cloud Hardening</div>
+        <p class="node-desc">PostgreSQL instance provisioning, Firebase, Stripe live webhooks & Cloudinary buckets.</p>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: 85%; background: #3b82f6;"></div>
+        </div>
+      </div>
+
+      <div class="timeline-node">
+        <div class="node-header">
+          <span class="node-stage">Stage 5</span>
+          <span class="node-badge badge-upcoming">Upcoming</span>
+        </div>
+        <div class="node-title">Production Go-Live</div>
+        <p class="node-desc">Production bundle deployment, DNS records to nexthire.cloud & live smoke testing.</p>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: 0%; background: #6b7280;"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Navigation Tabs -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('seeker')">Job Seeker Experience (10)</button>
+    <button class="tab-btn" onclick="switchTab('recruiter')">Recruiter ATS Suite (7)</button>
+    <button class="tab-btn" onclick="switchTab('admin')">Platform Governance (5)</button>
+    <button class="tab-btn" onclick="switchTab('api')">API & Search Catalog (12)</button>
+    <button class="tab-btn" onclick="switchTab('checklist')">Launch Checklist & Secrets</button>
+  </nav>
+
+  <!-- TAB 1: Job Seeker Experience -->
+  <div id="tab-seeker" class="tab-pane active">
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature / Screen</th>
+              <th>Route</th>
+              <th>Source File</th>
+              <th>Status</th>
+              <th>Key Functionality</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cell-title">Landing & Discovery</td>
+              <td><span class="code-pill">/</span></td>
+              <td><span class="code-pill">src/app/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Hero query engine, live metrics, job category cards, testimonials, FAQ, SEO schema.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Job Search & Filter Engine</td>
+              <td><span class="code-pill">/jobs</span></td>
+              <td><span class="code-pill">src/app/jobs/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Keyword query, salary sliders, remote pills, experience filters, match score tags.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Job Details & Application</td>
+              <td><span class="code-pill">/jobs/[id]</span></td>
+              <td><span class="code-pill">src/app/jobs/[id]/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Full JD spec, company perks, Google Jobs Schema.org JSON-LD, resume apply modal.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Candidate Dashboard</td>
+              <td><span class="code-pill">/dashboard</span></td>
+              <td><span class="code-pill">src/app/dashboard/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Application funnel, upcoming interviews, AI recommendations, saved bookmarks.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Application Tracker</td>
+              <td><span class="code-pill">/applications</span></td>
+              <td><span class="code-pill">src/app/applications/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Timeline stages (Applied &rarr; Review &rarr; Interview &rarr; Offer/Rejected), SLA alerts.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Constructive Feedback Center</td>
+              <td><span class="code-pill">/applications/[id]/feedback</span></td>
+              <td><span class="code-pill">src/app/applications/[id]/feedback/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Skill gap analysis, structured rejection rationales, recommended study resources.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">AI Resume Studio</td>
+              <td><span class="code-pill">/resume-studio</span></td>
+              <td><span class="code-pill">src/app/resume-studio/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Real-time ATS resume scorer (0-100%), keyword suggestions, formatting optimizer.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Professional Profile</td>
+              <td><span class="code-pill">/profile</span></td>
+              <td><span class="code-pill">src/app/profile/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Resume builder, skills badges, portfolio links, verified certificate upload modal.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Direct Messaging</td>
+              <td><span class="code-pill">/messages</span></td>
+              <td><span class="code-pill">src/app/messages/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Recruiter-candidate chat threads, attachment sharing, unread indicators.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Candidate Settings</td>
+              <td><span class="code-pill">/settings</span></td>
+              <td><span class="code-pill">src/app/settings/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Notification toggles, password updates, profile visibility, session revocation.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Recruiter ATS Suite -->
+  <div id="tab-recruiter" class="tab-pane">
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Module / Page</th>
+              <th>Route</th>
+              <th>Source File</th>
+              <th>Status</th>
+              <th>Key Capabilities</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cell-title">Recruiter Dashboard</td>
+              <td><span class="code-pill">/recruiter</span></td>
+              <td><span class="code-pill">src/app/recruiter/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Time-to-hire KPIs, active jobs tally, applicant funnel charts, SLA timers.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">ATS Applicant Management</td>
+              <td><span class="code-pill">/recruiter/applicants</span></td>
+              <td><span class="code-pill">src/app/recruiter/applicants/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Candidate screening table, interview scheduler with Google Meet, structured rejection builder.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Candidate Sourcing Search</td>
+              <td><span class="code-pill">/recruiter/candidates</span></td>
+              <td><span class="code-pill">src/app/recruiter/candidates/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Global talent discovery, AI skill matching, candidate saving, direct interview invite.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Job Creation Wizard</td>
+              <td><span class="code-pill">/recruiter/jobs/new</span></td>
+              <td><span class="code-pill">src/app/recruiter/jobs/new/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Multi-step job poster (responsibilities, requirements, benefits, salary brackets, SLA days).</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Employer Branding Hub</td>
+              <td><span class="code-pill">/recruiter/company</span></td>
+              <td><span class="code-pill">src/app/recruiter/company/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Company profile editor, verified badge status, culture gallery, office locations.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Recruiter SaaS Billing</td>
+              <td><span class="code-pill">/recruiter/billing</span></td>
+              <td><span class="code-pill">src/app/recruiter/billing/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Tier plans (Starter, Growth, Enterprise), seat manager, Stripe invoice history.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Recruiter Identity Profile</td>
+              <td><span class="code-pill">/recruiter/profile</span></td>
+              <td><span class="code-pill">src/app/recruiter/profile/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Recruiter verification card, team badge, hiring track record stats.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Platform Governance -->
+  <div id="tab-admin" class="tab-pane">
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Admin Portal</th>
+              <th>Route</th>
+              <th>Source File</th>
+              <th>Status</th>
+              <th>Key Governance Controls</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cell-title">Platform Command Center</td>
+              <td><span class="code-pill">/admin</span></td>
+              <td><span class="code-pill">src/app/admin/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Total ARR/MRR metrics, system uptime telemetry, active users, company verification queue.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">User Management Console</td>
+              <td><span class="code-pill">/admin/users</span></td>
+              <td><span class="code-pill">src/app/admin/users/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Role modification (`JOB_SEEKER`, `RECRUITER`, `PLATFORM_ADMIN`), suspensions.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Company Verification KYC</td>
+              <td><span class="code-pill">/admin/companies</span></td>
+              <td><span class="code-pill">src/app/admin/companies/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>KYB business document approval/rejection workflows, verification badge granting.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Subscription Analytics</td>
+              <td><span class="code-pill">/admin/subscriptions</span></td>
+              <td><span class="code-pill">src/app/admin/subscriptions/page.tsx</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Stripe MRR/ARR tracking, customer churn telemetry, plan distribution breakdown.</td>
+            </tr>
+            <tr>
+              <td class="cell-title">Security & Compliance Audit Trail</td>
+              <td><span class="code-pill">/api/admin/audit</span></td>
+              <td><span class="code-pill">src/app/api/admin/audit/route.ts</span></td>
+              <td><span class="node-badge badge-success">Completed</span></td>
+              <td>Tamper-proof audit logs for status overrides, role changes, and administrative actions.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: API & Search Catalog -->
+  <div id="tab-api" class="tab-pane">
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Endpoint</th>
+              <th>RBAC Permission</th>
+              <th>Purpose & Execution</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="method-pill method-post">POST</span></td>
+              <td><span class="code-pill">/api/auth/login</span></td>
+              <td>Public</td>
+              <td>Verifies scrypt password hash or preconfigured developer profile; issues HttpOnly cookie.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-post">POST</span></td>
+              <td><span class="code-pill">/api/auth/firebase</span></td>
+              <td>Public</td>
+              <td>Server-side Firebase Admin ID token verification; provisions PostgreSQL user & issues session.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-get">GET</span></td>
+              <td><span class="code-pill">/api/jobs</span></td>
+              <td>Public</td>
+              <td>Queries filtered active jobs from PostgreSQL database or search provider fallback.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-post">POST</span></td>
+              <td><span class="code-pill">/api/jobs</span></td>
+              <td>RECRUITER / ADMIN</td>
+              <td>Creates new job listing tied to recruiter's multi-tenant company ID.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-get">GET</span></td>
+              <td><span class="code-pill">/api/recruiter/jobs</span></td>
+              <td>RECRUITER / ADMIN</td>
+              <td>Fetches jobs scoped strictly to recruiter's authenticated company UUID.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-post">POST</span></td>
+              <td><span class="code-pill">/api/recruiter/applicants/[id]/status</span></td>
+              <td>RECRUITER / ADMIN</td>
+              <td>Validates state machine transition, updates status, fires notification, and logs audit record.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-get">GET</span></td>
+              <td><span class="code-pill">/api/search</span></td>
+              <td>Public</td>
+              <td>Parallel multi-engine search aggregator (NextHire, Google, Bing, Brave) with 3s timeout & dedup.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-get">GET</span></td>
+              <td><span class="code-pill">/api/documents/download</span></td>
+              <td>Authenticated</td>
+              <td>Issues 15-minute presigned document download token for authorized candidates and recruiters.</td>
+            </tr>
+            <tr>
+              <td><span class="method-pill method-get">GET</span></td>
+              <td><span class="code-pill">/api/admin/audit</span></td>
+              <td>PLATFORM_ADMIN</td>
+              <td>Fetches chronological audit logs for platform security compliance.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: Launch Checklist & Secrets -->
+  <div id="tab-checklist" class="tab-pane">
+    <div class="checklist-grid">
+      
+      <div class="check-card">
+        <div class="check-header">
+          <span class="check-name">1. Production PostgreSQL Database</span>
+          <span class="check-status badge-progress">Pending Live DB</span>
+        </div>
+        <p class="check-desc">Provision managed PostgreSQL on Neon / Supabase / AWS RDS and run migrations.</p>
+        <div class="env-box">DATABASE_URL="postgresql://user:pass@ep-prod.neon.tech/nexthire_prod?sslmode=require"</div>
+      </div>
+
+      <div class="check-card">
+        <div class="check-header">
+          <span class="check-name">2. Firebase Production Credentials</span>
+          <span class="check-status badge-success">Config Ready</span>
+        </div>
+        <p class="check-desc">Add nexthire.cloud to Firebase Authorized Domains & set service account keys.</p>
+        <div class="env-box">NEXT_PUBLIC_FIREBASE_API_KEY, FIREBASE_PRIVATE_KEY</div>
+      </div>
+
+      <div class="check-card">
+        <div class="check-header">
+          <span class="check-name">3. Stripe SaaS Subscriptions & Webhooks</span>
+          <span class="check-status badge-progress">Needs Live Keys</span>
+        </div>
+        <p class="check-desc">Switch to Stripe Live Mode keys and bind endpoint to https://www.nexthire.cloud/api/billing/webhook.</p>
+        <div class="env-box">STRIPE_SECRET_KEY=sk_live_..., STRIPE_WEBHOOK_SECRET=whsec_...</div>
+      </div>
+
+      <div class="check-card">
+        <div class="check-header">
+          <span class="check-name">4. Cloudinary Document Storage</span>
+          <span class="check-status badge-success">Config Ready</span>
+        </div>
+        <p class="check-desc">Create production upload preset 'nexthire_resumes' with private delivery mode.</p>
+        <div class="env-box">NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY</div>
+      </div>
+
+      <div class="check-card">
+        <div class="check-header">
+          <span class="check-name">5. Resend Transactional Email</span>
+          <span class="check-status badge-success">Config Ready</span>
+        </div>
+        <p class="check-desc">Configure DNS SPF and DKIM records for domain nexthire.cloud to send notifications.</p>
+        <div class="env-box">RESEND_API_KEY=re_..., FROM_EMAIL=notifications@nexthire.cloud</div>
+      </div>
+
+      <div class="check-card">
+        <div class="check-header">
+          <span class="check-name">6. Custom Domain & DNS Mapping</span>
+          <span class="check-status badge-upcoming">Deployment Step</span>
+        </div>
+        <p class="check-desc">Point DNS CNAME & A records for www.nexthire.cloud to hosting infrastructure.</p>
+        <div class="env-box">Target Domain: https://www.nexthire.cloud (SSL Auto-Provisioned)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 <strong>NextHire</strong>. All rights reserved. Designed & Built by <strong>Abdul Nadeem Mohd</strong>.</p>
+    <p style="margin-top: 4px;">Target Production Domain: <a href="https://www.nexthire.cloud" target="_blank">https://www.nexthire.cloud</a></p>
+  </footer>
+
+</div>
+
+<script>
+  function switchTab(tabId) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const panes = document.querySelectorAll('.tab-pane');
+
+    tabs.forEach(btn => btn.classList.remove('active'));
+    panes.forEach(pane => pane.classList.remove('active'));
+
+    const activeBtn = Array.from(tabs).find(b => b.getAttribute('onclick').includes(tabId));
+    if (activeBtn) activeBtn.classList.add('active');
+
+    const targetPane = document.getElementById('tab-' + tabId);
+    if (targetPane) targetPane.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

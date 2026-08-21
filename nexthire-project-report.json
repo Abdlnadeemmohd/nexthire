@@ -1,0 +1,372 @@
+{
+  "project": {
+    "name": "NextHire",
+    "tagline": "AI-Powered Global Talent Intelligence & Recruitment SaaS Platform",
+    "targetDomain": "https://www.nexthire.cloud",
+    "leadEngineer": "Abdul Nadeem Mohd",
+    "reportGeneratedAt": "2026-08-15T23:16:00+05:30",
+    "overallReadinessScore": 88,
+    "currentStage": {
+      "stageNumber": 4,
+      "stageName": "Pre-Production Integration & Cloud Hardening",
+      "status": "IN_PROGRESS",
+      "completionPercentage": 88
+    }
+  },
+  "stages": [
+    {
+      "stage": 1,
+      "name": "UI/UX & Design System Architecture",
+      "status": "COMPLETED",
+      "completion": 100,
+      "summary": "Full design tokens, dark/light theme, typography, responsive navigation, and atomic UI components."
+    },
+    {
+      "stage": 2,
+      "name": "Frontend Portals & Multi-Role Interactive Flows",
+      "status": "COMPLETED",
+      "completion": 100,
+      "summary": "Completed Job Seeker dashboard, ATS Recruiter portal, Platform Admin command center, and public job board."
+    },
+    {
+      "stage": 3,
+      "name": "Data Layer, ATS State Machine & RBAC Security",
+      "status": "COMPLETED",
+      "completion": 95,
+      "summary": "Prisma ORM schema with 14 models, multi-tenant UUID company isolation, strict state machine, and Edge middleware."
+    },
+    {
+      "stage": 4,
+      "name": "Cloud Infrastructure & Third-Party Secrets Binding",
+      "status": "IN_PROGRESS",
+      "completion": 85,
+      "summary": "Binding live production PostgreSQL (Neon/Supabase), Firebase production tokens, Stripe webhooks, and Cloudinary storage."
+    },
+    {
+      "stage": 5,
+      "name": "Production Deployment & Go-Live",
+      "status": "UPCOMING",
+      "completion": 0,
+      "summary": "Building production bundle, deploying to Vercel/AWS Docker, mapping DNS for nexthire.cloud, and executing smoke tests."
+    }
+  ],
+  "technicalStack": {
+    "frontend": "Next.js 14 (App Router), React 18, TypeScript, TailwindCSS, Lucide Icons, Framer Motion",
+    "databaseAndORM": "PostgreSQL, Prisma ORM (v5.19.0+), Connection Pooling",
+    "authentication": "Dual-Engine: Native scrypt Password Hashing + Firebase Admin SDK ID Token Verification with HttpOnly Cookies",
+    "searchInfrastructure": "Search Provider Abstraction Layer (NextHire DB, Google Custom Search, Bing, Brave, External Feeds) with 3s Resiliency & Dedup",
+    "authorization": "Role-Based Access Control (JOB_SEEKER, RECRUITER, PLATFORM_ADMIN) with Edge Middleware & Multi-Tenant Company Isolation",
+    "seoAndStructuredData": "Schema.org JobPosting JSON-LD, Dynamic XML Sitemap, Robots.txt",
+    "cloudIntegrations": {
+      "database": "Neon / Supabase / AWS RDS PostgreSQL",
+      "auth": "Firebase Auth & Firestore",
+      "payments": "Stripe Subscriptions & Invoicing",
+      "storage": "Cloudinary Secure Asset Storage",
+      "email": "Resend Transactional Email API"
+    }
+  },
+  "completedModules": {
+    "jobSeekerPortal": [
+      {
+        "module": "Landing & Discovery",
+        "route": "/",
+        "file": "src/app/page.tsx",
+        "status": "COMPLETED",
+        "description": "Hero query interface, live platform telemetry, category explorer, verified job cards, testimonial slider, FAQ."
+      },
+      {
+        "module": "Job Search & Filter Engine",
+        "route": "/jobs",
+        "file": "src/app/jobs/page.tsx",
+        "status": "COMPLETED",
+        "description": "Multi-criteria search (keyword, location, salary range, employment type, remote tags), real-time query aggregation."
+      },
+      {
+        "module": "Job Details & Application Modal",
+        "route": "/jobs/[id]",
+        "file": "src/app/jobs/[id]/page.tsx",
+        "status": "COMPLETED",
+        "description": "Job specs, company profile overview, Google Jobs Schema.org JSON-LD, interactive application modal with resume upload."
+      },
+      {
+        "module": "Candidate Dashboard",
+        "route": "/dashboard",
+        "file": "src/app/dashboard/page.tsx",
+        "status": "COMPLETED",
+        "description": "Application status funnel, upcoming interview schedule cards, AI-recommended matches, saved jobs."
+      },
+      {
+        "module": "Application Tracker",
+        "route": "/applications",
+        "file": "src/app/applications/page.tsx",
+        "status": "COMPLETED",
+        "description": "Multi-stage pipeline tracking (Submitted -> Review -> Interview -> Offer/Rejected) with SLA deadline monitors."
+      },
+      {
+        "module": "Rejection Transparency & Feedback",
+        "route": "/applications/[id]/feedback",
+        "file": "src/app/applications/[id]/feedback/page.tsx",
+        "status": "COMPLETED",
+        "description": "Constructive feedback breakdown, skill gap suggestions, recommended learning paths."
+      },
+      {
+        "module": "AI Resume Studio",
+        "route": "/resume-studio",
+        "file": "src/app/resume-studio/page.tsx",
+        "status": "COMPLETED",
+        "description": "Live ATS resume scoring (0-100%), keyword density suggestions, formatting checks, AI improvement tips."
+      },
+      {
+        "module": "Professional Profile & Credentials",
+        "route": "/profile",
+        "file": "src/app/profile/page.tsx",
+        "status": "COMPLETED",
+        "description": "Comprehensive resume builder, skill tags, portfolio showcase, certificate upload with verification modal."
+      },
+      {
+        "module": "Candidate-Recruiter Messaging",
+        "route": "/messages",
+        "file": "src/app/messages/page.tsx",
+        "status": "COMPLETED",
+        "description": "Direct conversation threads, attachment exchange, unread badges, timestamped messaging."
+      },
+      {
+        "module": "Candidate Settings",
+        "route": "/settings",
+        "file": "src/app/settings/page.tsx",
+        "status": "COMPLETED",
+        "description": "Notification settings, security password update, privacy profile visibility toggles."
+      }
+    ],
+    "recruiterSuite": [
+      {
+        "module": "Recruiter Dashboard",
+        "route": "/recruiter",
+        "file": "src/app/recruiter/page.tsx",
+        "status": "COMPLETED",
+        "description": "Active job listings counter, time-to-hire analytics, applicant funnel, SLA alerts, quick posting CTA."
+      },
+      {
+        "module": "ATS Applicant Management",
+        "route": "/recruiter/applicants",
+        "file": "src/app/recruiter/applicants/page.tsx",
+        "status": "COMPLETED",
+        "description": "Candidate pipeline table/Kanban, match scoring, stage transition buttons, interview scheduling modal with Google Meet integration, structured rejection feedback composer."
+      },
+      {
+        "module": "Candidate Talent Sourcing",
+        "route": "/recruiter/candidates",
+        "file": "src/app/recruiter/candidates/page.tsx",
+        "status": "COMPLETED",
+        "description": "Global candidate search, AI skill matching, candidate bookmarking, direct interview invitations."
+      },
+      {
+        "module": "Job Creation Wizard",
+        "route": "/recruiter/jobs/new",
+        "file": "src/app/recruiter/jobs/new/page.tsx",
+        "status": "COMPLETED",
+        "description": "Multi-step job poster with responsibilities, requirements, benefits, salary brackets, and SLA controls."
+      },
+      {
+        "module": "Employer Branding & Profile",
+        "route": "/recruiter/company",
+        "file": "src/app/recruiter/company/page.tsx",
+        "status": "COMPLETED",
+        "description": "Company profile editor, verified badge status, culture media showcase, benefits list, office locations."
+      },
+      {
+        "module": "Recruiter SaaS Billing",
+        "route": "/recruiter/billing",
+        "file": "src/app/recruiter/billing/page.tsx",
+        "status": "COMPLETED",
+        "description": "Subscription tiers (Starter, Growth, Enterprise), team seat manager, Stripe invoice history viewer."
+      },
+      {
+        "module": "Recruiter Identity Profile",
+        "route": "/recruiter/profile",
+        "file": "src/app/recruiter/profile/page.tsx",
+        "status": "COMPLETED",
+        "description": "Recruiter verification status, hiring performance metrics, public verification card."
+      }
+    ],
+    "platformAdministration": [
+      {
+        "module": "Platform Command Center",
+        "route": "/admin",
+        "file": "src/app/admin/page.tsx",
+        "status": "COMPLETED",
+        "description": "Platform-wide ARR/MRR metrics, system uptime telemetry, active users, company verification queue."
+      },
+      {
+        "module": "User Management Console",
+        "route": "/admin/users",
+        "file": "src/app/admin/users/page.tsx",
+        "status": "COMPLETED",
+        "description": "Role promotions/demotions (JOB_SEEKER, RECRUITER, PLATFORM_ADMIN), user suspensions, account inspection."
+      },
+      {
+        "module": "Company Verification KYC Portal",
+        "route": "/admin/companies",
+        "file": "src/app/admin/companies/page.tsx",
+        "status": "COMPLETED",
+        "description": "KYC/KYB business review queue, badge approval/revocation, company SLA policy overrides."
+      },
+      {
+        "module": "Subscription Analytics",
+        "route": "/admin/subscriptions",
+        "file": "src/app/admin/subscriptions/page.tsx",
+        "status": "COMPLETED",
+        "description": "Stripe MRR tracking, customer churn telemetry, plan tier distribution breakdown."
+      },
+      {
+        "module": "Immutable Security Audit Trail",
+        "route": "/api/admin/audit",
+        "file": "src/app/api/admin/audit/route.ts",
+        "status": "COMPLETED",
+        "description": "Tamper-proof audit logs for status overrides, role modifications, and admin actions."
+      }
+    ]
+  },
+  "apiRouteCatalog": [
+    {
+      "method": "POST",
+      "endpoint": "/api/auth/login",
+      "access": "Public",
+      "purpose": "Authenticates user via database scrypt hash and sets secure HttpOnly session cookie"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/auth/register",
+      "access": "Public",
+      "purpose": "Creates new user in PostgreSQL and issues authenticated session"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/auth/firebase",
+      "access": "Public",
+      "purpose": "Verifies Firebase ID token server-side via Firebase Admin SDK and issues session"
+    },
+    {
+      "method": "GET/POST",
+      "endpoint": "/api/auth/logout",
+      "access": "Authenticated",
+      "purpose": "Revokes session token and clears auth cookie"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/auth/me",
+      "access": "Authenticated",
+      "purpose": "Returns current authenticated user session data"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/jobs",
+      "access": "Public",
+      "purpose": "Fetches filtered active jobs from PostgreSQL or search fallback"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/jobs",
+      "access": "RECRUITER / PLATFORM_ADMIN",
+      "purpose": "Creates a new job posting attached to the recruiter's company"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/recruiter/jobs",
+      "access": "RECRUITER / PLATFORM_ADMIN",
+      "purpose": "Fetches jobs scoped to recruiter's multi-tenant company ID"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/recruiter/applicants/[id]/status",
+      "access": "RECRUITER / PLATFORM_ADMIN",
+      "purpose": "Executes state-machine validated status update, triggers candidate notification, and logs audit trail"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/search",
+      "access": "Public",
+      "purpose": "Executes parallel multi-provider search aggregation with 3s timeout resiliency and deduplication"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/documents/download",
+      "access": "Authenticated (Owner/Recruiter/Admin)",
+      "purpose": "Generates 15-minute presigned document download token for authorized resumes"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/admin/audit",
+      "access": "PLATFORM_ADMIN",
+      "purpose": "Retrieves system-wide security and operational audit logs"
+    }
+  ],
+  "databaseSchema": {
+    "provider": "PostgreSQL",
+    "modelsCount": 14,
+    "models": [
+      "User",
+      "Session",
+      "Company",
+      "Job",
+      "Application",
+      "SavedJob",
+      "Interview",
+      "Message",
+      "Notification",
+      "Profile",
+      "ApplicationEvent",
+      "Offer",
+      "Rejection",
+      "AuditEvent"
+    ],
+    "enums": [
+      "UserRole (JOB_SEEKER, RECRUITER, COMPANY_ADMIN, PLATFORM_ADMIN)",
+      "EmploymentType (FULL_TIME, PART_TIME, CONTRACT, REMOTE, HYBRID)",
+      "JobStatus (ACTIVE, PAUSED, CLOSED, DRAFT)",
+      "ApplicationStatus (SUBMITTED, UNDER_REVIEW, INTERVIEW_SCHEDULED, INTERVIEW_ROUND_1, INTERVIEW_ROUND_2, INTERVIEW_ROUND_3, FINAL_DECISION, OFFER_EXTENDED, REJECTED, APPLICATION_CLOSED)",
+      "EventType (STATUS_CHANGED, INTERVIEW_SCHEDULED, INTERVIEW_UPDATED, OFFER_CREATED, REJECTION_SUBMITTED, NOTE_ADDED, SLA_REMINDER_SENT, AUTO_CLOSED)",
+      "InterviewStatus (PENDING, PASSED, FAILED)",
+      "OfferStatus (PENDING, ACCEPTED, DECLINED, EXPIRED)",
+      "RejectionReason (MISSING_EXPERIENCE, MISSING_SKILLS, SALARY_MISMATCH, COMMUNICATION, TECHNICAL_PERFORMANCE, ROLE_CLOSED, CULTURE_FIT, POSITION_CANCELLED, OTHER)"
+    ]
+  },
+  "preProductionAuditChecklist": [
+    {
+      "item": "PostgreSQL Live Database Migration",
+      "requiredEnv": "DATABASE_URL",
+      "status": "PENDING_PROVISIONING",
+      "action": "Provision cloud PostgreSQL instance on Neon/Supabase and execute 'npx prisma db push'."
+    },
+    {
+      "item": "Firebase Authentication Production Credentials",
+      "requiredEnv": "NEXT_PUBLIC_FIREBASE_API_KEY, FIREBASE_PRIVATE_KEY, etc.",
+      "status": "CONFIGURED_IN_ENV_EXAMPLE",
+      "action": "Add production domain (https://www.nexthire.cloud) to Firebase Console Authorized Domains."
+    },
+    {
+      "item": "Stripe SaaS Billing & Webhooks",
+      "requiredEnv": "STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET",
+      "status": "INTEGRATED_UI_AND_SERVICE",
+      "action": "Bind production Stripe live keys and point Stripe webhook endpoint to https://www.nexthire.cloud/api/billing/webhook."
+    },
+    {
+      "item": "Cloudinary Document & Media Storage",
+      "requiredEnv": "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET",
+      "status": "READY_FOR_KEYS",
+      "action": "Set up upload preset 'nexthire_resumes' with private delivery mode."
+    },
+    {
+      "item": "Resend Transactional Email Delivery",
+      "requiredEnv": "RESEND_API_KEY, FROM_EMAIL",
+      "status": "CONFIGURED",
+      "action": "Verify DNS records (SPF, DKIM, DMARC) for notifications@nexthire.cloud."
+    },
+    {
+      "item": "Production Hosting & Custom Domain Binding",
+      "target": "https://www.nexthire.cloud",
+      "status": "READY_FOR_DEPLOYMENT",
+      "action": "Deploy build artifact to Vercel/Docker and configure DNS A/CNAME records."
+    }
+  ]
+}
