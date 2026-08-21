@@ -83,6 +83,8 @@ export async function POST(request: Request) {
     // 5. Binary PDF Retrieval & Decompression across all storage providers
     let pdfBuffer: Buffer | null = null;
 
+    const { Security } = await import("@/lib/security");
+
     try {
       if (secureUrl.startsWith("data:")) {
         // Base64 Data URL
@@ -92,13 +94,23 @@ export async function POST(request: Request) {
           pdfBuffer = Buffer.from(base64Data, "base64");
         }
       } else if (secureUrl.startsWith("/")) {
-        // Local path
-        const fs = await import("fs/promises");
-        const path = await import("path");
-        const localPath = path.join(process.cwd(), "public", secureUrl.replace(/^\//, ""));
-        pdfBuffer = await fs.readFile(localPath);
+        // Local path with path traversal protection
+        const sanitizedRelative = Security.sanitizeLocalPath(secureUrl);
+        if (sanitizedRelative) {
+          const fs = await import("fs/promises");
+          const path = await import("path");
+          const localPath = path.join(process.cwd(), "public", sanitizedRelative);
+          pdfBuffer = await fs.readFile(localPath);
+        }
       } else if (secureUrl.startsWith("http")) {
-        // Remote Cloudinary or HTTPS URL
+        // Remote Cloudinary or HTTPS URL with SSRF protection
+        if (!Security.isSafeRemoteUrl(secureUrl)) {
+          return NextResponse.json(
+            { success: false, error: "Invalid document URL: destination is not permitted." },
+            { status: 400, headers: { "Content-Type": "application/json" } }
+          );
+        }
+
         const fetchHeaders: Record<string, string> = {};
         if (secureUrl.includes("res.cloudinary.com") && apiKey && apiSecret) {
           fetchHeaders["Authorization"] = "Basic " + Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
@@ -112,6 +124,7 @@ export async function POST(request: Request) {
     } catch (retrievalErr) {
       console.warn("[Document Save] Binary retrieval notice:", retrievalErr);
     }
+
 
     // 6. Structured PDF Text Extraction with FlateDecode Decompression
     let extractedText = "";

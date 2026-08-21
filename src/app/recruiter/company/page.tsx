@@ -309,7 +309,14 @@ export default function RecruiterCompanyProfilePage() {
               {/* Cover Banner */}
               <div className="h-44 sm:h-56 w-full bg-gradient-to-r from-primary/30 to-secondary-container relative">
                 {company.coverImage && (
-                  <img src={company.coverImage} alt="Cover Banner" className="w-full h-full object-cover" />
+                  <img
+                    src={company.coverImage}
+                    alt="Cover Banner"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
+                  />
                 )}
                 <div className="absolute inset-0 bg-black/20" />
               </div>
@@ -320,7 +327,14 @@ export default function RecruiterCompanyProfilePage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3.5 sm:gap-5 min-w-0 flex-1">
                     <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl bg-surface border-4 border-surface shadow-lg overflow-hidden flex items-center justify-center flex-shrink-0">
                       {company.logo ? (
-                        <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+                        <img
+                          src={company.logo}
+                          alt={company.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
                       ) : (
                         <span className="material-symbols-outlined text-3xl sm:text-4xl text-primary">domain</span>
                       )}
@@ -735,11 +749,28 @@ export default function RecruiterCompanyProfilePage() {
             {enrichSuggestions && (
               <div className="p-4 sm:p-5 bg-surface-container-low rounded-2xl border border-primary/30 space-y-3.5 shadow-xs">
                 <div className="flex items-center justify-between gap-2 border-b border-outline-variant/15 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span className="font-bold text-on-surface text-sm">
-                      {enrichSuggestions.name}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    {enrichSuggestions.logo && (
+                      <div className="w-8 h-8 rounded-lg bg-surface border border-outline-variant/30 overflow-hidden flex-shrink-0">
+                        <img
+                          src={enrichSuggestions.logo}
+                          alt={enrichSuggestions.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span className="font-bold text-on-surface text-sm">
+                          {enrichSuggestions.name}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-primary font-medium">Verified Corporate Profile</span>
+                    </div>
                   </div>
                   <span className="text-[10px] text-outline font-mono bg-surface px-2 py-0.5 rounded border border-outline-variant/20">
                     Source: {enrichSuggestions.source}

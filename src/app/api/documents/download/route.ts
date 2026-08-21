@@ -252,6 +252,8 @@ export async function GET(request: Request) {
     // 5. Default Direct Streaming: Fetch document server-side and stream response to user
     let fileBuffer: Buffer | ArrayBuffer | null = null;
 
+    const { Security } = await import("@/lib/security");
+
     if (resolvedDocumentUrl.startsWith("data:")) {
       try {
         const commaIndex = resolvedDocumentUrl.indexOf(",");
@@ -264,34 +266,40 @@ export async function GET(request: Request) {
       }
     } else if (resolvedDocumentUrl.startsWith("/")) {
       try {
-        const fs = await import("fs/promises");
-        const path = await import("path");
-        const localPath = path.join(process.cwd(), "public", resolvedDocumentUrl.replace(/^\//, ""));
-        fileBuffer = await fs.readFile(localPath);
+        const sanitizedRelative = Security.sanitizeLocalPath(resolvedDocumentUrl);
+        if (sanitizedRelative) {
+          const fs = await import("fs/promises");
+          const path = await import("path");
+          const localPath = path.join(process.cwd(), "public", sanitizedRelative);
+          fileBuffer = await fs.readFile(localPath);
+        }
       } catch (fsErr) {
         console.warn("[Document Download] Local file read warning:", fsErr);
       }
     } else if (secureDeliveryUrl && secureDeliveryUrl.startsWith("http")) {
       try {
-        const fetchHeaders: Record<string, string> = {};
-        if (secureDeliveryUrl.includes("res.cloudinary.com") && apiKey && apiSecret) {
-          fetchHeaders["Authorization"] = "Basic " + Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
-        }
+        if (Security.isSafeRemoteUrl(secureDeliveryUrl)) {
+          const fetchHeaders: Record<string, string> = {};
+          if (secureDeliveryUrl.includes("res.cloudinary.com") && apiKey && apiSecret) {
+            fetchHeaders["Authorization"] = "Basic " + Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+          }
 
-        let upstreamRes = await fetch(secureDeliveryUrl, { headers: fetchHeaders, cache: "no-store" });
-        if (upstreamRes.ok) {
-          fileBuffer = await upstreamRes.arrayBuffer();
-        } else if (resolvedDocumentUrl !== secureDeliveryUrl) {
-          // Retry direct resolvedDocumentUrl
-          upstreamRes = await fetch(resolvedDocumentUrl, { headers: fetchHeaders, cache: "no-store" });
+          let upstreamRes = await fetch(secureDeliveryUrl, { headers: fetchHeaders, cache: "no-store" });
           if (upstreamRes.ok) {
             fileBuffer = await upstreamRes.arrayBuffer();
+          } else if (resolvedDocumentUrl !== secureDeliveryUrl && Security.isSafeRemoteUrl(resolvedDocumentUrl)) {
+            // Retry direct resolvedDocumentUrl
+            upstreamRes = await fetch(resolvedDocumentUrl, { headers: fetchHeaders, cache: "no-store" });
+            if (upstreamRes.ok) {
+              fileBuffer = await upstreamRes.arrayBuffer();
+            }
           }
         }
       } catch (streamErr) {
         console.error("[Document Download] Upstream stream fetch notice:", streamErr);
       }
     }
+
 
     // Local file fallback if document is inaccessible or mock
     if (!fileBuffer) {

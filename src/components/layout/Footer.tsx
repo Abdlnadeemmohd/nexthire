@@ -1,9 +1,107 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface FooterSection {
+  id: string;
+  title: string;
+  links: FooterLink[];
+}
+
+/**
+ * Anonymous / Public Visitor Navigation
+ * Intentionally minimal: strictly Legal resources
+ */
+const PUBLIC_FOOTER: FooterSection[] = [
+  {
+    id: "legal",
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+    ],
+  },
+];
+
+/**
+ * Authenticated Job Seeker Navigation
+ * Role-tailored: Platform job exploration, support guides, and data privacy
+ */
+const JOB_SEEKER_FOOTER: FooterSection[] = [
+  {
+    id: "platform",
+    title: "Platform",
+    links: [
+      { label: "Browse Live Jobs", href: "/jobs" },
+      { label: "About NextHire", href: "/about" },
+      { label: "About the Developer", href: "/developer" },
+    ],
+  },
+  {
+    id: "support",
+    title: "Support",
+    links: [
+      { label: "Help Centre", href: "/help" },
+      { label: "FAQs", href: "/help?section=faq" },
+      { label: "System Support", href: "/help?section=contact" },
+    ],
+  },
+  {
+    id: "legal",
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Cookie Policy", href: "/cookies" },
+      { label: "Data Privacy Settings", href: "/settings" },
+    ],
+  },
+];
+
+/**
+ * Authenticated Recruiter / Employer Navigation
+ * Role-tailored: Pricing & subscriptions, talent operations support, and legal settings
+ */
+const RECRUITER_FOOTER: FooterSection[] = [
+  {
+    id: "platform",
+    title: "Platform",
+    links: [
+      { label: "About NextHire", href: "/about" },
+      { label: "About the Developer", href: "/developer" },
+      { label: "Pricing & Plans", href: "/recruiter/billing" },
+    ],
+  },
+  {
+    id: "support",
+    title: "Support",
+    links: [
+      { label: "Help Centre", href: "/help" },
+      { label: "FAQs", href: "/help?section=faq" },
+      { label: "System Support", href: "/help?section=contact" },
+    ],
+  },
+  {
+    id: "legal",
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Cookie Policy", href: "/cookies" },
+      { label: "Data Privacy Settings", href: "/settings" },
+    ],
+  },
+];
 
 export function Footer() {
+  const { user, isLoading } = useAuth();
   const [openSection, setOpenSection] = useState<string | null>(null);
   const developerUrl = process.env.NEXT_PUBLIC_DEVELOPER_URL;
 
@@ -11,16 +109,39 @@ export function Footer() {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
+  // Authoritatively derive navigation sections from session state
+  const sections = useMemo(() => {
+    if (isLoading || !user) {
+      return PUBLIC_FOOTER;
+    }
+    if (user.role === "RECRUITER" || user.role === "PLATFORM_ADMIN") {
+      return RECRUITER_FOOTER;
+    }
+    return JOB_SEEKER_FOOTER;
+  }, [user, isLoading]);
+
+  const isSingleSection = sections.length === 1;
+
   return (
-    <footer data-avoid-copilot="true" className="bg-surface-container border-t border-outline-variant/20 pt-6 sm:pt-10 pb-6 sm:pb-8 transition-colors duration-200 mt-auto w-full flex-shrink-0">
+    <footer
+      data-avoid-copilot="true"
+      className="bg-surface-container border-t border-outline-variant/20 pt-6 sm:pt-10 pb-6 sm:pb-8 transition-colors duration-200 mt-auto w-full flex-shrink-0"
+      role="contentinfo"
+    >
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-        {/* Main Footer Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
+        {/* Main Footer Links Container */}
+        <div
+          className={
+            isSingleSection
+              ? "flex flex-col md:flex-row justify-between items-start gap-6 md:gap-12"
+              : "grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8"
+          }
+        >
           {/* Brand Column */}
-          <div className="md:col-span-2 space-y-3">
+          <div className={isSingleSection ? "max-w-md space-y-3" : "md:col-span-2 space-y-3"}>
             <Link
               href="/"
-              className="flex items-center gap-2.5 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all"
+              className="flex items-center gap-2.5 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all inline-flex"
               aria-label="NextHire home"
             >
               <div className="w-8 h-8 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-lg shadow-xs">
@@ -35,79 +156,94 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Desktop & Collapsible Mobile Navigation Columns */}
-          <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-            <button
-              type="button"
-              onClick={() => toggleSection("platform")}
-              aria-expanded={openSection === "platform"}
-              className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none"
-            >
-              <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-                Platform
-              </h4>
-              <span className="material-symbols-outlined text-sm md:hidden text-outline" aria-hidden="true">
-                {openSection === "platform" ? "expand_less" : "expand_more"}
-              </span>
-            </button>
-            <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "platform" ? "block" : "hidden md:block"}`}>
-              <li><Link href="/jobs" className="hover:text-primary transition-colors py-1 inline-block">Browse Live Jobs</Link></li>
-              <li><Link href="/companies" className="hover:text-primary transition-colors py-1 inline-block">Employer Profiles</Link></li>
-              <li><Link href="/about" className="hover:text-primary transition-colors py-1 inline-block">About NextHire</Link></li>
-              <li><Link href="/developer" className="hover:text-primary transition-colors py-1 inline-block">About the Developer</Link></li>
-              <li><Link href="/recruiter/billing" className="hover:text-primary transition-colors py-1 inline-block">Pricing & Plans</Link></li>
-            </ul>
-          </div>
-
-          <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-            <button
-              type="button"
-              onClick={() => toggleSection("support")}
-              aria-expanded={openSection === "support"}
-              className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none"
-            >
-              <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-                Support
-              </h4>
-              <span className="material-symbols-outlined text-sm md:hidden text-outline" aria-hidden="true">
-                {openSection === "support" ? "expand_less" : "expand_more"}
-              </span>
-            </button>
-            <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "support" ? "block" : "hidden md:block"}`}>
-              <li><Link href="/help" className="hover:text-primary transition-colors py-1 inline-block">Help Centre</Link></li>
-              <li><Link href="/help?section=contact" className="hover:text-primary transition-colors py-1 inline-block">Contact Support</Link></li>
-              <li><Link href="/help?section=faq" className="hover:text-primary transition-colors py-1 inline-block">System FAQs</Link></li>
-              <li><Link href="/help" className="hover:text-primary transition-colors py-1 inline-block">Platform Guides</Link></li>
-            </ul>
-          </div>
-
-          <div className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-            <button
-              type="button"
-              onClick={() => toggleSection("legal")}
-              aria-expanded={openSection === "legal"}
-              className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none"
-            >
-              <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-                Legal
-              </h4>
-              <span className="material-symbols-outlined text-sm md:hidden text-outline" aria-hidden="true">
-                {openSection === "legal" ? "expand_less" : "expand_more"}
-              </span>
-            </button>
-            <ul className={`space-y-1.5 text-xs text-on-surface-variant ${openSection === "legal" ? "block" : "hidden md:block"}`}>
-              <li><Link href="/privacy" className="hover:text-primary transition-colors py-1 inline-block">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-primary transition-colors py-1 inline-block">Terms of Service</Link></li>
-              <li><Link href="/cookies" className="hover:text-primary transition-colors py-1 inline-block">Cookie Policy</Link></li>
-              <li><Link href="/settings" className="hover:text-primary transition-colors py-1 inline-block">Data Privacy Settings</Link></li>
-            </ul>
-          </div>
+          {/* Navigation Columns */}
+          {isSingleSection ? (
+            <nav aria-label="Legal navigation" className="w-full md:w-auto md:min-w-[200px]">
+              {sections.map((section) => (
+                <div key={section.id} className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    aria-expanded={openSection === section.id}
+                    className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                  >
+                    <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
+                      {section.title}
+                    </h4>
+                    <span
+                      className="material-symbols-outlined text-sm md:hidden text-outline transition-transform duration-200"
+                      aria-hidden="true"
+                    >
+                      {openSection === section.id ? "expand_less" : "expand_more"}
+                    </span>
+                  </button>
+                  <ul
+                    className={`space-y-1.5 text-xs text-on-surface-variant ${
+                      openSection === section.id ? "block" : "hidden md:block"
+                    }`}
+                  >
+                    {section.links.map((link) => (
+                      <li key={link.label}>
+                        <Link
+                          href={link.href}
+                          className="hover:text-primary transition-colors py-1 inline-block focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none rounded"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          ) : (
+            sections.map((section) => (
+              <nav
+                key={section.id}
+                aria-label={`${section.title} navigation`}
+                className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  aria-expanded={openSection === section.id}
+                  className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                >
+                  <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
+                    {section.title}
+                  </h4>
+                  <span
+                    className="material-symbols-outlined text-sm md:hidden text-outline transition-transform duration-200"
+                    aria-hidden="true"
+                  >
+                    {openSection === section.id ? "expand_less" : "expand_more"}
+                  </span>
+                </button>
+                <ul
+                  className={`space-y-1.5 text-xs text-on-surface-variant ${
+                    openSection === section.id ? "block" : "hidden md:block"
+                  }`}
+                >
+                  {section.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="hover:text-primary transition-colors py-1 inline-block focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none rounded"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))
+          )}
         </div>
 
         {/* Bottom Copyright & Version Bar */}
         <div className="border-t border-outline-variant/20 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-outline font-label-md text-center sm:text-left">
           <p>© {new Date().getFullYear()} NextHire. All rights reserved.</p>
-          
+
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-outline">
             <span className="text-xs text-on-surface-variant font-medium">
               Built & Developed by{" "}

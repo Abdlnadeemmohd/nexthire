@@ -63,43 +63,156 @@ export default function ResumeStudioPage() {
     "Cloud Architecture",
   ]);
   const [newSkill, setNewSkill] = useState("");
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("Uploading resume to secure storage...");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Hydrate candidate data from database
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/candidate/profile", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.data) {
-            const d = json.data;
-            if (d.name) setResumeTitle(`${d.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume`);
-            if (d.headline) setTargetRole(d.headline);
-            if (d.bio) setBio(d.bio);
-            if (d.location) setCandidateLocation(d.location);
-            if (d.preferences) {
-              setRawPreferences(d.preferences);
-              if (d.preferences.resumeTemplate && ["modern", "classic", "minimal"].includes(d.preferences.resumeTemplate)) {
-                setSelectedTemplate(d.preferences.resumeTemplate);
-              }
-            }
-            if (d.skillsList && Array.isArray(d.skillsList) && d.skillsList.length > 0) {
-              setSkills(d.skillsList.map((s: any) => (typeof s === "string" ? s : s.name)));
-            }
-            if (d.experience && Array.isArray(d.experience) && d.experience.length > 0) {
-              setExperiences(d.experience);
-            }
-            if (d.education && Array.isArray(d.education) && d.education.length > 0) {
-              setEducations(d.education);
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/candidate/profile", { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          if (d.name) setResumeTitle(`${d.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_Resume`);
+          if (d.headline) setTargetRole(d.headline);
+          if (d.bio) setBio(d.bio);
+          if (d.location) setCandidateLocation(d.location);
+          if (d.preferences) {
+            setRawPreferences(d.preferences);
+            if (d.preferences.resumeTemplate && ["modern", "classic", "minimal"].includes(d.preferences.resumeTemplate)) {
+              setSelectedTemplate(d.preferences.resumeTemplate);
             }
           }
+          if (d.skillsList && Array.isArray(d.skillsList) && d.skillsList.length > 0) {
+            setSkills(d.skillsList.map((s: any) => (typeof s === "string" ? s : s.name)));
+          }
+          if (d.experience && Array.isArray(d.experience) && d.experience.length > 0) {
+            setExperiences(d.experience);
+          }
+          if (d.education && Array.isArray(d.education) && d.education.length > 0) {
+            setEducations(d.education);
+          }
         }
-      } catch (err) {
-        console.error("Failed to load profile for resume:", err);
       }
-    };
+    } catch (err) {
+      console.error("Failed to load profile for resume:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, []);
+
+  const handleUploadResumeFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File size exceeds 5MB limit. Please upload a smaller PDF file.", "error");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress("Requesting secure upload authorization...");
+
+    try {
+      const signRes = await fetch("/api/documents/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileType: file.type || "application/pdf" }),
+      });
+
+      const signData = await signRes.json();
+      let uploadedUrl: string;
+
+      if (signRes.ok && signData.success && signData.uploadUrl) {
+        setUploadProgress("Uploading resume to encrypted storage...");
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+        formDataUpload.append("api_key", signData.apiKey);
+        formDataUpload.append("timestamp", signData.timestamp.toString());
+        formDataUpload.append("signature", signData.signature);
+        formDataUpload.append("folder", signData.folder);
+        if (signData.type) formDataUpload.append("type", signData.type);
+
+        const cloudRes = await fetch(signData.uploadUrl, {
+          method: "POST",
+          body: formDataUpload,
+        });
+
+        const cloudData = await cloudRes.json();
+        if (!cloudRes.ok || !cloudData.secure_url) {
+          throw new Error(cloudData.error?.message || "Failed to upload document.");
+        }
+        uploadedUrl = cloudData.secure_url;
+      } else {
+        setUploadProgress("Reading document streams...");
+        uploadedUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      setUploadProgress("Extracting AI profile intelligence & skills...");
+      const saveRes = await fetch("/api/documents/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secureUrl: uploadedUrl,
+          fileName: file.name,
+          mimeType: file.type || "application/pdf",
+          fileSize: file.size,
+        }),
+      });
+
+      const saveData = await saveRes.json();
+      if (!saveRes.ok || !saveData.success) {
+        throw new Error(saveData.error || "Failed to parse resume into profile.");
+      }
+
+      setUploadProgress("Synchronizing AI Resume Studio...");
+      await fetchProfile();
+      setShowUploadModal(false);
+      showToast(`Resume "${file.name}" parsed into Resume Studio & Profile successfully!`, "success");
+    } catch (err: any) {
+      console.error("[Resume Studio Upload Error]:", err);
+      showToast(err.message || "Failed to upload resume.", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveToProfile = async () => {
+    try {
+      setIsSaving(true);
+      const res = await fetch("/api/candidate/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          headline: targetRole,
+          bio: bio,
+          skills: skills.join(", "),
+          experience: experiences,
+          education: educations,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast("Resume changes synchronized with your public Candidate Profile!", "success");
+      } else {
+        showToast(data.error || "Failed to save profile changes.", "error");
+      }
+    } catch (err: any) {
+      showToast("Network error saving profile changes.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleSelectTemplate = async (tmpl: "modern" | "classic" | "minimal") => {
     setSelectedTemplate(tmpl);
@@ -212,6 +325,13 @@ export default function ResumeStudioPage() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs rounded-2xl transition-all border border-primary/30 flex items-center gap-1.5 touch-target"
+                >
+                  <span className="material-symbols-outlined text-base">upload_file</span>
+                  Upload & Parse Resume
+                </button>
                 <button
                   onClick={handleRunAtsScan}
                   className="px-4 py-2 bg-secondary-container text-on-secondary-container font-bold text-xs rounded-2xl hover:bg-secondary-container/80 transition-all shadow-xs flex items-center gap-1.5 touch-target"
@@ -388,6 +508,15 @@ export default function ResumeStudioPage() {
                     <p className="text-xs text-on-surface-variant leading-relaxed">
                       Your resume is formatted with industry-standard semantic sections matching Greenhouse, Ashby, and Workday ATS parsers.
                     </p>
+
+                    <button
+                      onClick={handleSaveToProfile}
+                      disabled={isSaving}
+                      className="w-full py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-base">sync_saved_locally</span>
+                      {isSaving ? "Saving to Profile..." : "Sync Changes with Profile"}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -630,6 +759,54 @@ export default function ResumeStudioPage() {
           </p>
         </div>
       </Modal>
+
+      {/* Upload Resume Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface rounded-3xl max-w-md w-full p-6 border border-outline-variant/30 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg text-on-surface">Upload & Parse Resume</h3>
+              <button
+                onClick={() => !isUploading && setShowUploadModal(false)}
+                disabled={isUploading}
+                className="text-outline hover:text-on-surface p-1"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <p className="text-xs text-on-surface-variant">
+              Upload your PDF resume to automatically populate your Resume Studio and Candidate Profile.
+            </p>
+
+            <div className="border-2 border-dashed border-outline-variant/40 rounded-2xl p-8 text-center space-y-3 bg-surface-container-low/50">
+              {isUploading ? (
+                <div className="flex flex-col items-center justify-center py-4 space-y-3">
+                  <span className="material-symbols-outlined text-3xl text-primary animate-spin">
+                    progress_activity
+                  </span>
+                  <p className="text-xs font-bold text-on-surface">{uploadProgress}</p>
+                </div>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+                  <p className="text-xs font-bold text-on-surface">Select your PDF resume</p>
+                  <label className="inline-block px-4 py-2 bg-primary text-on-primary font-bold text-xs rounded-xl cursor-pointer hover:bg-primary-container transition-colors">
+                    Browse Files
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handleUploadResumeFile}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

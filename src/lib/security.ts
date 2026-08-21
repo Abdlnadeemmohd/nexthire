@@ -57,6 +57,73 @@ export const Security = {
   },
 
   /**
+   * Validates remote URLs to prevent Server-Side Request Forgery (SSRF).
+   * Blocks localhost, private IP ranges (RFC 1918), link-local (169.254.x.x),
+   * cloud metadata services, and internal domains.
+   */
+  isSafeRemoteUrl(urlStr: string): boolean {
+    try {
+      const parsed = new URL(urlStr);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        return false;
+      }
+
+      const hostname = parsed.hostname.toLowerCase();
+
+      // Block local/loopback and metadata hostnames
+      const blockedHostnames = [
+        "localhost",
+        "127.0.0.1",
+        "::1",
+        "0.0.0.0",
+        "169.254.169.254",
+        "metadata.google.internal",
+        "metadata.platform.internal",
+        "instance-data",
+      ];
+      if (blockedHostnames.includes(hostname)) {
+        return false;
+      }
+
+      // Block private IP ranges (IPv4)
+      if (
+        /^127\./.test(hostname) ||
+        /^10\./.test(hostname) ||
+        /^192\.168\./.test(hostname) ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
+        /^169\.254\./.test(hostname) ||
+        /^0\./.test(hostname)
+      ) {
+        return false;
+      }
+
+      // Block internal domain suffixes
+      if (
+        hostname.endsWith(".internal") ||
+        hostname.endsWith(".local") ||
+        hostname.endsWith(".lan") ||
+        hostname.endsWith(".localdomain")
+      ) {
+        return false;
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Sanitizes local paths to prevent directory traversal attacks
+   */
+  sanitizeLocalPath(pathStr: string): string | null {
+    if (!pathStr || pathStr.includes("..") || pathStr.includes("\0")) {
+      return null;
+    }
+    return pathStr.replace(/^\/+/, "");
+  },
+
+  /**
    * Audit log interface compatibility helper (live records fetched from Neon via /api/admin/audit)
    */
   getInitialAuditLogs(): AuditLogEntry[] {

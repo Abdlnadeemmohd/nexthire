@@ -95,20 +95,20 @@ export async function GET() {
       }
     } catch {}
 
-    // Ensure current company is in companyAssociations
+    // Ensure current company is in companyAssociations and synchronized with authoritative Company record
     if (user.company) {
-      const hasCurrent = recruiterData.companyAssociations.some((ca: any) => ca.companyId === user.company!.id);
-      if (!hasCurrent) {
-        recruiterData.companyAssociations.unshift({
-          companyId: user.company.id,
-          companyName: user.company.name,
-          relationship: "CURRENT_EMPLOYER",
-          role: user.headline || "Technical Recruiter",
-          isCurrent: true,
-          logoUrl: user.company.logo,
-          isVerifiedCompany: user.company.isVerified,
-        });
-      }
+      recruiterData.companyAssociations = (recruiterData.companyAssociations || []).filter(
+        (ca: any) => ca.companyId !== user.company!.id && !ca.isCurrent
+      );
+      recruiterData.companyAssociations.unshift({
+        companyId: user.company.id,
+        companyName: user.company.name,
+        relationship: "CURRENT_EMPLOYER",
+        role: user.headline || "Technical Recruiter",
+        isCurrent: true,
+        logoUrl: user.company.logo,
+        isVerifiedCompany: user.company.isVerified,
+      });
     }
 
     const { score, missing, recommendations } = calculateRecruiterCompleteness(user, recruiterData);

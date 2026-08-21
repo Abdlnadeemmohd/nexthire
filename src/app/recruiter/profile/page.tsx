@@ -403,11 +403,6 @@ export default function RecruiterProfilePage() {
                           ? "Not Currently Hiring"
                           : "Actively Hiring"}
                       </span>
-
-                      {/* Genuine Verification Badge (only shown when employer/company is verified) */}
-                      {profileData.isVerified && (
-                        <VerifiedBadge role="RECRUITER" tier={profileData.subscriptionTier} size="md" />
-                      )}
                     </div>
 
                     <p className="text-primary font-bold text-xs sm:text-sm">
@@ -785,7 +780,14 @@ export default function RecruiterProfilePage() {
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-xl bg-surface-container-high border border-outline-variant/20 flex items-center justify-center font-bold text-sm text-primary overflow-hidden flex-shrink-0">
                         {assoc.logoUrl ? (
-                          <img src={assoc.logoUrl} alt={assoc.companyName} className="w-full h-full object-cover" />
+                          <img
+                            src={assoc.logoUrl}
+                            alt={assoc.companyName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
                         ) : (
                           assoc.companyName.charAt(0)
                         )}

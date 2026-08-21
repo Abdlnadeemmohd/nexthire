@@ -13,6 +13,7 @@ export interface CompanyEnrichmentSuggestion {
   mission?: string;
   vision?: string;
   culture?: string;
+  logo?: string;
   logoUrl?: string;
   coverImage?: string;
   coverImageUrl?: string;

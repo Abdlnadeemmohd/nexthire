@@ -98,6 +98,7 @@ export default function CandidateProfilePage() {
   const [resumeName, setResumeName] = useState("Primary_Resume.pdf");
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState("Uploading to secure storage...");
 
   // Load Profile from PostgreSQL via /api/candidate/profile
   const loadProfile = async () => {
@@ -328,7 +329,7 @@ export default function CandidateProfilePage() {
     }
 
     setIsUploadingResume(true);
-    showToast("Requesting secure upload authorization...", "info");
+    setUploadStatusText("Requesting secure upload authorization...");
 
     try {
       const signRes = await fetch("/api/documents/upload", {
@@ -341,6 +342,7 @@ export default function CandidateProfilePage() {
       let uploadedUrl: string;
 
       if (signRes.ok && signData.success && signData.uploadUrl) {
+        setUploadStatusText("Uploading resume to encrypted storage...");
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
         formDataUpload.append("api_key", signData.apiKey);
@@ -360,6 +362,7 @@ export default function CandidateProfilePage() {
         }
         uploadedUrl = cloudData.secure_url;
       } else {
+        setUploadStatusText("Reading document binary streams...");
         // Safe fallback Data URL for local development
         uploadedUrl = await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -369,6 +372,7 @@ export default function CandidateProfilePage() {
         });
       }
 
+      setUploadStatusText("Extracting resume text & AI profile intelligence...");
       const saveRes = await fetch("/api/documents/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -385,11 +389,12 @@ export default function CandidateProfilePage() {
         throw new Error(saveData.error || "Failed to save document reference to database.");
       }
 
+      setUploadStatusText("Synchronizing Profile & AI Resume Studio...");
       setResumeUrl(uploadedUrl);
       setResumeName(file.name);
       await loadProfile();
       setShowResumeModal(false);
-      showToast(`Resume "${file.name}" uploaded and profile updated successfully!`, "success");
+      showToast(`Resume "${file.name}" uploaded and synchronized with Profile & Resume Studio!`, "success");
     } catch (err: any) {
       console.error("[Resume Upload Error]:", err);
       showToast(err.message || "Failed to upload resume. Please try again.", "error");
@@ -742,7 +747,7 @@ export default function CandidateProfilePage() {
                   <span className="material-symbols-outlined text-3xl text-primary animate-spin">
                     progress_activity
                   </span>
-                  <p className="text-xs font-bold text-on-surface">Uploading to secure storage...</p>
+                  <p className="text-xs font-bold text-on-surface">{uploadStatusText}</p>
                 </div>
               ) : (
                 <>

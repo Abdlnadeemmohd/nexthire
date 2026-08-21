@@ -239,15 +239,15 @@ export default function RecruiterBillingPage() {
                         key={plan.id}
                         className={`glass-card rounded-3xl p-6 flex flex-col justify-between space-y-6 transition-all relative ${
                           isCurrent
-                            ? "border-2 border-primary bg-primary/5 shadow-lg"
+                            ? "border-2 border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20"
                             : isPopular
-                            ? "border-2 border-tertiary/60 bg-tertiary/5"
-                            : "border border-outline-variant/30 bg-surface-container-lowest"
+                            ? "border-2 border-amber-500/40 bg-surface-container-lowest shadow-sm hover:border-amber-500/60"
+                            : "border border-outline-variant/30 bg-surface-container-lowest hover:border-outline-variant/50"
                         }`}
                       >
-                        {isPopular && (
-                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-tertiary text-on-tertiary text-[10px] font-bold rounded-full shadow-xs uppercase tracking-wider">
-                            Most Popular
+                        {isPopular && !isCurrent && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-amber-600 text-white text-[10px] font-bold rounded-full shadow-sm uppercase tracking-wider">
+                            Recommended
                           </div>
                         )}
 
