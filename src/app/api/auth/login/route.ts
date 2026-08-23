@@ -70,6 +70,42 @@ export async function POST(request: Request) {
         role: authUser.role,
       });
 
+      // Security check: Check client IP / User-Agent
+      const userAgent = request.headers.get("user-agent") || "Unknown Client";
+      const ip = request.headers.get("x-forwarded-for") || "Direct IP";
+      const isSuspicious = request.headers.get("x-suspicious-login") === "true" || userAgent.includes("curl") || userAgent.includes("Postman");
+
+      if (isSuspicious) {
+        const { emitEvent } = await import("@/lib/events/eventEngine");
+        if (authUser.role === "JOB_SEEKER") {
+          emitEvent({
+            type: "SEEKER_SUSPICIOUS_LOGIN",
+            recipientId: authUser.id,
+            recipientEmail: authUser.email,
+            metadata: {
+              userAgent,
+              ipAddress: ip,
+              time: new Date().toISOString(),
+            },
+          }).catch(() => {});
+        } else if (authUser.role === "RECRUITER") {
+          emitEvent({
+            type: "RECRUITER_SECURITY_ALERT",
+            recipientId: authUser.id,
+            recipientEmail: authUser.email,
+            title: "Security Alert: New Sign-in Detected",
+            body: `A sign-in to your recruiter workspace was detected from an unrecognized client or IP (${ip}).`,
+            ctaText: "Review Security",
+            ctaUrl: "/settings",
+            metadata: {
+              userAgent,
+              ipAddress: ip,
+              time: new Date().toISOString(),
+            },
+          }).catch(() => {});
+        }
+      }
+
       const response = NextResponse.json(
         { success: true, user: authUser },
         { status: 200, headers: { "Content-Type": "application/json" } }

@@ -53,6 +53,17 @@ export async function GET(
       if (!isAlreadyUnlocked && !hasApplied) {
         await consumeResumeUnlock(authUser.id, candidateId);
       }
+
+      // Asynchronously notify candidate that a verified employer reviewed their profile
+      const { emitEvent } = await import("@/lib/events/eventEngine");
+      emitEvent({
+        type: "SEEKER_PROFILE_VIEWED",
+        recipientId: candidateId,
+        recipientEmail: candidate.email,
+        metadata: {
+          viewedAt: new Date().toISOString(),
+        },
+      }).catch(() => {});
     }
 
     return NextResponse.json({

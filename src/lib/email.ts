@@ -1,3 +1,5 @@
+import { renderBrandedEmail, EmailTemplateParams } from "./email/templateEngine";
+
 export type EmailPayload = {
   to: string;
   subject: string;
@@ -5,15 +7,18 @@ export type EmailPayload = {
   from?: string;
 };
 
-/**
- * Sends transactional email via Resend API or returns clearly typed unconfigured status.
- */
-export async function sendEmail(payload: EmailPayload): Promise<{
+export type EmailDispatchResult = {
   success: boolean;
   status: number;
   id?: string;
   error?: string;
-}> {
+};
+
+/**
+ * Sends transactional email via Resend API or returns clearly typed unconfigured status.
+ * Never throws an unhandled exception to ensure business transactions remain safe.
+ */
+export async function sendEmail(payload: EmailPayload): Promise<EmailDispatchResult> {
   const { to, subject, html, from = process.env.FROM_EMAIL || "notifications@nexthire.cloud" } = payload;
   const apiKey = process.env.RESEND_API_KEY;
 
@@ -22,7 +27,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -34,7 +39,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         return { success: true, status: 200, id: data?.id };
       } else {
         const errData = await response.json().catch(() => ({}));
@@ -54,11 +59,11 @@ export async function sendEmail(payload: EmailPayload): Promise<{
     }
   }
 
-  // Fallback when Resend email provider is not configured
-  console.log("[NextHire Email Service] Provider not configured in environment variables:");
-  console.log("  To      :", to);
-  console.log("  Subject :", subject);
-  console.log("  From    :", from);
+  // Safe fallback logging when Resend email provider key is in test/dev mode
+  console.log(`[NextHire Email Service] Resend dispatch in dev/fallback mode:`);
+  console.log(`  To      : ${to}`);
+  console.log(`  Subject : ${subject}`);
+  console.log(`  From    : ${from}`);
 
   return {
     success: false,
@@ -68,35 +73,20 @@ export async function sendEmail(payload: EmailPayload): Promise<{
 }
 
 /**
- * Generates branded NextHire HTML email template
+ * Generates branded NextHire HTML email template using the modular template engine.
  */
-export function generateEmailTemplate(title: string, message: string, ctaText?: string, ctaUrl?: string): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #f3f4f6; margin: 0; padding: 24px; }
-    .card { max-width: 560px; margin: 0 auto; background: #111827; border: 1px solid #1f293d; border-radius: 16px; padding: 32px; }
-    .header { font-size: 24px; font-weight: 800; color: #3b82f6; margin-bottom: 16px; }
-    .content { font-size: 14px; line-height: 1.6; color: #9ca3af; margin-bottom: 24px; }
-    .btn { display: inline-block; background: #3b82f6; color: #ffffff; padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-weight: 700; font-size: 13px; }
-    .footer { font-size: 11px; color: #6b7280; margin-top: 32px; border-top: 1px solid #1f293d; padding-top: 16px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">NextHire</div>
-    <h2 style="color: #ffffff; font-size: 18px; margin-top: 0;">${title}</h2>
-    <div class="content">${message}</div>
-    ${ctaText && ctaUrl ? `<a href="${ctaUrl}" class="btn">${ctaText}</a>` : ""}
-    <div class="footer">
-      &copy; 2026 NextHire Platform. All rights reserved.<br>
-      Automated message from <a href="https://www.nexthire.cloud" style="color: #60a5fa;">https://www.nexthire.cloud</a>
-    </div>
-  </div>
-</body>
-</html>
-  `.trim();
+export function generateEmailTemplate(
+  title: string,
+  message: string,
+  ctaText?: string,
+  ctaUrl?: string,
+  extraParams?: Partial<EmailTemplateParams>
+): string {
+  return renderBrandedEmail({
+    title,
+    message,
+    ctaText,
+    ctaUrl,
+    ...extraParams,
+  });
 }

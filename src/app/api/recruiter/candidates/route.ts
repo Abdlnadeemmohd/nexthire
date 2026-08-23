@@ -301,6 +301,37 @@ export async function GET(request: Request) {
       })
       .filter(Boolean);
 
+    // Asynchronously dispatch Search Intent and Talent Demand intelligence alerts if search query was provided
+    const searchQuery = q || filterSkill || filterTitle;
+    if (searchQuery && formatted.length > 0 && authUser.role === "RECRUITER") {
+      import("@/lib/talent/talentIntelligence").then(({ emitSearchIntentIntelligence }) => {
+        emitSearchIntentIntelligence(
+          authUser.id,
+          authUser.email,
+          authUser.companyId,
+          searchQuery,
+          formatted.length
+        ).catch(() => {});
+      });
+
+      // If high candidate count is found, also emit TALENT_DEMAND_ALERT
+      if (formatted.length >= 3) {
+        import("@/lib/events/eventEngine").then(({ emitEvent }) => {
+          emitEvent({
+            type: "TALENT_DEMAND_ALERT",
+            recipientId: authUser.id,
+            recipientEmail: authUser.email,
+            companyId: authUser.companyId || undefined,
+            title: `🔥 High Talent Availability: ${searchQuery}`,
+            body: `${formatted.length} discoverable candidates match your talent search criteria for "${searchQuery}".`,
+            ctaText: "Explore Talent",
+            ctaUrl: `/recruiter/candidates?q=${encodeURIComponent(searchQuery)}`,
+            metadata: { query: searchQuery, count: formatted.length },
+          }).catch(() => {});
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       count: formatted.length,

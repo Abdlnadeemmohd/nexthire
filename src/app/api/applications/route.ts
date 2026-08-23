@@ -233,29 +233,87 @@ export async function POST(request: Request) {
       },
     });
 
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+
     // 1. Notify Recruiter in Neon PostgreSQL
     const recruiterRecipientId = job.recruiterId;
     if (recruiterRecipientId) {
-      await notificationService.sendNotification({
-        userId: recruiterRecipientId,
-        title: "New Application Received",
+      emitEvent({
+        type: "RECRUITER_NEW_APPLICATION",
+        recipientId: recruiterRecipientId,
+        actorId: authUser.id,
+        actorName: authUser.name,
+        companyId: job.companyId,
+        entityType: "Application",
+        entityId: app.id,
+        title: "New Job Application Received",
         body: `${authUser.name} applied for "${job.title}". Review their verified profile and resume in your candidate pipeline.`,
-        type: "APPLICATION_STATUS",
         ctaText: "Review Applicant",
         ctaUrl: "/recruiter/applicants",
-      });
+        metadata: {
+          jobId,
+          jobTitle: job.title,
+          applicantName: authUser.name,
+          companyId: job.companyId,
+        },
+      }).catch(() => {});
+
+      // Check job application milestones (5, 10, 25, 50, 100)
+      prisma.application.count({
+        where: { jobId },
+      }).then((totalJobApps) => {
+        if ([5, 10, 25, 50, 100].includes(totalJobApps)) {
+          emitEvent({
+            type: "RECRUITER_JOB_APPLICATION_MILESTONE",
+            recipientId: recruiterRecipientId,
+            companyId: job.companyId,
+            entityType: "Job",
+            entityId: jobId,
+            title: `🎯 ${totalJobApps} Applicants Milestone for "${job.title}"`,
+            body: `Your job posting "${job.title}" has reached ${totalJobApps} total applicants.`,
+            ctaText: "Review All Applicants",
+            ctaUrl: "/recruiter/applicants",
+            metadata: { jobId, jobTitle: job.title, totalApplicants: totalJobApps },
+          }).catch(() => {});
+        }
+      }).catch(() => {});
     }
 
     // 2. Notify Candidate in Neon PostgreSQL & email
-    await notificationService.sendNotification({
-      userId: authUser.id,
-      userEmail: authUser.email,
+    emitEvent({
+      type: "SEEKER_APPLICATION_SUBMITTED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      entityType: "Application",
+      entityId: app.id,
       title: "Application Submitted Successfully",
       body: `Your application for "${job.title}" at ${job.company.name} was successfully submitted. The hiring team has a 7-day review target.`,
-      type: "APPLICATION_STATUS",
-      ctaText: "View Application",
+      ctaText: "Track Application",
       ctaUrl: "/applications",
-    });
+      metadata: {
+        jobId,
+        jobTitle: job.title,
+        companyName: job.company.name,
+        slaDeadline: slaDeadline.toISOString(),
+      },
+    }).catch(() => {});
+
+    // 3. Candidate Application Milestones Check (1, 5, 10, 25)
+    try {
+      const totalUserApps = await prisma.application.count({
+        where: { applicantId: authUser.id },
+      });
+      if ([1, 5, 10, 25].includes(totalUserApps)) {
+        emitEvent({
+          type: "SEEKER_APPLICATION_MILESTONE_REACHED",
+          recipientId: authUser.id,
+          recipientEmail: authUser.email,
+          title: `🎯 ${totalUserApps} Application Milestone Reached!`,
+          body: `You've submitted ${totalUserApps} applications on NextHire. Keep up the momentum!`,
+          metadata: { totalApplications: totalUserApps },
+        }).catch(() => {});
+      }
+    } catch {}
 
     // 3. Security Audit Logging
     await logAuditEvent(

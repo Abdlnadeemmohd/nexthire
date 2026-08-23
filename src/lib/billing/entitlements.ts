@@ -101,6 +101,21 @@ export async function getRecruiterEntitlements(userId: string): Promise<Recruite
           status: "ACTIVE",
         },
       });
+
+      // Emit RECRUITER_TRIAL_STARTED event via EventEngine
+      import("@/lib/events/eventEngine").then(({ emitEvent }) => {
+        emitEvent({
+          type: "RECRUITER_TRIAL_STARTED",
+          recipientId: user.id,
+          recipientEmail: user.email,
+          companyId: user.companyId || undefined,
+          title: "Recruiter Trial Activated",
+          body: "Your complimentary trial is active with 5 candidate searches and 1 job posting.",
+          ctaText: "Search Candidates",
+          ctaUrl: "/recruiter/candidates",
+          metadata: { searchesLimit: 5, jobPostingsLimit: 1 },
+        }).catch(() => {});
+      }).catch(() => {});
     }
   }
 
@@ -284,6 +299,18 @@ export async function consumeCandidateUnlock(recruiterId: string, candidateId: s
   }
 
   if (entitlements.candidateUnlocksRemainingToday <= 0) {
+    import("@/lib/events/eventEngine").then(({ emitEvent }) => {
+      emitEvent({
+        type: "RECRUITER_QUOTA_EXHAUSTED",
+        recipientId: recruiterId,
+        title: "Daily Candidate Unlock Quota Reached",
+        body: `You have reached your daily quota limit (${entitlements.candidateUnlockLimit} unlocks). Quota resets at 00:00 UTC.`,
+        ctaText: "Upgrade Plan",
+        ctaUrl: "/recruiter/billing",
+        metadata: { limit: entitlements.candidateUnlockLimit, used: entitlements.candidateUnlocksUsedToday },
+      }).catch(() => {});
+    }).catch(() => {});
+
     throw new EntitlementLimitError(
       `Daily Candidate Unlock Quota reached (${entitlements.candidateUnlocksUsedToday}/${entitlements.candidateUnlockLimit}). Your allowance resets at 00:00 UTC.`,
       "DAILY_UNLOCK_LIMIT_EXCEEDED"
@@ -291,11 +318,25 @@ export async function consumeCandidateUnlock(recruiterId: string, candidateId: s
   }
 
   const today = getTodayDateString();
-  await prisma.dailyUsage.upsert({
+  const updatedUsage = await prisma.dailyUsage.upsert({
     where: { userId_date: { userId: recruiterId, date: today } },
     create: { userId: recruiterId, date: today, candidateUnlocks: 1 },
     update: { candidateUnlocks: { increment: 1 } },
   });
+
+  if (entitlements.candidateUnlockLimit > 0 && updatedUsage.candidateUnlocks >= entitlements.candidateUnlockLimit * 0.8) {
+    import("@/lib/events/eventEngine").then(({ emitEvent }) => {
+      emitEvent({
+        type: "RECRUITER_QUOTA_APPROACHING_LIMIT",
+        recipientId: recruiterId,
+        title: "Daily Unlock Quota Approaching Limit",
+        body: `You have used ${updatedUsage.candidateUnlocks}/${entitlements.candidateUnlockLimit} candidate unlocks for today.`,
+        ctaText: "Upgrade Quota",
+        ctaUrl: "/recruiter/billing",
+        metadata: { limit: entitlements.candidateUnlockLimit, used: updatedUsage.candidateUnlocks },
+      }).catch(() => {});
+    }).catch(() => {});
+  }
 
   await prisma.candidateUnlock.create({
     data: { recruiterId, candidateId },

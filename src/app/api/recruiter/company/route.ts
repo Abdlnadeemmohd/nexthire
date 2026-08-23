@@ -239,6 +239,47 @@ export async function PUT(request: Request) {
 
       const { score, missing, recommendations } = calculateCompanyCompleteness(created);
 
+      const { emitEvent } = await import("@/lib/events/eventEngine");
+      emitEvent({
+        type: "RECRUITER_COMPANY_CREATED",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        companyId: targetCompanyId,
+        entityType: "Company",
+        entityId: targetCompanyId,
+        title: `Company Profile Created: ${created.name}`,
+        body: `Your employer organization profile for "${created.name}" is now active on NextHire.`,
+        ctaText: "View Company Profile",
+        ctaUrl: "/recruiter/company",
+        metadata: { companyId: targetCompanyId, companyName: created.name },
+      }).catch(() => {});
+
+      emitEvent({
+        type: "RECRUITER_COMPANY_VERIFICATION_SUBMITTED",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        companyId: targetCompanyId,
+        entityType: "Company",
+        entityId: targetCompanyId,
+        title: "Company Verification Submitted",
+        body: `"${created.name}" has been submitted for verified employer review by NextHire governance.`,
+        ctaText: "Check Verification Status",
+        ctaUrl: "/recruiter/company",
+        metadata: { companyId: targetCompanyId, companyName: created.name },
+      }).catch(() => {});
+
+      emitEvent({
+        type: "RECRUITER_VERIFICATION_REQUESTED",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        companyId: targetCompanyId,
+        title: "Recruiter Verification Under Review",
+        body: "Your recruiter credentials and company profile are under review.",
+        ctaText: "Check Status",
+        ctaUrl: "/recruiter",
+        metadata: { companyId: targetCompanyId },
+      }).catch(() => {});
+
       return NextResponse.json({
         success: true,
         message: "Company profile created successfully in Neon PostgreSQL",
@@ -281,6 +322,40 @@ export async function PUT(request: Request) {
     });
 
     const { score, missing, recommendations } = calculateCompanyCompleteness(updatedCompany);
+
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    emitEvent({
+      type: "RECRUITER_COMPANY_UPDATED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      companyId: targetCompanyId,
+      entityType: "Company",
+      entityId: targetCompanyId,
+      title: `Company Profile Updated: ${updatedCompany.name}`,
+      body: `Changes to your company branding, profile, and details were saved successfully.`,
+      ctaText: "View Company Profile",
+      ctaUrl: "/recruiter/company",
+      metadata: { companyId: targetCompanyId, companyName: updatedCompany.name },
+    }).catch(() => {});
+
+    if (body.requestVerification) {
+      const { getAdminRecipients } = await import("@/lib/admin/adminMonitoring");
+      const admins = await getAdminRecipients();
+      for (const admin of admins) {
+        emitEvent({
+          type: "ADMIN_COMPANY_VERIFICATION_REQUESTED",
+          recipientId: admin.id,
+          recipientEmail: admin.email,
+          entityType: "Company",
+          entityId: targetCompanyId,
+          title: `🏢 Company Verification Requested: ${updatedCompany.name}`,
+          body: `Recruiter ${authUser.email} submitted verification documents for organization "${updatedCompany.name}".`,
+          ctaText: "Review Company",
+          ctaUrl: "/admin/companies",
+          metadata: { companyId: targetCompanyId, companyName: updatedCompany.name },
+        }).catch(() => {});
+      }
+    }
 
     return NextResponse.json({
       success: true,

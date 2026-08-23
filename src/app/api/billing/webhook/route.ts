@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
 import { createHmac, timingSafeEqual } from "crypto";
+import { emitEvent } from "@/lib/events/eventEngine";
+import { checkRevenueMilestones } from "@/lib/admin/adminMonitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -111,15 +113,75 @@ export async function POST(request: Request) {
     const eventType = event.type || "unknown";
     const dataObject = event.data?.object || {};
 
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+
+    // Helper to resolve recruiter from customer or metadata
+    const resolveRecruiter = async (customerId?: string, metadataUserId?: string) => {
+      if (metadataUserId) {
+        return prisma.user.findUnique({ where: { id: metadataUserId } });
+      }
+      if (customerId) {
+        const sub = await prisma.subscription.findFirst({
+          where: { paymentId: customerId },
+          include: { user: true },
+        });
+        if (sub?.user) return sub.user;
+      }
+      return prisma.user.findFirst({ where: { role: "RECRUITER" } });
+    };
+
     // Process Stripe subscription events
     switch (eventType) {
-      case "customer.subscription.created":
+      case "customer.subscription.created": {
+        const customerId = dataObject.customer;
+        const planId = dataObject.items?.data?.[0]?.price?.id || "plan_growth";
+        const recruiter = await resolveRecruiter(customerId, dataObject.metadata?.userId);
+
+        if (recruiter) {
+          emitEvent({
+            type: "RECRUITER_SUBSCRIPTION_ACTIVATED",
+            recipientId: recruiter.id,
+            recipientEmail: recruiter.email,
+            companyId: recruiter.companyId || undefined,
+            title: "Subscription Activated",
+            body: `Thank you for upgrading! Your recruiter subscription tier is now active.`,
+            ctaText: "Manage Subscription",
+            ctaUrl: "/recruiter/billing",
+            metadata: { planId, status: dataObject.status },
+          }).catch(() => {});
+        }
+
+        await logAuditEvent(
+          customerId || "stripe_system",
+          "SUBSCRIPTION_ACTIVATED",
+          "Subscription",
+          dataObject.id || "sub_live",
+          { eventType, status: dataObject.status, planId }
+        );
+        break;
+      }
+
       case "customer.subscription.updated": {
         const customerId = dataObject.customer;
-        const status = dataObject.status; // active, past_due, canceled
+        const status = dataObject.status;
         const planId = dataObject.items?.data?.[0]?.price?.id || "plan_growth";
+        const recruiter = await resolveRecruiter(customerId, dataObject.metadata?.userId);
 
-        // Log audit event for billing updates
+        if (recruiter) {
+          const isUpgrade = dataObject.metadata?.isUpgrade === "true" || planId.includes("diamond") || planId.includes("platinum");
+          emitEvent({
+            type: isUpgrade ? "RECRUITER_SUBSCRIPTION_UPGRADED" : "RECRUITER_SUBSCRIPTION_DOWNGRADED",
+            recipientId: recruiter.id,
+            recipientEmail: recruiter.email,
+            companyId: recruiter.companyId || undefined,
+            title: isUpgrade ? "Subscription Tier Upgraded" : "Subscription Plan Updated",
+            body: `Your recruiter subscription plan change (${planId}) has been confirmed.`,
+            ctaText: "View Entitlements",
+            ctaUrl: "/recruiter/billing",
+            metadata: { planId, status },
+          }).catch(() => {});
+        }
+
         await logAuditEvent(
           customerId || "stripe_system",
           "SUBSCRIPTION_UPDATED",
@@ -133,6 +195,21 @@ export async function POST(request: Request) {
       case "invoice.payment_succeeded": {
         const customerId = dataObject.customer;
         const amountPaid = dataObject.amount_paid ? dataObject.amount_paid / 100 : 0;
+        const recruiter = await resolveRecruiter(customerId, dataObject.metadata?.userId);
+
+        if (recruiter) {
+          emitEvent({
+            type: "RECRUITER_PAYMENT_SUCCESSFUL",
+            recipientId: recruiter.id,
+            recipientEmail: recruiter.email,
+            companyId: recruiter.companyId || undefined,
+            title: "Payment Receipt",
+            body: `Your subscription payment of $${amountPaid} was processed successfully.`,
+            ctaText: "View Invoices",
+            ctaUrl: "/recruiter/billing",
+            metadata: { amountPaid, currency: dataObject.currency || "usd" },
+          }).catch(() => {});
+        }
 
         await logAuditEvent(
           customerId || "stripe_system",
@@ -141,11 +218,56 @@ export async function POST(request: Request) {
           dataObject.id || "inv_live",
           { amountPaid, currency: dataObject.currency || "usd" }
         );
+
+        await checkRevenueMilestones(amountPaid).catch(() => {});
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const customerId = dataObject.customer;
+        const recruiter = await resolveRecruiter(customerId, dataObject.metadata?.userId);
+
+        if (recruiter) {
+          emitEvent({
+            type: "RECRUITER_PAYMENT_FAILED",
+            recipientId: recruiter.id,
+            recipientEmail: recruiter.email,
+            companyId: recruiter.companyId || undefined,
+            title: "Payment Failed: Action Required",
+            body: `We were unable to process your recurring subscription payment. Please update your payment method.`,
+            ctaText: "Update Billing Info",
+            ctaUrl: "/recruiter/billing",
+            metadata: { customerId },
+          }).catch(() => {});
+        }
+
+        await logAuditEvent(
+          customerId || "stripe_system",
+          "PAYMENT_FAILED",
+          "Invoice",
+          dataObject.id || "inv_failed",
+          { customerId }
+        );
         break;
       }
 
       case "customer.subscription.deleted": {
         const customerId = dataObject.customer;
+        const recruiter = await resolveRecruiter(customerId, dataObject.metadata?.userId);
+
+        if (recruiter) {
+          emitEvent({
+            type: "RECRUITER_SUBSCRIPTION_CANCELLED",
+            recipientId: recruiter.id,
+            recipientEmail: recruiter.email,
+            companyId: recruiter.companyId || undefined,
+            title: "Subscription Cancelled",
+            body: `Your recruiter subscription has been cancelled and will expire at the end of the billing period.`,
+            ctaText: "Review Plan",
+            ctaUrl: "/recruiter/billing",
+            metadata: { customerId },
+          }).catch(() => {});
+        }
 
         await logAuditEvent(
           customerId || "stripe_system",
@@ -158,7 +280,6 @@ export async function POST(request: Request) {
       }
 
       default:
-        // Acknowledge other event types
         break;
     }
 

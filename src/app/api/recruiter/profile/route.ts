@@ -211,6 +211,26 @@ export async function PUT(request: Request) {
 
     const { score, missing, recommendations } = calculateRecruiterCompleteness(updatedUser, recruiterData || {});
 
+    if (body.requestVerification) {
+      const { emitEvent } = await import("@/lib/events/eventEngine");
+      const { getAdminRecipients } = await import("@/lib/admin/adminMonitoring");
+      const admins = await getAdminRecipients();
+      for (const admin of admins) {
+        emitEvent({
+          type: "ADMIN_RECRUITER_VERIFICATION_REQUESTED",
+          recipientId: admin.id,
+          recipientEmail: admin.email,
+          entityType: "User",
+          entityId: updatedUser.id,
+          title: `🛡️ Recruiter Verification Requested: ${updatedUser.name}`,
+          body: `Recruiter ${updatedUser.name} (${updatedUser.email}) requested identity and company association verification.`,
+          ctaText: "Review Recruiter",
+          ctaUrl: "/admin/users",
+          metadata: { recruiterId: updatedUser.id, recruiterName: updatedUser.name },
+        }).catch(() => {});
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Recruiter profile updated successfully in Neon PostgreSQL",

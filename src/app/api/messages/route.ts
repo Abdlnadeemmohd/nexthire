@@ -145,16 +145,33 @@ export async function POST(request: Request) {
       },
     });
 
-    // Send in-app notification to the message receiver
+    // Dispatch message notification via EventEngine
     const preview = sanitized.length > 60 ? `${sanitized.substring(0, 60)}...` : sanitized;
-    await notificationService.sendNotification({
-      userId: receiver.id,
-      title: `New Message from ${authUser.name}`,
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+
+    const isCandidateReply = receiver.role === "RECRUITER" && authUser.role === "JOB_SEEKER";
+    const eventType = receiver.role === "JOB_SEEKER"
+      ? "SEEKER_MESSAGE_RECEIVED"
+      : (isCandidateReply ? "RECRUITER_CANDIDATE_REPLY" : "RECRUITER_MESSAGE_RECEIVED");
+
+    emitEvent({
+      type: eventType,
+      recipientId: receiver.id,
+      recipientEmail: receiver.email,
+      companyId: receiver.companyId || undefined,
+      actorId: authUser.id,
+      actorName: authUser.name,
+      entityType: "Message",
+      entityId: createdMessage.id,
+      title: isCandidateReply ? `Candidate Reply from ${authUser.name}` : `New Message from ${authUser.name}`,
       body: `"${preview}"`,
-      type: "MESSAGE",
       ctaText: "Reply in Chat",
       ctaUrl: `/messages?contactId=${authUser.id}`,
-    });
+      metadata: {
+        senderId: authUser.id,
+        senderName: authUser.name,
+      },
+    }).catch(() => {});
 
     return NextResponse.json(
       {

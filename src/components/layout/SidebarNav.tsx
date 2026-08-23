@@ -67,6 +67,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           title: "Navigation",
           items: [
             { label: "Home", href: "/recruiter", icon: "home" },
+            { label: "Talent Radar", href: "/recruiter/talent-radar", icon: "radar" },
             { label: "Company Profile", href: "/recruiter/company", icon: "business" },
             { label: "My Recruiter Profile", href: "/recruiter/profile", icon: "badge" },
             { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },

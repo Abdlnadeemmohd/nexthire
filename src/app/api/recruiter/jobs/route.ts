@@ -82,6 +82,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const initialStatus = body.status === "DRAFT" ? "DRAFT" : "ACTIVE";
     const newJob = await prisma.job.create({
       data: {
         title: body.title.trim(),
@@ -98,13 +99,50 @@ export async function POST(request: Request) {
         category: body.category?.trim() || "Engineering",
         isRemote: Boolean(body.isRemote),
         skills: Array.isArray(body.tags) ? body.tags.join(",") : (body.skills?.trim() || ""),
-        status: "ACTIVE",
+        status: initialStatus,
         companyId: companyId,
         recruiterId: authUser.id,
       },
     });
 
     await logAuditEvent(authUser.id, "JOB_CREATED", "Job", newJob.id, { title: newJob.title, companyId });
+
+    // Emit job lifecycle and talent intelligence events
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    if (initialStatus === "ACTIVE") {
+      emitEvent({
+        type: "RECRUITER_JOB_PUBLISHED",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        companyId,
+        entityType: "Job",
+        entityId: newJob.id,
+        title: `Job Published: ${newJob.title}`,
+        body: `"${newJob.title}" is now active and published to candidates in the marketplace.`,
+        ctaText: "View Job",
+        ctaUrl: `/jobs/${newJob.id}`,
+        metadata: { jobId: newJob.id, jobTitle: newJob.title },
+      }).catch(() => {});
+
+      // Asynchronously calculate real PostgreSQL talent matches and emit JOB_TO_TALENT_MATCH_ALERT
+      import("@/lib/talent/talentIntelligence").then(({ calculateJobTalentMatches }) => {
+        calculateJobTalentMatches(newJob.id, authUser.id).catch(() => {});
+      });
+    } else {
+      emitEvent({
+        type: "RECRUITER_JOB_DRAFT_SAVED",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        companyId,
+        entityType: "Job",
+        entityId: newJob.id,
+        title: `Job Draft Saved: ${newJob.title}`,
+        body: `Your draft for "${newJob.title}" has been saved.`,
+        ctaText: "Continue Editing",
+        ctaUrl: "/recruiter",
+        metadata: { jobId: newJob.id, jobTitle: newJob.title },
+      }).catch(() => {});
+    }
 
     return NextResponse.json({ success: true, data: newJob }, { status: 201 });
   } catch (err: any) {
@@ -157,6 +195,63 @@ export async function PATCH(request: Request) {
     });
 
     await logAuditEvent(authUser.id, "JOB_STATUS_UPDATED", "Job", id, { status });
+
+    // Handle status transitions
+    if (status !== undefined && status !== existingJob.status) {
+      const { emitEvent } = await import("@/lib/events/eventEngine");
+      if (status === "ACTIVE") {
+        const isResume = existingJob.status === "PAUSED";
+        emitEvent({
+          type: isResume ? "RECRUITER_JOB_RESUMED" : "RECRUITER_JOB_PUBLISHED",
+          recipientId: authUser.id,
+          recipientEmail: authUser.email,
+          companyId: existingJob.companyId,
+          entityType: "Job",
+          entityId: id,
+          title: isResume ? `Hiring Resumed: ${existingJob.title}` : `Job Published: ${existingJob.title}`,
+          body: isResume
+            ? `Application intake has resumed for "${existingJob.title}".`
+            : `"${existingJob.title}" is now active and published.`,
+          ctaText: "View Job",
+          ctaUrl: `/jobs/${id}`,
+          metadata: { jobId: id, jobTitle: existingJob.title },
+        }).catch(() => {});
+
+        if (!isResume) {
+          import("@/lib/talent/talentIntelligence").then(({ calculateJobTalentMatches }) => {
+            calculateJobTalentMatches(id, authUser.id).catch(() => {});
+          });
+        }
+      } else if (status === "PAUSED") {
+        emitEvent({
+          type: "RECRUITER_JOB_PAUSED",
+          recipientId: authUser.id,
+          recipientEmail: authUser.email,
+          companyId: existingJob.companyId,
+          entityType: "Job",
+          entityId: id,
+          title: `Job Paused: ${existingJob.title}`,
+          body: `Applications for "${existingJob.title}" have been temporarily paused.`,
+          ctaText: "Manage Jobs",
+          ctaUrl: "/recruiter",
+          metadata: { jobId: id, jobTitle: existingJob.title },
+        }).catch(() => {});
+      } else if (status === "EXPIRED" || status === "CLOSED") {
+        emitEvent({
+          type: "RECRUITER_JOB_EXPIRED",
+          recipientId: authUser.id,
+          recipientEmail: authUser.email,
+          companyId: existingJob.companyId,
+          entityType: "Job",
+          entityId: id,
+          title: `Job Closed: ${existingJob.title}`,
+          body: `The opening for "${existingJob.title}" is now closed.`,
+          ctaText: "Manage Jobs",
+          ctaUrl: "/recruiter",
+          metadata: { jobId: id, jobTitle: existingJob.title },
+        }).catch(() => {});
+      }
+    }
 
     return NextResponse.json({ success: true, data: updatedJob });
   } catch (err: any) {

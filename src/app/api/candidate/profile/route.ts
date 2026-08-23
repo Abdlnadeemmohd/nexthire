@@ -326,6 +326,28 @@ export async function PUT(request: Request) {
       data: { completeness: score },
     });
 
+    // Asynchronously dispatch profile milestone events
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    if (score === 100) {
+      emitEvent({
+        type: "SEEKER_PROFILE_COMPLETED",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        metadata: { score: 100, completedAt: new Date().toISOString() },
+      }).catch((e) => console.warn("[Profile PUT] Event note:", e));
+    } else if (recommendations.length > 0) {
+      emitEvent({
+        type: "SEEKER_PROFILE_IMPROVEMENT_TIP",
+        recipientId: authUser.id,
+        recipientEmail: authUser.email,
+        metadata: {
+          score,
+          recommendation: recommendations[0],
+          missingCount: missing.length,
+        },
+      }).catch((e) => console.warn("[Profile PUT] Event note:", e));
+    }
+
     return NextResponse.json({
       success: true,
       message: "Candidate professional profile updated successfully.",

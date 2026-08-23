@@ -102,7 +102,25 @@ export default function CandidateSearchPage() {
   };
 
   useEffect(() => {
-    loadCandidates();
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const q = urlParams.get("q") || "";
+      const skill = urlParams.get("skills") || urlParams.get("skill") || "";
+      const title = urlParams.get("title") || "";
+      const company = urlParams.get("company") || "";
+      const status = urlParams.get("status") || "ALL";
+
+      if (q) setSearchQuery(q);
+      if (skill) setFilterSkill(skill);
+      if (title) setFilterTitle(title);
+      if (company) setFilterCompany(company);
+      if (status && status !== "ALL") setFilterStatus(status);
+      if (skill || title || company || (status && status !== "ALL")) setShowFilters(true);
+
+      loadCandidates(q, skill, title, company, status);
+    } else {
+      loadCandidates();
+    }
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

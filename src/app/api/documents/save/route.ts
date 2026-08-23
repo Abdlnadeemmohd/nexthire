@@ -273,6 +273,88 @@ export async function POST(request: Request) {
       });
     }
 
+    // 8. Synchronized Event Engine Dispatches (Only after database write completes)
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+
+    // A. Resume upload event
+    emitEvent({
+      type: "SEEKER_RESUME_UPLOADED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      metadata: {
+        fileName: fileName || "resume.pdf",
+        fileSize: fileSize || null,
+        mimeType: mimeType || "application/pdf",
+      },
+    }).catch((e) => console.warn("[Document Save] Event note:", e));
+
+    // B. Resume parsed & intelligence extracted
+    emitEvent({
+      type: "SEEKER_RESUME_PARSED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      metadata: {
+        skillsExtractedCount: extracted.skills.length,
+        headline: extracted.headline,
+        hasExperience: extracted.experience.length > 0,
+      },
+    }).catch((e) => console.warn("[Document Save] Event note:", e));
+
+    // C. Profile synchronization completed
+    emitEvent({
+      type: "SEEKER_PROFILE_SYNCED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      metadata: {
+        skillsCount: skillsToSave.split(",").filter(Boolean).length,
+      },
+    }).catch((e) => console.warn("[Document Save] Event note:", e));
+
+    // D. ATS Score Generated
+    const atsScore = AIEngine.analyzeResumeATS(extractedText || skillsToSave);
+    emitEvent({
+      type: "SEEKER_ATS_SCORE_GENERATED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      metadata: {
+        score: atsScore.score,
+        keywordMatchScore: atsScore.keywordMatchScore,
+        matchedKeywordsCount: atsScore.matchedKeywords.length,
+        recommendationsCount: atsScore.recommendations.length,
+      },
+    }).catch((e) => console.warn("[Document Save] Event note:", e));
+
+    // E. Talent Radar: Notify recruiters with matching active jobs of new/updated discoverable talent
+    if (currentUser?.isDiscoverable !== false && skillsToSave) {
+      const candidateSkills = skillsToSave.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+      prisma.job.findMany({
+        where: { status: "ACTIVE" },
+        include: { recruiter: true },
+        take: 10,
+      }).then((activeJobs) => {
+        for (const job of activeJobs) {
+          if (!job.recruiterId || !job.recruiter) continue;
+          const jobSkills = (job.skills || "").toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
+          const hasOverlap = candidateSkills.some((cs) => jobSkills.some((js) => js.includes(cs) || cs.includes(js)));
+          if (hasOverlap) {
+            emitEvent({
+              type: "NEW_MATCHING_TALENT_ALERT",
+              recipientId: job.recruiterId,
+              recipientEmail: job.recruiter.email,
+              companyId: job.companyId,
+              entityType: "Job",
+              entityId: job.id,
+              title: `🧠 New Matching Talent for "${job.title}"`,
+              body: `A candidate with matching skills (${candidateSkills.slice(0, 2).join(", ")}) just updated their profile in NextHire talent pool.`,
+              ctaText: "View Matching Candidate",
+              ctaUrl: `/recruiter/candidates?skills=${encodeURIComponent(job.skills || "")}`,
+              metadata: { jobId: job.id, candidateId: authUser.id },
+            }).catch(() => {});
+          }
+        }
+      }).catch(() => {});
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -295,6 +377,21 @@ export async function POST(request: Request) {
     );
   } catch (err: any) {
     console.error("[Document Save Security Error]:", err);
+
+    // Emit failure event if authenticated candidate encountered an unhandled parse error
+    try {
+      const authUser = await getAuthenticatedUser();
+      if (authUser?.id) {
+        const { emitEvent } = await import("@/lib/events/eventEngine");
+        emitEvent({
+          type: "SEEKER_RESUME_PARSE_FAILED",
+          recipientId: authUser.id,
+          recipientEmail: authUser.email,
+          metadata: { error: err?.message || "File parse error" },
+        }).catch(() => {});
+      }
+    } catch {}
+
     return NextResponse.json(
       { success: false, error: err?.message || "Failed to save document reference." },
       { status: 500, headers: { "Content-Type": "application/json" } }

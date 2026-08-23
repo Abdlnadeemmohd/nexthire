@@ -10,7 +10,6 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
-
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 interface RecruiterJob {
@@ -26,10 +25,27 @@ interface RecruiterJob {
   applications?: any[];
 }
 
+interface RadarSummary {
+  totalMatchingCandidates: number;
+  strongMatches: number;
+  newMatchesThisWeek: number;
+  recentlyActiveCandidates: number;
+  actionRequiredItems: Array<{
+    id: string;
+    type: string;
+    priority: "CRITICAL" | "IMPORTANT" | "NORMAL";
+    title: string;
+    description: string;
+    ctaText: string;
+    ctaUrl: string;
+  }>;
+}
+
 export default function RecruiterDashboardPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [jobs, setJobs] = useState<RecruiterJob[]>([]);
+  const [radarSummary, setRadarSummary] = useState<RadarSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeDropdownJobId, setActiveDropdownJobId] = useState<string | null>(null);
 
@@ -44,25 +60,43 @@ export default function RecruiterDashboardPage() {
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  const loadRecruiterJobs = async () => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/recruiter/jobs");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          setJobs(data.data);
+
+      const [jobsRes, radarRes] = await Promise.all([
+        fetch("/api/recruiter/jobs"),
+        fetch("/api/recruiter/talent-radar"),
+      ]);
+
+      if (jobsRes.ok) {
+        const jobsData = await jobsRes.json();
+        if (jobsData.success && Array.isArray(jobsData.data)) {
+          setJobs(jobsData.data);
+        }
+      }
+
+      if (radarRes.ok) {
+        const radarData = await radarRes.json();
+        if (radarData.success && radarData.data) {
+          setRadarSummary({
+            totalMatchingCandidates: radarData.data.overview.totalMatchingCandidates,
+            strongMatches: radarData.data.overview.strongMatches,
+            newMatchesThisWeek: radarData.data.overview.newMatchesThisWeek,
+            recentlyActiveCandidates: radarData.data.overview.recentlyActiveCandidates,
+            actionRequiredItems: radarData.data.actionRequired?.items || [],
+          });
         }
       }
     } catch (err) {
-      console.error("Failed to load recruiter jobs:", err);
+      console.error("Failed to load recruiter dashboard data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadRecruiterJobs();
+    loadDashboardData();
   }, []);
 
   const handleToggleJobStatus = async (jobId: string, currentStatus: string) => {
@@ -77,7 +111,7 @@ export default function RecruiterDashboardPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(`Job status updated to ${nextStatus}!`, "success");
-        loadRecruiterJobs();
+        loadDashboardData();
       } else {
         showToast(data.error || "Failed to update job status", "error");
       }
@@ -99,7 +133,7 @@ export default function RecruiterDashboardPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(`Job "${title}" deleted from database.`, "success");
-        loadRecruiterJobs();
+        loadDashboardData();
       } else {
         showToast(data.error || "Failed to delete job", "error");
       }
@@ -142,10 +176,17 @@ export default function RecruiterDashboardPage() {
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <Link
+                  href="/recruiter/talent-radar"
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/10 hover:bg-primary text-primary hover:text-on-primary font-label-md font-bold text-xs rounded-full border border-primary/20 transition-all flex items-center gap-1.5 touch-target shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base">radar</span>
+                  Talent Radar
+                </Link>
+                <Link
                   href="/recruiter/applicants"
                   className="px-4 sm:px-5 py-2 sm:py-2.5 bg-surface-container-high text-on-surface font-label-md font-bold text-xs rounded-full hover:bg-primary-container/20 hover:text-primary transition-all touch-target"
                 >
-                  View Candidate Pipeline
+                  Candidate Pipeline
                 </Link>
                 <Link
                   href="/recruiter/jobs/new"
@@ -157,7 +198,36 @@ export default function RecruiterDashboardPage() {
               </div>
             </div>
 
-            {/* Metrics Overview Grid */}
+            {/* Action Required Banner (Priority alerts) */}
+            {radarSummary?.actionRequiredItems && radarSummary.actionRequiredItems.length > 0 && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-lg">warning</span>
+                  </div>
+                  <div>
+                    <h4 className="font-headline-sm text-xs sm:text-sm font-bold text-on-surface">
+                      {radarSummary.actionRequiredItems[0]?.title}
+                    </h4>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      {radarSummary.actionRequiredItems[0]?.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  <Link
+                    href={radarSummary.actionRequiredItems[0]?.ctaUrl || "/recruiter/applicants"}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-label-md font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 w-full md:w-auto"
+                  >
+                    <span>{radarSummary.actionRequiredItems[0]?.ctaText}</span>
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Metrics & Talent Radar Overview Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               <div className="glass-card rounded-2xl p-4 sm:p-6 border border-outline-variant/20 space-y-1 sm:space-y-2">
                 <div className="flex justify-between items-center text-outline">
@@ -165,7 +235,7 @@ export default function RecruiterDashboardPage() {
                   <span className="material-symbols-outlined text-primary">groups</span>
                 </div>
                 <div className="font-display text-2xl sm:text-3xl font-bold text-on-surface">{totalApplicants}</div>
-                <p className="text-[11px] text-tertiary font-label-sm">Live candidates in database</p>
+                <p className="text-[11px] text-tertiary font-label-sm">Live candidate applications</p>
               </div>
 
               <div className="glass-card rounded-2xl p-4 sm:p-6 border border-outline-variant/20 space-y-1 sm:space-y-2">
@@ -177,31 +247,49 @@ export default function RecruiterDashboardPage() {
                 <p className="text-[11px] text-primary font-label-sm">Published positions</p>
               </div>
 
-              <div className="glass-card rounded-2xl p-4 sm:p-6 border border-outline-variant/20 space-y-1 sm:space-y-2">
-                <div className="flex justify-between items-center text-outline">
-                  <span className="text-xs font-label-md uppercase font-semibold">Total Job Postings</span>
-                  <span className="material-symbols-outlined text-primary">bolt</span>
+              {/* Radar: Matching Talent */}
+              <div className="glass-card rounded-2xl p-4 sm:p-6 border border-primary/25 bg-primary/5 space-y-1 sm:space-y-2">
+                <div className="flex justify-between items-center text-primary">
+                  <span className="text-xs font-label-md uppercase font-bold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">radar</span>
+                    Matching Talent
+                  </span>
+                  <Link href="/recruiter/talent-radar" className="text-[10px] underline font-bold">
+                    View
+                  </Link>
                 </div>
-                <div className="font-display text-2xl sm:text-3xl font-bold text-primary">{jobs.length}</div>
-                <p className="text-[11px] text-primary font-label-sm">Company job catalog</p>
+                <div className="font-display text-2xl sm:text-3xl font-bold text-primary">
+                  {radarSummary?.totalMatchingCandidates || 0}
+                </div>
+                <p className="text-[11px] text-primary font-label-sm">
+                  {radarSummary?.strongMatches || 0} strong skill matches
+                </p>
               </div>
 
+              {/* Radar: New Talent This Week */}
               <div className="glass-card rounded-2xl p-4 sm:p-6 border border-outline-variant/20 space-y-1 sm:space-y-2">
                 <div className="flex justify-between items-center text-outline">
-                  <span className="text-xs font-label-md uppercase font-semibold">Hiring SLA</span>
-                  <span className="material-symbols-outlined text-tertiary">speed</span>
+                  <span className="text-xs font-label-md uppercase font-semibold">New Talent This Week</span>
+                  <span className="material-symbols-outlined text-tertiary">fiber_new</span>
                 </div>
-                <div className="font-display text-2xl sm:text-3xl font-bold text-tertiary">7 Days</div>
-                <p className="text-[11px] text-tertiary font-label-sm">Standard review target</p>
+                <div className="font-display text-2xl sm:text-3xl font-bold text-tertiary">
+                  {radarSummary?.newMatchesThisWeek || 0}
+                </div>
+                <p className="text-[11px] text-tertiary font-label-sm">Candidates matching your jobs</p>
               </div>
             </div>
 
             {/* Active Jobs List Section */}
             <div className="glass-card rounded-2xl p-4 sm:p-8 border border-outline-variant/20 space-y-4 sm:space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="font-headline-sm text-base sm:text-xl font-bold text-on-surface">
-                  Company Job Postings
-                </h3>
+                <div>
+                  <h3 className="font-headline-sm text-base sm:text-xl font-bold text-on-surface">
+                    Company Job Postings
+                  </h3>
+                  <p className="text-xs text-on-surface-variant">
+                    Manage active openings, review candidate pipelines, and source matching talent.
+                  </p>
+                </div>
                 <Link href="/recruiter/jobs/new" className="text-xs font-label-md text-primary font-bold hover:underline touch-target">
                   + Post Job
                 </Link>
@@ -245,8 +333,8 @@ export default function RecruiterDashboardPage() {
                             <span
                               className={`px-2.5 py-1 font-label-sm font-bold rounded-full ${
                                 job.status === "ACTIVE"
-                                  ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
-                                  : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
+                                    ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
+                                    : "bg-amber-500/15 text-amber-700 border border-amber-500/30"
                               }`}
                             >
                               {job.status}
@@ -276,6 +364,14 @@ export default function RecruiterDashboardPage() {
                                   >
                                     <span className="material-symbols-outlined text-base">groups</span>
                                     Review Applicants
+                                  </Link>
+
+                                  <Link
+                                    href={`/recruiter/candidates?title=${encodeURIComponent(job.title)}`}
+                                    className="w-full px-3.5 py-2 hover:bg-surface-container-low flex items-center gap-2 font-bold text-tertiary transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined text-base">radar</span>
+                                    View Matching Talent
                                   </Link>
 
                                   <Link
@@ -319,7 +415,7 @@ export default function RecruiterDashboardPage() {
               ) : (
                 <EmptyState
                   title="Your company has not posted any jobs yet"
-                  description="Post your first active opening to begin sourcing candidates and reviewing resumes."
+                  description="Post your first active opening to begin sourcing candidates, receiving Talent Radar matches, and reviewing applications."
                   icon="post_add"
                   actionLabel="Post New Job"
                   actionHref="/recruiter/jobs/new"

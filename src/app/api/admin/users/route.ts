@@ -138,19 +138,37 @@ export async function PATCH(request: Request) {
       role: targetUser.role,
     });
 
-    // 2. Send Automated In-App Notification to User
-    await notificationService.sendNotification({
-      userId: targetUser.id,
-      userEmail: targetUser.email,
-      title: `Account Verification Status: ${status}`,
-      body:
-        status === "VERIFIED"
-          ? "Congratulations! Your NextHire account has been verified by platform administrators. You now have full access to platform features."
-          : `Your account verification status has been updated to ${status}. Reason: ${reason || "Administrative review"}`,
-      type: "SYSTEM",
-      ctaText: "Go to Portal",
-      ctaUrl: targetUser.role === "RECRUITER" ? "/recruiter" : "/dashboard",
-    });
+    // 2. Dispatch Typed Account Security / Verification Event via EventEngine
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+
+    if (status === "VERIFIED") {
+      const isRestoration = Boolean(reason?.toLowerCase().includes("restore") || reason?.toLowerCase().includes("unsuspend"));
+      const eventType = targetUser.role === "JOB_SEEKER"
+        ? (isRestoration ? "SEEKER_ACCOUNT_RESTORED" : "SEEKER_VERIFICATION_COMPLETED")
+        : "RECRUITER_VERIFICATION_APPROVED";
+
+      emitEvent({
+        type: eventType,
+        recipientId: targetUser.id,
+        recipientEmail: targetUser.email,
+        metadata: {
+          verifiedBy: authUser.id,
+          verifiedAt: new Date().toISOString(),
+          reason,
+        },
+      }).catch(() => {});
+    } else if (status === "SUSPENDED" || status === "REJECTED") {
+      const eventType = targetUser.role === "JOB_SEEKER" ? "SEEKER_ACCOUNT_RESTRICTED" : "RECRUITER_VERIFICATION_REJECTED";
+      emitEvent({
+        type: eventType,
+        recipientId: targetUser.id,
+        recipientEmail: targetUser.email,
+        metadata: {
+          reason: reason || "Administrative policy review",
+          status,
+        },
+      }).catch(() => {});
+    }
 
     return NextResponse.json({
       success: true,

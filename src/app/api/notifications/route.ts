@@ -27,10 +27,17 @@ export async function GET() {
       title: n.title,
       body: n.body,
       type: n.type,
+      category: n.category || "SYSTEM",
+      priority: n.priority || "NORMAL",
       read: n.read,
+      ctaText: n.ctaText || "View Details",
+      ctaUrl: n.ctaUrl || getNotificationLink(n.type, authUser.role),
+      link: n.ctaUrl || getNotificationLink(n.type, authUser.role),
+      metadata: n.metadata ? (typeof n.metadata === "string" ? JSON.parse(n.metadata) : n.metadata) : null,
+      emailStatus: n.emailStatus || "NOT_QUEUED",
+      deliveredAt: n.deliveredAt ? n.deliveredAt.toISOString() : null,
       createdAt: n.createdAt.toISOString(),
       time: formatRelativeTime(n.createdAt),
-      link: getNotificationLink(n.type, authUser.role),
     }));
 
     return NextResponse.json({

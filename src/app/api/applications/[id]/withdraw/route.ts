@@ -38,7 +38,40 @@ export async function POST(
           },
         },
       },
+      include: {
+        job: { select: { title: true, recruiterId: true, companyId: true } },
+      },
     });
+
+    // Asynchronously dispatch application withdrawal events
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+
+    // Notify candidate
+    emitEvent({
+      type: "SEEKER_APPLICATION_WITHDRAWN",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      entityType: "Application",
+      entityId: id,
+      metadata: { jobTitle: updated.job?.title },
+    }).catch(() => {});
+
+    // Notify recruiter
+    if (updated.job?.recruiterId) {
+      emitEvent({
+        type: "RECRUITER_CANDIDATE_WITHDREW",
+        recipientId: updated.job.recruiterId,
+        actorId: authUser.id,
+        actorName: authUser.name,
+        entityType: "Application",
+        entityId: id,
+        metadata: {
+          candidateName: authUser.name,
+          jobTitle: updated.job.title,
+          companyId: updated.job.companyId,
+        },
+      }).catch(() => {});
+    }
 
     return NextResponse.json({
       success: true,

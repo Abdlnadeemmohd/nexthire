@@ -49,6 +49,21 @@ export async function POST(
       await consumeCandidateUnlock(authUser.id, candidateId);
     }
 
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    emitEvent({
+      type: "RECRUITER_CANDIDATE_UNLOCKED",
+      recipientId: authUser.id,
+      recipientEmail: authUser.email,
+      companyId: authUser.companyId || undefined,
+      entityType: "User",
+      entityId: candidate.id,
+      title: `Candidate Unlocked: ${candidate.name}`,
+      body: `You have unlocked the full profile and contact information for ${candidate.name} (${candidate.headline || "Candidate"}).`,
+      ctaText: "View Profile",
+      ctaUrl: `/recruiter/candidates?id=${candidate.id}`,
+      metadata: { candidateId: candidate.id, candidateName: candidate.name },
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       message: `Candidate profile unlocked successfully.`,

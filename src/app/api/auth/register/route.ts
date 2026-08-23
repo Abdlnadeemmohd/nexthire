@@ -146,6 +146,42 @@ export async function POST(request: Request) {
       role: authUser.role,
     });
 
+    // Asynchronously dispatch account lifecycle events via EventEngine
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    if (userRole === "JOB_SEEKER") {
+      emitEvent({
+        type: "SEEKER_ACCOUNT_CREATED",
+        recipientId: userId,
+        recipientEmail: normalizedEmail,
+        metadata: {
+          name,
+          role: userRole,
+          registeredAt: new Date().toISOString(),
+        },
+      }).catch((e) => console.warn("[Register] Event emission note:", e));
+
+      emitEvent({
+        type: "SEEKER_WELCOME",
+        recipientId: userId,
+        recipientEmail: normalizedEmail,
+        metadata: { name },
+      }).catch((e) => console.warn("[Register] Event emission note:", e));
+    } else if (userRole === "RECRUITER") {
+      emitEvent({
+        type: "RECRUITER_REGISTERED",
+        recipientId: userId,
+        recipientEmail: normalizedEmail,
+        metadata: { name, companyName, role: userRole },
+      }).catch((e) => console.warn("[Register] Event emission note:", e));
+
+      emitEvent({
+        type: "RECRUITER_WELCOME",
+        recipientId: userId,
+        recipientEmail: normalizedEmail,
+        metadata: { name, companyName },
+      }).catch((e) => console.warn("[Register] Event emission note:", e));
+    }
+
     const response = NextResponse.json(
       { success: true, user: authUser },
       { status: 201, headers: { "Content-Type": "application/json" } }

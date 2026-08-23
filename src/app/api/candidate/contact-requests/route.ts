@@ -69,7 +69,41 @@ export async function POST(request: Request) {
         status,
         respondedAt: new Date(),
       },
+      include: {
+        recruiter: true,
+      },
     });
+
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    if (status.startsWith("ACCEPTED")) {
+      emitEvent({
+        type: "RECRUITER_CONTACT_REQUEST_ACCEPTED",
+        recipientId: updated.recruiterId,
+        recipientEmail: updated.recruiter.email,
+        companyId: updated.recruiter.companyId || undefined,
+        entityType: "ContactRequest",
+        entityId: updated.id,
+        title: `Contact Request Accepted by ${authUser.name}`,
+        body: `${authUser.name} has accepted your contact inquiry and granted direct contact consent.`,
+        ctaText: "View Candidate Details",
+        ctaUrl: `/recruiter/candidates?id=${authUser.id}`,
+        metadata: { candidateId: authUser.id, candidateName: authUser.name, status },
+      }).catch(() => {});
+    } else {
+      emitEvent({
+        type: "RECRUITER_CONTACT_REQUEST_DECLINED",
+        recipientId: updated.recruiterId,
+        recipientEmail: updated.recruiter.email,
+        companyId: updated.recruiter.companyId || undefined,
+        entityType: "ContactRequest",
+        entityId: updated.id,
+        title: `Contact Request Declined`,
+        body: `${authUser.name} declined direct contact sharing at this time. You can still message via platform chat.`,
+        ctaText: "Open Messages",
+        ctaUrl: `/messages?contactId=${authUser.id}`,
+        metadata: { candidateId: authUser.id, candidateName: authUser.name },
+      }).catch(() => {});
+    }
 
     return NextResponse.json({
       success: true,

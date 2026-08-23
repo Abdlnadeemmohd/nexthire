@@ -58,15 +58,19 @@ export async function POST(
       },
     });
 
-    // Notify candidate
-    await notificationService.sendNotification({
-      userId: candidateId,
-      title: "New Recruiter Contact Request",
-      body: `${authUser.name} requested your direct contact details. Review in your Profile privacy center.`,
-      type: "SYSTEM",
-      ctaText: "Manage Privacy",
-      ctaUrl: "/profile",
-    });
+    // Notify candidate via EventEngine
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    emitEvent({
+      type: "SEEKER_RECRUITER_INQUIRY",
+      recipientId: candidateId,
+      actorId: authUser.id,
+      actorName: authUser.name,
+      metadata: {
+        recruiterName: authUser.name,
+        companyName: authUser.companyName || "Verified Employer",
+        message: message.substring(0, 100),
+      },
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,

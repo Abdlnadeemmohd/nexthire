@@ -76,19 +76,31 @@ export async function PATCH(request: Request) {
       include: { users: true },
     });
 
-    // 1. Notify all recruiters belonging to this company
-    const verifiedLabel = Boolean(isVerified) ? "verified" : "updated";
+    // 1. Dispatch typed EventEngine events to all recruiters belonging to this company
+    const { emitEvent } = await import("@/lib/events/eventEngine");
+    const eventType = Boolean(isVerified)
+      ? "RECRUITER_COMPANY_VERIFIED"
+      : "RECRUITER_COMPANY_VERIFICATION_REJECTED";
+
     for (const user of updated.users) {
       if (user.role === "RECRUITER" || user.role === "COMPANY_ADMIN") {
-        await notificationService.sendNotification({
-          userId: user.id,
-          userEmail: user.email,
-          title: `Company Verification Status Updated`,
-          body: `Your employer organization "${updated.name}" has been ${verifiedLabel} by NextHire platform governance.`,
-          type: "SYSTEM",
+        emitEvent({
+          type: eventType,
+          recipientId: user.id,
+          recipientEmail: user.email,
+          companyId: updated.id,
+          entityType: "Company",
+          entityId: updated.id,
+          title: Boolean(isVerified)
+            ? `🎉 ${updated.name} is now a Verified Employer!`
+            : `Company Verification Status: ${updated.name}`,
+          body: Boolean(isVerified)
+            ? `Your organization has received the official Verified Badge on NextHire.`
+            : `Company verification review was not approved at this time. Please check your company details.`,
           ctaText: "View Company Profile",
           ctaUrl: "/recruiter/company",
-        });
+          metadata: { companyId: updated.id, companyName: updated.name, isVerified: Boolean(isVerified) },
+        }).catch(() => {});
       }
     }
 
