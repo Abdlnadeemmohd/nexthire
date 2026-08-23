@@ -21,7 +21,7 @@ jobs:
       - name: Trigger SLA & Operational Health Endpoint
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          ENDPOINT_URL: https://nexthire.cloud/api/jobs/sla-check
+          ENDPOINT_URL: https://www.nexthire.cloud/api/jobs/sla-check
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "::error::CRON_SECRET is not configured in GitHub Actions Repository Secrets."
@@ -30,7 +30,7 @@ jobs:
 
           echo "Triggering NextHire production SLA scanner at $(date -u +'%Y-%m-%dT%H:%M:%SZ')..."
 
-          HTTP_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+          HTTP_RESPONSE=$(curl -s -L --max-redirs 3 -w "\nHTTP_STATUS:%{http_code}" \
             -X POST "$ENDPOINT_URL" \
             -H "Authorization: Bearer $CRON_SECRET" \
             -H "Content-Type: application/json" \
