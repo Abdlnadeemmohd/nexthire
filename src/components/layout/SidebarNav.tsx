@@ -69,6 +69,9 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           items: [
             { label: "Home", href: "/recruiter", icon: "home" },
             { label: "Recruiter Copilot", href: "/recruiter/copilot", icon: "smart_toy" },
+            { label: "Funnel Intelligence", href: "/recruiter/intelligence", icon: "insights" },
+            { label: "Market Intelligence", href: "/recruiter/market-intelligence", icon: "travel_explore" },
+            { label: "Recruiting Team", href: "/recruiter/team", icon: "groups" },
             { label: "Talent Radar", href: "/recruiter/talent-radar", icon: "radar" },
             { label: "AI Outreach", href: "/recruiter/outreach", icon: "campaign" },
             { label: "Skills Assessments", href: "/recruiter/assessments", icon: "verified" },

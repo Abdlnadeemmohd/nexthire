@@ -364,6 +364,286 @@ export function parseRecruiterIntent(rawPrompt: string): {
     };
   }
 
+  // 7b. Check for Phase 12 Market & Talent Supply Intelligence Intents
+  const marketRole = extractRole(cleanPrompt);
+
+  if (
+    norm.includes("supply problem or funnel problem") ||
+    norm.includes("supply vs funnel") ||
+    norm.includes("supply or funnel") ||
+    norm.includes("source more candidates or fix the funnel") ||
+    norm.includes("talent supply problem or a funnel problem") ||
+    norm.includes("supply or conversion bottleneck")
+  ) {
+    return { intent: "GET_SUPPLY_VS_FUNNEL", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("which requirements are restricting") ||
+    norm.includes("limiting my candidate pool") ||
+    norm.includes("restricting the talent pool") ||
+    norm.includes("requirement strictness") ||
+    norm.includes("should i loosen the experience") ||
+    norm.includes("relax requirements") ||
+    norm.includes("relax skill requirement")
+  ) {
+    return { intent: "GET_REQUIREMENT_STRICTNESS", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("sourcing strategy") ||
+    norm.includes("what sourcing strategy") ||
+    norm.includes("how should i source") ||
+    norm.includes("sourcing recommendations")
+  ) {
+    return { intent: "GET_SOURCING_STRATEGY", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("which skills are scarce") ||
+    norm.includes("skill scarcity") ||
+    norm.includes("how scarce is") ||
+    norm.includes("abundant vs scarce") ||
+    norm.includes("how much postgresql talent") ||
+    norm.includes("how much react talent") ||
+    norm.includes("how much python talent")
+  ) {
+    return { intent: "GET_SKILL_SCARCITY", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("which locations have the most") ||
+    norm.includes("where is talent concentrated") ||
+    norm.includes("location supply") ||
+    norm.includes("geographic concentration") ||
+    norm.includes("should i expand my location") ||
+    norm.includes("where is relevant talent geographically")
+  ) {
+    return { intent: "GET_LOCATION_SUPPLY", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("how much remote") ||
+    norm.includes("remote capable talent") ||
+    norm.includes("remote supply") ||
+    norm.includes("remote talent exists")
+  ) {
+    return { intent: "GET_REMOTE_SUPPLY", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("seniority distribution") ||
+    norm.includes("experience distribution") ||
+    norm.includes("how hard is it to hire senior") ||
+    norm.includes("seniority breakdown")
+  ) {
+    return { intent: "GET_SENIORITY_SUPPLY", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("has talent supply changed") ||
+    norm.includes("market trends") ||
+    norm.includes("talent supply trends") ||
+    norm.includes("talent growth over time") ||
+    norm.includes("last 90 days") ||
+    norm.includes("last 30 days")
+  ) {
+    return { intent: "GET_MARKET_TRENDS", targetJobQuery: marketRole };
+  }
+
+  if (
+    norm.includes("how much relevant talent exists") ||
+    norm.includes("how much qualified talent exists") ||
+    norm.includes("how many matching candidates on platform") ||
+    norm.includes("talent supply") ||
+    norm.includes("talent pool size")
+  ) {
+    return { intent: "GET_TALENT_SUPPLY", targetJobQuery: marketRole };
+  }
+
+  // 7c. Check for Phase 11 Hiring Funnel & Strategy Intents
+  if (
+    norm.includes("what should i focus on today") ||
+    norm.includes("what should i do today") ||
+    norm.includes("what should i do next") ||
+    norm.includes("recommended actions") ||
+    norm.includes("priority actions") ||
+    norm.includes("action plan")
+  ) {
+    return { intent: "GET_RECOMMENDED_ACTIONS", targetJobQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("which jobs are at risk") ||
+    norm.includes("jobs at risk") ||
+    norm.includes("hiring target risk") ||
+    norm.includes("missing their hiring target") ||
+    norm.includes("hiring risks")
+  ) {
+    return { intent: "GET_HIRING_RISKS", targetJobQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("compare hiring funnel") ||
+    norm.includes("compare funnel") ||
+    norm.includes("compare with historical") ||
+    norm.includes("historical benchmark")
+  ) {
+    return { intent: "COMPARE_HIRING_FUNNEL", targetJobQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("where are we losing candidates") ||
+    norm.includes("funnel breakdown") ||
+    norm.includes("hiring funnel") ||
+    norm.includes("unhealthy funnel") ||
+    norm.includes("which funnel is unhealthy")
+  ) {
+    return { intent: "GET_HIRING_FUNNEL", targetJobQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("find bottlenecks") ||
+    norm.includes("bottleneck detection") ||
+    norm.includes("pipeline bottlenecks") ||
+    norm.includes("where is the funnel breaking")
+  ) {
+    return { intent: "GET_BOTTLENECKS", targetJobQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("stalled candidates") ||
+    norm.includes("candidates stuck") ||
+    norm.includes("stuck in pipeline") ||
+    norm.includes("which candidates require attention") ||
+    norm.includes("candidates needing attention")
+  ) {
+    return { intent: "GET_STALLED_CANDIDATES", targetJobQuery: cleanPrompt };
+  }
+
+  // ---------------------------------------------------------------------------
+  // PHASE 13: RECRUITER GROWTH, TEAM COLLABORATION & HIRING OPERATIONS
+  // ---------------------------------------------------------------------------
+  if (
+    norm.includes("who is overloaded") ||
+    norm.includes("team workload") ||
+    norm.includes("recruiter capacity") ||
+    norm.includes("workload distribution")
+  ) {
+    return { intent: "GET_TEAM_WORKLOAD" };
+  }
+
+  if (
+    norm.includes("which candidates are unassigned") ||
+    norm.includes("unassigned candidates") ||
+    norm.includes("unassigned work") ||
+    norm.includes("unassigned jobs") ||
+    norm.includes("candidates without owner") ||
+    norm.includes("who owns this candidate")
+  ) {
+    return { intent: "GET_UNASSIGNED_WORK", targetCandidateQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("who has capacity") ||
+    norm.includes("who has bandwidth") ||
+    norm.includes("recruiter capacity") ||
+    norm.includes("available recruiters")
+  ) {
+    return { intent: "GET_RECRUITER_CAPACITY" };
+  }
+
+  if (
+    norm.includes("candidate handoffs") ||
+    norm.includes("handoffs") ||
+    norm.includes("pending handoffs") ||
+    norm.includes("which handoffs are overdue") ||
+    norm.includes("stuck handoffs")
+  ) {
+    return { intent: "GET_HANDOFFS" };
+  }
+
+  if (
+    norm.includes("duplicate work") ||
+    norm.includes("duplicating work") ||
+    norm.includes("duplicate outreach") ||
+    norm.includes("overlapping candidates") ||
+    norm.includes("concurrent outreach")
+  ) {
+    return { intent: "GET_DUPLICATE_WORK", targetCandidateQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("team funnel") ||
+    norm.includes("team conversion") ||
+    norm.includes("team performance") ||
+    norm.includes("how is our recruiting team converting") ||
+    norm.includes("team throughput") ||
+    norm.includes("team metrics")
+  ) {
+    return { intent: "GET_TEAM_FUNNEL", targetJobQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("team activity") ||
+    norm.includes("what is the team doing") ||
+    norm.includes("recent team activity") ||
+    norm.includes("team log")
+  ) {
+    return { intent: "GET_TEAM_ACTIVITY" };
+  }
+
+  if (
+    norm.includes("who should take this candidate") ||
+    norm.includes("who should own this candidate") ||
+    norm.includes("who should handle the next task") ||
+    norm.includes("recommend recruiter for") ||
+    norm.includes("suggest owner for") ||
+    norm.includes("assignment recommendation") ||
+    norm.includes("assign candidate to") ||
+    norm.includes("best recruiter for")
+  ) {
+    return { intent: "GET_ASSIGNMENT_RECOMMENDATION", targetCandidateQuery: cleanPrompt };
+  }
+
+  if (
+    norm.includes("team bottlenecks") ||
+    norm.includes("where is collaboration slowing") ||
+    norm.includes("where are recruiter handoffs breaking") ||
+    norm.includes("team pipeline issues") ||
+    norm.includes("where is the team struggling")
+  ) {
+    return { intent: "GET_TEAM_BOTTLENECKS" };
+  }
+
+  if (
+    norm.includes("what should the team focus on") ||
+    norm.includes("team priorities") ||
+    norm.includes("collaboration priorities") ||
+    norm.includes("show me today's team priorities") ||
+    norm.includes("team focus") ||
+    norm.includes("what is our team goal today")
+  ) {
+    return { intent: "GET_COLLABORATION_ACTIONS" };
+  }
+
+  if (
+    norm.includes("recruiter workload") ||
+    norm.includes("my workload") ||
+    norm.includes("which recruiters are overloaded") ||
+    norm.includes("am i overloaded")
+  ) {
+    return { intent: "GET_RECRUITER_WORKLOAD" };
+  }
+
+  if (
+    norm.includes("job health") ||
+    norm.includes("health of my jobs") ||
+    norm.includes("how healthy are my jobs")
+  ) {
+    return { intent: "GET_JOB_HEALTH", targetJobQuery: cleanPrompt };
+  }
+
   // 8. Check for Recruiter Metrics Intent
   if (
     norm.includes("how many candidates are currently in my pipeline") ||
@@ -404,3 +684,5 @@ export function parseRecruiterIntent(rawPrompt: string): {
     },
   };
 }
+
+export const parseIntent = parseRecruiterIntent;

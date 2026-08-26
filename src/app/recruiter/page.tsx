@@ -183,6 +183,27 @@ export default function RecruiterDashboardPage() {
                   Recruiter Copilot
                 </Link>
                 <Link
+                  href="/recruiter/intelligence"
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-white font-label-md font-bold text-xs rounded-full border border-amber-500/20 transition-all flex items-center gap-1.5 touch-target shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base">insights</span>
+                  Funnel Intelligence
+                </Link>
+                <Link
+                  href="/recruiter/market-intelligence"
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-500 hover:text-white font-label-md font-bold text-xs rounded-full border border-indigo-500/20 transition-all flex items-center gap-1.5 touch-target shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base">travel_explore</span>
+                  Market Intelligence
+                </Link>
+                <Link
+                  href="/recruiter/team"
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-600 hover:text-white font-label-md font-bold text-xs rounded-full border border-blue-500/20 transition-all flex items-center gap-1.5 touch-target shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base">groups</span>
+                  Recruiting Team
+                </Link>
+                <Link
                   href="/recruiter/talent-radar"
                   className="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/10 hover:bg-primary text-primary hover:text-on-primary font-label-md font-bold text-xs rounded-full border border-primary/20 transition-all flex items-center gap-1.5 touch-target shadow-xs"
                 >
