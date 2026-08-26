@@ -363,7 +363,7 @@ export async function POST(request: Request) {
     for (const interview of pastInterviews) {
       if (interview.application.job.recruiterId && interview.application.job.recruiter) {
         emitEvent({
-          type: "RECRUITER_INTERVIEW_FEEDBACK_OVERDUE",
+          type: "INTERVIEW_FEEDBACK_OVERDUE",
           recipientId: interview.application.job.recruiterId,
           recipientEmail: interview.application.job.recruiter.email,
           companyId: interview.application.job.companyId,
@@ -372,7 +372,7 @@ export async function POST(request: Request) {
           title: `Interview Scorecard Overdue: ${interview.application.applicant.name}`,
           body: `Please submit evaluation notes for the completed interview round with ${interview.application.applicant.name} (${interview.application.job.title}).`,
           ctaText: "Submit Scorecard",
-          ctaUrl: "/recruiter/applicants",
+          ctaUrl: `/recruiter/interviews?interviewId=${interview.id}`,
           metadata: { interviewId: interview.id, applicantId: interview.application.applicantId },
         }).catch(() => {});
       }
@@ -493,7 +493,11 @@ export async function POST(request: Request) {
       await generateWeeklyIntelligenceDigest(rec.id, rec.companyId);
     }
 
-    // 11. Admin Operational Background Checks
+    // 14. Outreach Sequence Follow-Up Dispatcher
+    const { processScheduledOutreachFollowUps } = await import("@/lib/outreach/outreachEngine");
+    const followUpResults = await processScheduledOutreachFollowUps().catch(() => ({ scannedCount: 0, dispatchedFollowUps: 0 }));
+
+    // 15. Admin Operational Background Checks
     await detectApiFailureSpikes();
     await detectPaymentFailureSpikes();
     if (now.getDay() === 0) {
@@ -510,6 +514,7 @@ export async function POST(request: Request) {
       upcoming1hInterviewsCount: upcoming1hInterviews.length,
       unreadMessagesCount: unreadMessages.length,
       approachingOffersCount: approachingOffers.length,
+      outreachFollowUpsDispatched: followUpResults.dispatchedFollowUps,
     });
   } catch (err: any) {
     console.error("[POST /api/jobs/sla-check Error]:", err);

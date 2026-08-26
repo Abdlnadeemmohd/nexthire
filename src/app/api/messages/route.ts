@@ -154,6 +154,11 @@ export async function POST(request: Request) {
       ? "SEEKER_MESSAGE_RECEIVED"
       : (isCandidateReply ? "RECRUITER_CANDIDATE_REPLY" : "RECRUITER_MESSAGE_RECEIVED");
 
+    if (isCandidateReply) {
+      const { handleCandidateReply } = await import("@/lib/outreach/outreachEngine");
+      handleCandidateReply(authUser.id, sanitized, createdMessage.id).catch(() => {});
+    }
+
     emitEvent({
       type: eventType,
       recipientId: receiver.id,

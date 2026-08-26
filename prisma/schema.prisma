@@ -41,6 +41,17 @@ model User {
   receivedContactRequests ContactRequest[] @relation("ReceivedContactRequests")
   resumeAccessLogs ResumeAccessLog[] @relation("RecruiterResumeLogs")
   resumeTargetLogs ResumeAccessLog[] @relation("CandidateResumeLogs")
+  createdAssessments Assessment[] @relation("RecruiterAssessments")
+  assessmentInvitations AssessmentInvitation[] @relation("CandidateInvitations")
+  assessmentSubmissions AssessmentSubmission[] @relation("CandidateSubmissions")
+  createdOutreachCampaigns OutreachCampaign[] @relation("RecruiterOutreachCampaigns")
+  outreachRecipients       OutreachRecipient[] @relation("CandidateOutreachRecipients")
+  candidateCommunicationPreference CandidateCommunicationPreference?
+  candidateInterviewPlans  InterviewPlan[] @relation("CandidateInterviewPlans")
+  candidateScorecards      InterviewScorecard[] @relation("CandidateScorecards")
+  interviewerScorecards    InterviewScorecard[] @relation("InterviewerScorecards")
+  candidateDecisions       InterviewDecision[] @relation("CandidateDecisions")
+  decidedInterviews        InterviewDecision[] @relation("DecidedInterviews")
   company          Company?       @relation(fields: [companyId], references: [id])
 }
 
@@ -91,6 +102,12 @@ model Company {
   users         User[]
   trials        RecruiterTrial[]
   subscriptions Subscription[]
+  assessments   Assessment[]
+  assessmentInvitations AssessmentInvitation[]
+  outreachCampaigns OutreachCampaign[]
+  interviewPlans    InterviewPlan[]
+  interviewScorecards InterviewScorecard[]
+  interviewDecisions  InterviewDecision[]
 }
 
 model Job {
@@ -116,6 +133,10 @@ model Job {
   companyId        String
   recruiterId      String
   applications     Application[]
+  assessments      Assessment[]
+  outreachCampaigns OutreachCampaign[]
+  interviewPlans    InterviewPlan[]
+  interviewDecisions InterviewDecision[]
   company          Company        @relation(fields: [companyId], references: [id])
   recruiter        User           @relation("RecruiterJobs", fields: [recruiterId], references: [id])
   savedBy          SavedJob[]
@@ -145,6 +166,10 @@ model Application {
   interviews  Interview[]
   offer       Offer?
   rejection   Rejection?
+  assessmentInvitations AssessmentInvitation[]
+  outreachRecipients    OutreachRecipient[]
+  interviewScorecards   InterviewScorecard[]
+  interviewDecisions    InterviewDecision[]
 }
 
 model SavedJob {
@@ -174,6 +199,9 @@ model Interview {
   createdAt     DateTime        @default(now())
   applicationId String
   application   Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  plan          InterviewPlan?
+  scorecards    InterviewScorecard[]
+  summary       InterviewSummary?
 }
 
 model Message {
@@ -544,4 +572,459 @@ enum ContactRequestStatus {
   ACCEPTED_PHONE
   ACCEPTED_ALL
   DECLINED
+}
+
+enum AssessmentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuestionType {
+  KNOWLEDGE
+  SCENARIO
+  PRACTICAL
+  DEBUGGING
+}
+
+enum InvitationStatus {
+  PENDING
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  CANCELLED
+}
+
+enum SubmissionStatus {
+  UNDER_REVIEW
+  EVALUATED
+  VERIFIED
+}
+
+model Assessment {
+  id              String             @id @default(uuid())
+  title           String
+  description     String
+  category        String             @default("General Technical")
+  durationMinutes Int                @default(45)
+  passingScore    Int                @default(70)
+  status          AssessmentStatus   @default(DRAFT)
+  companyId       String
+  jobId           String?
+  createdById     String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  job             Job?               @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdBy       User               @relation("RecruiterAssessments", fields: [createdById], references: [id], onDelete: Cascade)
+  questions       AssessmentQuestion[]
+  invitations     AssessmentInvitation[]
+  submissions     AssessmentSubmission[]
+
+  @@index([companyId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model AssessmentQuestion {
+  id           String       @id @default(uuid())
+  assessmentId String
+  category     String
+  type         QuestionType @default(KNOWLEDGE)
+  question     String
+  codeSnippet  String?
+  sampleAnswer String?
+  rubric       String       @default("[]") // JSON array of criteria [{ name, maxScore, description }]
+  maxScore     Int          @default(20)
+  order        Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  assessment   Assessment   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  answers      AssessmentAnswer[]
+
+  @@index([assessmentId])
+}
+
+model AssessmentInvitation {
+  id            String             @id @default(uuid())
+  assessmentId  String
+  applicationId String?
+  candidateId   String
+  companyId     String
+  status        InvitationStatus   @default(PENDING)
+  deadline      DateTime
+  invitedAt     DateTime           @default(now())
+  startedAt     DateTime?
+  submittedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  assessment    Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  application   Application?       @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  candidate     User               @relation("CandidateInvitations", fields: [candidateId], references: [id], onDelete: Cascade)
+  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  submission    AssessmentSubmission?
+
+  @@index([assessmentId])
+  @@index([candidateId])
+  @@index([companyId])
+  @@index([applicationId])
+  @@index([status])
+}
+
+model AssessmentSubmission {
+  id                      String           @id @default(uuid())
+  invitationId            String           @unique
+  assessmentId            String
+  candidateId             String
+  overallScore            Int              @default(0)
+  categoryScores          String           @default("{}") // JSON: { [category]: score }
+  evidenceSummary         String           @default("{}") // JSON: { demonstrated: [], partial: [], missing: [], inconsistencies: [] }
+  skillVerificationMatrix  String           @default("[]") // JSON: [{ skill, resumeClaim, assessmentEvidence, confidence }]
+  recommendedQuestions    String           @default("[]") // JSON: [{ skill, question, rationale }]
+  status                  SubmissionStatus @default(UNDER_REVIEW)
+  submittedAt             DateTime         @default(now())
+  evaluatedAt             DateTime?
+  invitation              AssessmentInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  assessment              Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  candidate               User             @relation("CandidateSubmissions", fields: [candidateId], references: [id], onDelete: Cascade)
+  answers                 AssessmentAnswer[]
+
+  @@index([assessmentId])
+  @@index([candidateId])
+  @@index([status])
+}
+
+model AssessmentAnswer {
+  id             String               @id @default(uuid())
+  submissionId   String
+  questionId     String
+  answerText     String
+  score          Int                  @default(0)
+  feedback       String?
+  evidencePoints String               @default("[]") // JSON string array
+  gapPoints      String               @default("[]") // JSON string array
+  createdAt      DateTime             @default(now())
+  submission     AssessmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question       AssessmentQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@index([questionId])
+}
+
+enum OutreachCampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum OutreachMessageType {
+  INITIAL_OUTREACH
+  FOLLOW_UP
+  VALUE_FOLLOW_UP
+  FINAL_FOLLOW_UP
+  INTERVIEW_INVITATION
+  ASSESSMENT_INVITATION
+}
+
+enum PersonalizationLevel {
+  STANDARD
+  PERSONALIZED
+  EVIDENCE_BASED
+}
+
+enum OutreachRecipientStatus {
+  DRAFT
+  APPROVED
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  REPLIED
+  BOUNCED
+  OPTED_OUT
+  PAUSED
+  CANCELLED
+}
+
+enum ResponseClassification {
+  POSITIVE_INTEREST
+  NEGATIVE
+  REQUEST_MORE_INFORMATION
+  REQUEST_SALARY
+  REQUEST_JOB_DETAILS
+  NOT_AVAILABLE
+  INTERESTED_LATER
+  NEEDS_CLARIFICATION
+  UNKNOWN
+}
+
+enum EngagementIntent {
+  HIGH_INTENT
+  MODERATE_INTENT
+  LOW_INTENT
+  NO_RESPONSE
+  OPTED_OUT
+}
+
+model OutreachCampaign {
+  id            String                 @id @default(uuid())
+  name          String
+  description   String?
+  status        OutreachCampaignStatus @default(DRAFT)
+  companyId     String
+  recruiterId   String
+  jobId         String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  company       Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  recruiter     User                   @relation("RecruiterOutreachCampaigns", fields: [recruiterId], references: [id], onDelete: Cascade)
+  job           Job?                   @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  sequenceSteps OutreachSequenceStep[]
+  recipients    OutreachRecipient[]
+
+  @@index([companyId])
+  @@index([recruiterId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model OutreachSequenceStep {
+  id                   String               @id @default(uuid())
+  campaignId           String
+  stepOrder            Int                  @default(1) // 1, 2, 3, 4
+  delayDays            Int                  @default(0) // 0, 3, 7, 14
+  messageType          OutreachMessageType  @default(INITIAL_OUTREACH)
+  personalizationLevel PersonalizationLevel @default(PERSONALIZED)
+  subjectTemplate      String
+  bodyTemplate         String
+  isEnabled            Boolean              @default(true)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  campaign             OutreachCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  messages             OutreachMessage[]
+
+  @@index([campaignId])
+  @@index([stepOrder])
+}
+
+model OutreachRecipient {
+  id                     String                  @id @default(uuid())
+  campaignId             String
+  candidateId            String
+  applicationId          String?
+  status                 OutreachRecipientStatus @default(DRAFT)
+  currentStep            Int                     @default(1)
+  nextActionAt           DateTime?
+  lastContactedAt        DateTime?
+  repliedAt              DateTime?
+  responseClassification ResponseClassification?
+  responseSentiment      String?
+  recommendedNextAction  String?
+  engagementIntent       EngagementIntent?
+  optedOutAt             DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  campaign               OutreachCampaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  candidate              User                    @relation("CandidateOutreachRecipients", fields: [candidateId], references: [id], onDelete: Cascade)
+  application            Application?            @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  messages               OutreachMessage[]
+
+  @@unique([campaignId, candidateId])
+  @@index([campaignId])
+  @@index([candidateId])
+  @@index([status])
+  @@index([nextActionAt])
+}
+
+model OutreachMessage {
+  id                String                  @id @default(uuid())
+  recipientId       String
+  stepId            String?
+  subject           String
+  body              String
+  status            OutreachRecipientStatus @default(DRAFT)
+  emailId           String?
+  inAppMessageId    String?
+  recruiterApproved Boolean                 @default(false)
+  approvedAt        DateTime?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  failedAt          DateTime?
+  errorMessage      String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  recipient         OutreachRecipient       @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  step              OutreachSequenceStep?   @relation(fields: [stepId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId])
+  @@index([stepId])
+  @@index([status])
+  @@index([emailId])
+}
+
+model CandidateCommunicationPreference {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  optedOutOutreach   Boolean  @default(false)
+  allowEmailOutreach Boolean  @default(true)
+  allowInAppOutreach Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum CompetencyVerificationStatus {
+  VERIFIED
+  PARTIALLY_VERIFIED
+  UNVERIFIED
+}
+
+enum InterviewerRecommendation {
+  STRONG_YES
+  YES
+  MAYBE
+  NO
+  STRONG_NO
+}
+
+enum InterviewDecisionType {
+  ADVANCE
+  HOLD
+  REJECT
+  OFFER
+  WITHDRAW
+}
+
+enum EvidenceQualityLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model InterviewPlan {
+  id              String   @id @default(uuid())
+  interviewId     String   @unique
+  companyId       String
+  jobId           String?
+  candidateId     String
+  interviewType   String   @default("TECHNICAL")
+  durationMinutes Int      @default(45)
+  objectives      String   @default("[]") // JSON string array
+  competencies    String   @default("[]") // JSON string array of evaluated competencies
+  questions       String   @default("[]") // JSON array: [{ category, question, followUp, evidenceToLookFor, redFlags, verificationStatus }]
+  unverifiedGaps  String   @default("[]") // JSON string array
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  interview       Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  job             Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  candidate       User      @relation("CandidateInterviewPlans", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId])
+  @@index([companyId])
+  @@index([candidateId])
+  @@index([jobId])
+}
+
+model InterviewScorecard {
+  id                    String                    @id @default(uuid())
+  interviewId           String
+  companyId             String
+  applicationId         String
+  candidateId           String
+  interviewerId         String
+  overallRecommendation InterviewerRecommendation @default(YES)
+  strongestEvidence     String?
+  biggestConcern        String?
+  rawNotes              String?
+  structuredNotes       String?                   @default("{}") // JSON: { strengths: [], concerns: [], observedEvidence: [], unverifiedAreas: [], followUpQuestions: [] }
+  isComplete            Boolean                   @default(false)
+  submittedAt           DateTime?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  interview             Interview                 @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  company               Company                   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  application           Application               @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  candidate             User                      @relation("CandidateScorecards", fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewer           User                      @relation("InterviewerScorecards", fields: [interviewerId], references: [id], onDelete: Cascade)
+  scores                InterviewScore[]
+
+  @@unique([interviewId, interviewerId])
+  @@index([interviewId])
+  @@index([companyId])
+  @@index([candidateId])
+  @@index([interviewerId])
+  @@index([applicationId])
+}
+
+model InterviewScore {
+  id                 String             @id @default(uuid())
+  scorecardId        String
+  competency         String             // e.g. "Technical Skills", "Problem Solving", "Communication", "Role Knowledge", "Ownership", "Leadership", "Relevant Experience"
+  score              Int                @default(3) // 1 to 5
+  observedEvidence   String?            // Concrete demonstrated facts
+  interviewerOpinion String?            // Subjective reviewer perception
+  aiInference        String?            // Synthesized analysis
+  confidence         String             @default("MEDIUM") // HIGH, MEDIUM, LOW
+  recommendation     String?
+  createdAt          DateTime           @default(now())
+
+  scorecard          InterviewScorecard @relation(fields: [scorecardId], references: [id], onDelete: Cascade)
+
+  @@index([scorecardId])
+}
+
+model InterviewSummary {
+  id                     String               @id @default(uuid())
+  interviewId            String               @unique
+  companyId              String
+  strengths              String               @default("[]") // JSON array of string statements with citations
+  concerns               String               @default("[]") // JSON array of string statements
+  verifiedCompetencies   String               @default("[]") // JSON array of strings
+  unverifiedCompetencies String               @default("[]") // JSON array of strings
+  recommendedFollowUp    String               @default("[]") // JSON array of strings
+  conflictingEvidence    String               @default("[]") // JSON array: [{ sourceA, sourceB, conflictDescription, clarificationQuestion }]
+  evidenceQuality        EvidenceQualityLevel @default(MEDIUM)
+  aiSynthesis            String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  interview              Interview            @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId])
+  @@index([companyId])
+}
+
+model InterviewDecision {
+  id                 String                @id @default(uuid())
+  applicationId      String
+  candidateId        String
+  jobId              String
+  companyId          String
+  decisionMakerId    String
+  decision           InterviewDecisionType @default(ADVANCE)
+  decisionReason     String
+  evidenceSummary    String                // Grounded summary of facts supporting decision
+  conflictingNotes   String?
+  confirmedAt        DateTime              @default(now())
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  application        Application           @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  candidate          User                  @relation("CandidateDecisions", fields: [candidateId], references: [id], onDelete: Cascade)
+  job                Job                   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  company            Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  decisionMaker      User                  @relation("DecidedInterviews", fields: [decisionMakerId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([candidateId])
+  @@index([jobId])
+  @@index([companyId])
+  @@index([decisionMakerId])
 }

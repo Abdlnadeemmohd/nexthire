@@ -176,6 +176,13 @@ export default function RecruiterDashboardPage() {
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <Link
+                  href="/recruiter/copilot"
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-primary to-primary-container text-on-primary font-label-md font-bold text-xs rounded-full transition-all flex items-center gap-1.5 touch-target shadow-md hover:opacity-90"
+                >
+                  <span className="material-symbols-outlined text-base">smart_toy</span>
+                  Recruiter Copilot
+                </Link>
+                <Link
                   href="/recruiter/talent-radar"
                   className="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/10 hover:bg-primary text-primary hover:text-on-primary font-label-md font-bold text-xs rounded-full border border-primary/20 transition-all flex items-center gap-1.5 touch-target shadow-xs"
                 >

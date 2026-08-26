@@ -36,6 +36,7 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
             { label: "Home", href: "/dashboard", icon: "home" },
             { label: "Search Jobs", href: "/jobs", icon: "search" },
             { label: "Application Tracker", href: "/applications", icon: "assignment" },
+            { label: "Skills Assessments", href: "/candidate/assessments", icon: "psychology" },
           ],
         },
         {
@@ -67,7 +68,11 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           title: "Navigation",
           items: [
             { label: "Home", href: "/recruiter", icon: "home" },
+            { label: "Recruiter Copilot", href: "/recruiter/copilot", icon: "smart_toy" },
             { label: "Talent Radar", href: "/recruiter/talent-radar", icon: "radar" },
+            { label: "AI Outreach", href: "/recruiter/outreach", icon: "campaign" },
+            { label: "Skills Assessments", href: "/recruiter/assessments", icon: "verified" },
+            { label: "Interview Intelligence", href: "/recruiter/interviews", icon: "video_camera_front" },
             { label: "Company Profile", href: "/recruiter/company", icon: "business" },
             { label: "My Recruiter Profile", href: "/recruiter/profile", icon: "badge" },
             { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },

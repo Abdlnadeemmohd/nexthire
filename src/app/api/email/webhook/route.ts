@@ -256,6 +256,65 @@ export async function POST(request: Request) {
           default:
             console.log(`[Resend Webhook] Unhandled event type: ${eventType}`);
         }
+
+        // Also update correlated OutreachMessage if applicable
+        let outreachMsgId: string | undefined;
+        try {
+          if (notification.metadata) {
+            const parsedMeta = JSON.parse(notification.metadata);
+            if (parsedMeta.entityType === "OutreachMessage" && parsedMeta.entityId) {
+              outreachMsgId = parsedMeta.entityId;
+            }
+          }
+        } catch {}
+
+        let outreachMsg = outreachMsgId
+          ? await prisma.outreachMessage.findUnique({
+              where: { id: outreachMsgId },
+              include: { recipient: true },
+            })
+          : null;
+
+        if (!outreachMsg && emailId) {
+          outreachMsg = await prisma.outreachMessage.findFirst({
+            where: { emailId },
+            include: { recipient: true },
+          });
+        }
+
+        if (outreachMsg) {
+          if (eventType === "email.delivered") {
+            await prisma.outreachMessage.update({
+              where: { id: outreachMsg.id },
+              data: {
+                status: "DELIVERED",
+                deliveredAt: emailData.created_at ? new Date(emailData.created_at) : new Date(),
+                emailId: emailId || outreachMsg.emailId,
+              },
+            });
+            if (outreachMsg.recipient && outreachMsg.recipient.status !== "REPLIED") {
+              await prisma.outreachRecipient.update({
+                where: { id: outreachMsg.recipientId },
+                data: { status: "DELIVERED" },
+              });
+            }
+          } else if (eventType === "email.bounced" || eventType === "email.failed") {
+            await prisma.outreachMessage.update({
+              where: { id: outreachMsg.id },
+              data: {
+                status: "FAILED",
+                failedAt: new Date(),
+                errorMessage: emailData.error?.message || emailData.bounce?.message || "Delivery failed",
+              },
+            });
+            if (outreachMsg.recipient && outreachMsg.recipient.status !== "REPLIED") {
+              await prisma.outreachRecipient.update({
+                where: { id: outreachMsg.recipientId },
+                data: { status: "BOUNCED" },
+              });
+            }
+          }
+        }
       }
     }
 
