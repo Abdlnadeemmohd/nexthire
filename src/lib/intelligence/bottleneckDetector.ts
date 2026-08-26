@@ -215,3 +215,5 @@ export async function detectCompanyBottlenecks(companyId: string): Promise<Bottl
 
   return allBottlenecks.sort((a, b) => severityRank[a.severity] - severityRank[b.severity]);
 }
+
+export const getCompanyBottlenecks = detectCompanyBottlenecks;

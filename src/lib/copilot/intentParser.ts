@@ -36,7 +36,7 @@ export function sanitizeCopilotPrompt(rawPrompt: string): string {
 function normalize(text: string): string {
   return (text || "")
     .toLowerCase()
-    .replace(/[-_./,\t]/g, " ")
+    .replace(/[?!;:\-_./,\t]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -171,6 +171,90 @@ export function parseRecruiterIntent(rawPrompt: string): {
 } {
   const cleanPrompt = sanitizeCopilotPrompt(rawPrompt);
   const norm = normalize(cleanPrompt);
+
+  // --- PHASE 14: EXECUTIVE HIRING INTELLIGENCE INTENTS ---
+  if (
+    norm.includes("executive overview") ||
+    norm.includes("current hiring situation") ||
+    norm.includes("overall hiring health") ||
+    norm.includes("executive summary") ||
+    norm.includes("overview for leadership")
+  ) {
+    return { intent: "GET_EXECUTIVE_OVERVIEW" };
+  }
+
+  if (
+    norm.includes("hiring plan") ||
+    norm.includes("hiring target") ||
+    norm.includes("hit our hiring target")
+  ) {
+    return { intent: "GET_HIRING_PLAN_STATUS" };
+  }
+
+  if (
+    norm.includes("hiring forecast") ||
+    norm.includes("projected completion") ||
+    norm.includes("forecast for open roles")
+  ) {
+    return { intent: "GET_HIRING_FORECAST" };
+  }
+
+  if (
+    norm.includes("executive risk") ||
+    norm.includes("hiring risk") ||
+    norm.includes("organizational risk") ||
+    norm.includes("risk radar") ||
+    norm.includes("risks should leadership know about")
+  ) {
+    return { intent: "GET_EXECUTIVE_HIRING_RISKS" };
+  }
+
+  if (
+    norm.includes("time to hire") ||
+    norm.includes("losing time in the hiring process") ||
+    norm.includes("time to fill")
+  ) {
+    return { intent: "GET_EXECUTIVE_TIME_TO_HIRE" };
+  }
+
+  if (
+    norm.includes("hiring efficiency") ||
+    norm.includes("funnel is least efficient") ||
+    norm.includes("pipeline efficiency")
+  ) {
+    return { intent: "GET_HIRING_EFFICIENCY" };
+  }
+
+  if (
+    norm.includes("sourcing channel") ||
+    norm.includes("source roi") ||
+    norm.includes("channel roi")
+  ) {
+    return { intent: "GET_SOURCE_ROI" };
+  }
+
+  if (
+    norm.includes("slowing hiring") ||
+    norm.includes("organizational bottleneck") ||
+    norm.includes("company bottleneck")
+  ) {
+    return { intent: "GET_ORGANIZATIONAL_BOTTLENECKS" };
+  }
+
+  if (
+    norm.includes("leadership focus") ||
+    norm.includes("executive recommendation")
+  ) {
+    return { intent: "GET_EXECUTIVE_RECOMMENDATIONS" };
+  }
+
+  if (
+    norm.includes("cost intelligence") ||
+    norm.includes("cost per hire") ||
+    norm.includes("recruiting spend")
+  ) {
+    return { intent: "GET_COST_INTELLIGENCE" };
+  }
 
   // 1. Check for Action Intent (Shortlist, Reject, Move Stage)
   if (
@@ -492,6 +576,14 @@ export function parseRecruiterIntent(rawPrompt: string): {
     return { intent: "COMPARE_HIRING_FUNNEL", targetJobQuery: cleanPrompt };
   }
 
+  // Team-scoped funnel: must be checked BEFORE generic "hiring funnel" pattern
+  if (
+    (norm.includes("hiring funnel") && norm.includes("team")) ||
+    (norm.includes("hiring funnel") && norm.includes("conversion"))
+  ) {
+    return { intent: "GET_TEAM_FUNNEL", targetJobQuery: cleanPrompt };
+  }
+
   if (
     norm.includes("where are we losing candidates") ||
     norm.includes("funnel breakdown") ||
@@ -536,6 +628,7 @@ export function parseRecruiterIntent(rawPrompt: string): {
   if (
     norm.includes("which candidates are unassigned") ||
     norm.includes("unassigned candidates") ||
+    norm.includes("unassigned candidate") ||
     norm.includes("unassigned work") ||
     norm.includes("unassigned jobs") ||
     norm.includes("candidates without owner") ||
@@ -577,6 +670,8 @@ export function parseRecruiterIntent(rawPrompt: string): {
     norm.includes("team funnel") ||
     norm.includes("team conversion") ||
     norm.includes("team performance") ||
+    norm.includes("hiring funnel conversion") ||
+    norm.includes("team hiring funnel") ||
     norm.includes("how is our recruiting team converting") ||
     norm.includes("team throughput") ||
     norm.includes("team metrics")
@@ -597,6 +692,8 @@ export function parseRecruiterIntent(rawPrompt: string): {
     norm.includes("who should take this candidate") ||
     norm.includes("who should own this candidate") ||
     norm.includes("who should handle the next task") ||
+    norm.includes("who should i assign") ||
+    norm.includes("who should assign") ||
     norm.includes("recommend recruiter for") ||
     norm.includes("suggest owner for") ||
     norm.includes("assignment recommendation") ||
@@ -608,6 +705,8 @@ export function parseRecruiterIntent(rawPrompt: string): {
 
   if (
     norm.includes("team bottlenecks") ||
+    norm.includes("hiring bottlenecks") ||
+    norm.includes("bottlenecks on the team") ||
     norm.includes("where is collaboration slowing") ||
     norm.includes("where are recruiter handoffs breaking") ||
     norm.includes("team pipeline issues") ||
@@ -620,6 +719,7 @@ export function parseRecruiterIntent(rawPrompt: string): {
     norm.includes("what should the team focus on") ||
     norm.includes("team priorities") ||
     norm.includes("collaboration priorities") ||
+    norm.includes("collaboration actions") ||
     norm.includes("show me today's team priorities") ||
     norm.includes("team focus") ||
     norm.includes("what is our team goal today")
@@ -643,6 +743,8 @@ export function parseRecruiterIntent(rawPrompt: string): {
   ) {
     return { intent: "GET_JOB_HEALTH", targetJobQuery: cleanPrompt };
   }
+
+
 
   // 8. Check for Recruiter Metrics Intent
   if (

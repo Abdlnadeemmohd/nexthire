@@ -63,6 +63,9 @@ model User {
   candidateCollaborationNotes CollaborationNote[] @relation("CandidateCollaborationNotes")
   assignedHiringTasks      HiringTask[] @relation("AssignedHiringTasks")
   createdHiringTasks       HiringTask[] @relation("CreatedHiringTasks")
+  createdHiringPlans       HiringPlan[] @relation("CreatedHiringPlans")
+  assignedHiringPlanRoles  HiringPlanRole[] @relation("AssignedHiringPlanRoles")
+  generatedExecutiveReports ExecutiveReport[] @relation("GeneratedExecutiveReports")
   company          Company?       @relation(fields: [companyId], references: [id])
 }
 
@@ -125,6 +128,8 @@ model Company {
   recruiterHandoffs        RecruiterHandoff[]
   collaborationNotes       CollaborationNote[]
   hiringTasks              HiringTask[]
+  hiringPlans              HiringPlan[]
+  executiveReports         ExecutiveReport[]
 }
 
 model Job {
@@ -1238,4 +1243,93 @@ model HiringTask {
   @@index([jobId])
   @@index([status])
   @@index([dueAt])
+}
+
+enum HiringPlanStatus {
+  TARGET
+  IN_PROGRESS
+  AT_RISK
+  BEHIND
+  COMPLETED
+}
+
+enum ExecutiveReportPeriod {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum ExecutiveRiskLevel {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  NONE
+}
+
+model HiringPlan {
+  id           String           @id @default(uuid())
+  companyId    String
+  title        String
+  department   String
+  targetHires  Int
+  filledHires  Int              @default(0)
+  startDate    DateTime
+  targetDate   DateTime
+  budget       Float?
+  priority     String           @default("MEDIUM")
+  status       HiringPlanStatus @default(TARGET)
+  createdById  String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy    User             @relation("CreatedHiringPlans", fields: [createdById], references: [id], onDelete: Cascade)
+  roles        HiringPlanRole[]
+
+  @@index([companyId])
+  @@index([createdById])
+  @@index([status])
+}
+
+model HiringPlanRole {
+  id                  String           @id @default(uuid())
+  hiringPlanId        String
+  roleTitle           String
+  jobId               String?
+  targetHires         Int              @default(1)
+  filledHires         Int              @default(0)
+  assignedRecruiterId String?
+  status              HiringPlanStatus @default(TARGET)
+  targetDate          DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  hiringPlan          HiringPlan       @relation(fields: [hiringPlanId], references: [id], onDelete: Cascade)
+  assignedRecruiter   User?            @relation("AssignedHiringPlanRoles", fields: [assignedRecruiterId], references: [id], onDelete: SetNull)
+
+  @@index([hiringPlanId])
+  @@index([assignedRecruiterId])
+}
+
+model ExecutiveReport {
+  id                  String                @id @default(uuid())
+  companyId           String
+  title               String
+  period              ExecutiveReportPeriod @default(MONTHLY)
+  startDate           DateTime
+  endDate             DateTime
+  summaryJson         String
+  metricsJson         String
+  risksJson           String
+  recommendationsJson String
+  generatedById       String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  company             Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  generatedBy         User                  @relation("GeneratedExecutiveReports", fields: [generatedById], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([generatedById])
 }

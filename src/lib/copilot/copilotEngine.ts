@@ -46,6 +46,17 @@ import {
   getTeamFunnelMetrics,
 } from "@/lib/collaboration";
 import {
+  getExecutiveOverview,
+  listCompanyHiringPlans,
+  forecastHiringCompletion,
+  analyzeTimeToHire,
+  getCostAndRoiIntelligence,
+  forecastRecruiterCapacity,
+  detectOrganizationalRisks,
+  analyzeSourcingChannelRoi,
+  generateExecutiveReport,
+} from "@/lib/executive";
+import {
   ParsedSearchCriteria,
   ExplainableCandidateFit,
   CandidateFitEvidence,
@@ -2252,6 +2263,256 @@ export async function processCopilotQuery(
       };
     }
 
+    case "GET_EXECUTIVE_OVERVIEW": {
+      const overview = await getExecutiveOverview(companyId);
+      const answer = `### OBSERVED DATA\n` +
+        `• **Open Requisitions:** ${overview.openRequisitions}\n` +
+        `• **Filled Positions:** ${overview.filledPositions}\n` +
+        `• **Active Pipeline Candidates:** ${overview.activeCandidates}\n` +
+        `• **Interviews Scheduled:** ${overview.interviewsScheduled}\n` +
+        `• **Outstanding Offers:** ${overview.offersOutstanding}\n` +
+        `• **Average Time to Hire:** ${overview.averageTimeToHireDays !== null ? overview.averageTimeToHireDays + " days" : "N/A"}\n\n` +
+        `### INSIGHTS\n` +
+        `• Company hiring progress is at ${overview.hiringTargetProgressPercentage ?? 0}%. Critical stage bottlenecks: ${overview.criticalBottlenecksCount}.\n\n` +
+        `### RISKS\n` +
+        `• Requisitions at Risk: ${overview.jobsAtRisk}. Supply Constraints: ${overview.supplyConstraintsCount}.\n\n` +
+        `### FORECAST\n` +
+        `• Recruiter Capacity Load: ${overview.recruiterCapacityScore !== null ? overview.recruiterCapacityScore + "%" : "Uncomputed"}.\n\n` +
+        `### RECOMMENDATIONS\n` +
+        `• Focus leadership attention on critical bottlenecks and rebalance candidate workload.\n\n` +
+        `### DATA LIMITATIONS\n` +
+        `• ${overview.limitations.reason || "Metrics derived from raw company application records."}`;
+
+      return {
+        intent: "GET_EXECUTIVE_OVERVIEW",
+        answer,
+        toolUsed: "getExecutiveOverview",
+        data: { overview } as any,
+        suggestions: ["Show hiring forecast", "What hiring risks exist?", "View time to hire breakdown"],
+      };
+    }
+
+    case "GET_HIRING_PLAN_STATUS": {
+      const plans = await listCompanyHiringPlans(companyId);
+      const answer = plans.length > 0
+        ? `### OBSERVED DATA\n` +
+          plans.map((p) => `• **${p.title} (${p.department}):** ${p.completedHires}/${p.targetHires} hires (${p.progressPercentage}%) — Status: ${p.status}`).join("\n") +
+          `\n\n### INSIGHTS\n• Departmental target progress across ${plans.length} active plan(s).\n\n` +
+          `### RISKS\n• ${plans.filter((p) => p.status === "BEHIND" || p.status === "AT_RISK").length} plan(s) currently lagging schedule.\n\n` +
+          `### FORECAST\n• Target completion dates evaluated against active placement velocity.\n\n` +
+          `### RECOMMENDATIONS\n• Review lagging department requisitions and assign dedicated recruiter support.\n\n` +
+          `### DATA LIMITATIONS\n• Grounded in active Prisma HiringPlan records.`
+        : `### OBSERVED DATA\n• No active hiring plans configured for this company.\n\n` +
+          `### INSIGHTS\n• Create department hiring plans to enable target tracking.\n\n` +
+          `### RISKS\n• Target progress cannot be measured without configured plans.\n\n` +
+          `### FORECAST\n• Uncomputed.\n\n` +
+          `### RECOMMENDATIONS\n• Initialize a new hiring plan in Executive Workspace.\n\n` +
+          `### DATA LIMITATIONS\n• 0 hiring plan records found.`;
+
+      return {
+        intent: "GET_HIRING_PLAN_STATUS",
+        answer,
+        toolUsed: "listCompanyHiringPlans",
+        data: { plans } as any,
+        suggestions: ["Show executive overview", "Forecast target completion", "View organizational risks"],
+      };
+    }
+
+    case "GET_HIRING_FORECAST": {
+      const forecast = await forecastHiringCompletion(companyId);
+      const answer = `### OBSERVED DATA\n` +
+        `• **Historical Sample Size:** ${forecast.sampleSize} hires (180-day window)\n` +
+        `• **Monthly Velocity:** ${forecast.expectedHiringVelocityPerMonth} hires/month\n\n` +
+        `### INSIGHTS\n` +
+        `• **Projected Completion Date:** ${forecast.expectedCompletionDate || "Insufficient Data"}\n` +
+        `• **Target Breach Risk Score:** ${forecast.riskOfMissingTargetScore}/100 (${forecast.targetBreachRiskLevel})\n\n` +
+        `### RISKS\n` +
+        `• Risk Level: ${forecast.targetBreachRiskLevel}. Velocity status evaluated against open requisitions.\n\n` +
+        `### FORECAST\n` +
+        `• Expected completion window grounded on ${forecast.historicalWindowDays}-day historical placement rate.\n\n` +
+        `### RECOMMENDATIONS\n` +
+        `• Maintain or accelerate current screening and offer decision SLAs.\n\n` +
+        `### DATA LIMITATIONS\n` +
+        `• **Confidence:** ${forecast.confidenceLevel}. ${forecast.dataLimitations}`;
+
+      return {
+        intent: "GET_HIRING_FORECAST",
+        answer,
+        toolUsed: "forecastHiringCompletion",
+        data: { forecast } as any,
+        suggestions: ["Show hiring plan status", "View recruiter capacity", "What hiring risks exist?"],
+      };
+    }
+
+    case "GET_EXECUTIVE_HIRING_RISKS": {
+      const risks = await detectOrganizationalRisks(companyId);
+      const answer = risks.length > 0
+        ? `### OBSERVED DATA\n` +
+          `• Total Identified Risks: ${risks.length}\n` +
+          risks.map((r) => `• **[${r.riskLevel}] ${r.category.replace(/_/g, " ")}:** ${r.reason}`).join("\n") +
+          `\n\n### INSIGHTS\n• Critical and high severity organizational risks requiring executive attention.\n\n` +
+          `### RISKS\n• ${risks.filter((r) => r.riskLevel === "CRITICAL").length} critical risk(s) active.\n\n` +
+          `### FORECAST\n• Risk levels reflect real application SLA age and capacity load.\n\n` +
+          `### RECOMMENDATIONS\n• ${risks[0].recommendedAction}\n\n` +
+          `### DATA LIMITATIONS\n• ${risks[0].dataLimitations}`
+        : `### OBSERVED DATA\n• 0 organizational hiring risks detected.\n\n` +
+          `### INSIGHTS\n• All requisitions and pipelines are operating within standard SLA parameters.\n\n` +
+          `### RISKS\n• No elevated risk factors observed.\n\n` +
+          `### FORECAST\n• Low likelihood of SLA breach under current workload.\n\n` +
+          `### RECOMMENDATIONS\n• Continue routine pipeline monitoring.\n\n` +
+          `### DATA LIMITATIONS\n• Grounded on active application and bottleneck checks.`;
+
+      return {
+        intent: "GET_EXECUTIVE_HIRING_RISKS",
+        answer,
+        toolUsed: "detectOrganizationalRisks",
+        data: { risks } as any,
+        suggestions: ["Show executive overview", "Where are we losing time?", "Check team capacity"],
+      };
+    }
+
+    case "GET_EXECUTIVE_TIME_TO_HIRE": {
+      const analysis = await analyzeTimeToHire(companyId);
+      const answer = `### OBSERVED DATA\n` +
+        `• **Overall Average Time to Hire:** ${analysis.overallAverageDays !== null ? analysis.overallAverageDays + " days" : "N/A"}\n` +
+        `• **Overall Median Time to Hire:** ${analysis.overallMedianDays !== null ? analysis.overallMedianDays + " days" : "N/A"}\n` +
+        `• **Primary Bottleneck Stage:** ${analysis.primaryBottleneckStage || "None"} (${analysis.primaryBottleneckType})\n\n` +
+        `### INSIGHTS\n` +
+        analysis.stages.map((s) => `• **${s.stageName}:** Avg ${s.averageDays} days (Median ${s.medianDays}d) — Candidates: ${s.candidateCount}`).join("\n") +
+        `\n\n### RISKS\n• Stage '${analysis.primaryBottleneckStage}' accounts for highest cycle time delay.\n\n` +
+        `### FORECAST\n• Reducing primary bottleneck cycle time by 2 days will accelerate overall time-to-fill.\n\n` +
+        `### RECOMMENDATIONS\n• Enforce strict review and interview scheduling SLAs for ${analysis.primaryBottleneckStage}.\n\n` +
+        `### DATA LIMITATIONS\n• ${analysis.limitations.reason || "Calculated across raw application stage cycle times."}`;
+
+      return {
+        intent: "GET_EXECUTIVE_TIME_TO_HIRE",
+        answer,
+        toolUsed: "analyzeTimeToHire",
+        data: { analysis } as any,
+        suggestions: ["Show hiring forecast", "What hiring risks exist?", "View cost intelligence"],
+      };
+    }
+
+    case "GET_HIRING_EFFICIENCY": {
+      const overview = await getExecutiveOverview(companyId);
+      const answer = `### OBSERVED DATA\n` +
+        `• **Application → Interview Conversion:** ${overview.applicationToInterviewConversion !== null ? overview.applicationToInterviewConversion + "%" : "N/A"}\n` +
+        `• **Interview → Offer Conversion:** ${overview.interviewToOfferConversion !== null ? overview.interviewToOfferConversion + "%" : "N/A"}\n` +
+        `• **Offer → Hire Conversion:** ${overview.offerToHireConversion !== null ? overview.offerToHireConversion + "%" : "N/A"}\n\n` +
+        `### INSIGHTS\n` +
+        `• Stage conversion efficiency reflects overall candidate progression health.\n\n` +
+        `### RISKS\n` +
+        `• Low application-to-interview conversion indicates requirement strictness or top-of-funnel mismatch.\n\n` +
+        `### FORECAST\n` +
+        `• Optimizing initial screening conversion will improve offer volume.\n\n` +
+        `### RECOMMENDATIONS\n` +
+        `• Align candidate requirement strictness with active market talent supply.\n\n` +
+        `### DATA LIMITATIONS\n` +
+        `• Grounded in raw application stage counts.`;
+
+      return {
+        intent: "GET_HIRING_EFFICIENCY",
+        answer,
+        toolUsed: "getExecutiveOverview",
+        data: { overview } as any,
+        suggestions: ["Which sourcing channels produce hires?", "Show executive overview", "Where are we losing time?"],
+      };
+    }
+
+    case "GET_SOURCE_ROI": {
+      const channels = await analyzeSourcingChannelRoi(companyId);
+      const answer = `### OBSERVED DATA\n` +
+        channels.map((c) => `• **${c.channelName}:** ${c.totalOutreachOrCandidates} candidates, ${c.qualifiedCandidates} qualified, ${c.hiresResulting} hires (${c.conversionToHireRate}% hire rate) — Rating: ${c.efficiencyRating}`).join("\n") +
+        `\n\n### INSIGHTS\n• Sourcing channel efficiency and ROI evaluated across inbound, radar, and outreach channels.\n\n` +
+        `### RISKS\n• Channels rated INSUFFICIENT_DATA require additional application volume to evaluate ROI.\n\n` +
+        `### FORECAST\n• Higher allocation to top-performing channels will improve hire volume.\n\n` +
+        `### RECOMMENDATIONS\n• Prioritize sourcing channels with high qualified candidate conversion.\n\n` +
+        `### DATA LIMITATIONS\n• Channel attribution is strictly based on stored candidate source fields.`;
+
+      return {
+        intent: "GET_SOURCE_ROI",
+        answer,
+        toolUsed: "analyzeSourcingChannelRoi",
+        data: { channels } as any,
+        suggestions: ["Show hiring efficiency", "Show executive overview", "Check cost intelligence"],
+      };
+    }
+
+    case "GET_ORGANIZATIONAL_BOTTLENECKS": {
+      const bottlenecks = await detectCompanyBottlenecks(companyId);
+      const answer = bottlenecks.length > 0
+        ? `### OBSERVED DATA\n` +
+          `• Total Bottlenecks: ${bottlenecks.length}\n` +
+          bottlenecks.map((b: any) => `• **[${b.severity}] ${b.type.replace(/_/g, " ")}:** ${b.description}`).join("\n") +
+          `\n\n### INSIGHTS\n• Organizational bottlenecks slowing company hiring velocity.\n\n` +
+          `### RISKS\n• Stagnant applications damage candidate experience and employer brand.\n\n` +
+          `### FORECAST\n• Resolving top bottleneck will reduce time to hire.\n\n` +
+          `### RECOMMENDATIONS\n• ${bottlenecks[0].recommendedAction}\n\n` +
+          `### DATA LIMITATIONS\n• Computed from application record age and scorecard SLA checks.`
+        : `### OBSERVED DATA\n• Zero operational bottlenecks detected.\n\n` +
+          `### INSIGHTS\n• All requisitions are operating within SLA targets.\n\n` +
+          `### RISKS\n• None.\n\n` +
+          `### FORECAST\n• On track for timely completion.\n\n` +
+          `### RECOMMENDATIONS\n• Maintain current workflow pace.\n\n` +
+          `### DATA LIMITATIONS\n• Live bottleneck engine check.`;
+
+      return {
+        intent: "GET_ORGANIZATIONAL_BOTTLENECKS",
+        answer,
+        toolUsed: "detectCompanyBottlenecks",
+        data: { bottlenecks } as any,
+        suggestions: ["Show executive risks", "Check team capacity", "Show executive overview"],
+      };
+    }
+
+    case "GET_EXECUTIVE_RECOMMENDATIONS": {
+      const report = await generateExecutiveReport(companyId, recruiterId, "MONTHLY");
+      const answer = `### OBSERVED DATA\n` +
+        `• Active Requisitions: ${report.hiringProgress.openRequisitions}, Completed Hires: ${report.completedHiresCount}\n\n` +
+        `### INSIGHTS\n` +
+        `• Strategic executive action items for company leadership:\n\n` +
+        report.recommendations.map((r, i) => `${i + 1}. **[${r.priority}] ${r.action}:**\n   *Rationale:* ${r.rationale}\n   *Expected Impact:* ${r.expectedImpact}`).join("\n\n") +
+        `\n\n### RISKS\n• Unaddressed action items exacerbate time-to-hire delays and candidate drop-offs.\n\n` +
+        `### FORECAST\n• Execution of recommendations improves overall funnel velocity.\n\n` +
+        `### RECOMMENDATIONS\n• Review and approve action items in Executive Workspace.\n\n` +
+        `### DATA LIMITATIONS\n• Grounded in live company intelligence engines.`;
+
+      return {
+        intent: "GET_EXECUTIVE_RECOMMENDATIONS",
+        answer,
+        toolUsed: "generateExecutiveReport",
+        data: { report } as any,
+        suggestions: ["Show executive overview", "View hiring risks", "Generate executive report"],
+      };
+    }
+
+    case "GET_COST_INTELLIGENCE": {
+      const cost = await getCostAndRoiIntelligence(companyId);
+      const answer = `### OBSERVED DATA\n` +
+        `• **Platform Cost Total:** ${cost.platformCostTotal !== null ? "$" + cost.platformCostTotal : "DATA_NOT_AVAILABLE"}\n` +
+        `• **Cost Per Hire:** ${cost.costPerHire !== null ? "$" + cost.costPerHire : "DATA_NOT_AVAILABLE"}\n` +
+        `• **Cost Per Interview:** ${cost.costPerInterview !== null ? "$" + cost.costPerInterview : "DATA_NOT_AVAILABLE"}\n` +
+        `• **Recruiter Productivity Score:** ${cost.recruiterProductivityScore !== null ? cost.recruiterProductivityScore + "/100" : "N/A"}\n\n` +
+        `### INSIGHTS\n` +
+        `• Cost status: ${cost.dataStatus}. ${cost.explanation}\n\n` +
+        `### RISKS\n` +
+        `• Unconfigured spend settings suppress monetary cost analytics.\n\n` +
+        `### FORECAST\n` +
+        `• Configuring subscription spend enables precise cost-per-hire tracking.\n\n` +
+        `### RECOMMENDATIONS\n` +
+        `• Input platform spend parameters in company settings.\n\n` +
+        `### DATA LIMITATIONS\n` +
+        `• Suppression rule active when spend data is missing (prevents fake currency values).`;
+
+      return {
+        intent: "GET_COST_INTELLIGENCE",
+        answer,
+        toolUsed: "getCostAndRoiIntelligence",
+        data: { cost } as any,
+        suggestions: ["Show executive overview", "Which sourcing channels produce hires?", "View hiring efficiency"],
+      };
+    }
+
     case "EXECUTE_RECRUITER_ACTION": {
       return {
         intent: "EXECUTE_RECRUITER_ACTION",
@@ -2276,3 +2537,5 @@ export async function processCopilotQuery(
     }
   }
 }
+
+export const processCopilotChat = processCopilotQuery;
