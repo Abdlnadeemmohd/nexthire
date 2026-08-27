@@ -7,50 +7,74 @@ export interface TierStyleConfig {
   badgeBorder: string;
   badgeBg: string;
   badgeText: string;
+  checkmarkCircleBg: string;
   checkmarkColor: string;
   accentColor: string;
+  ringColor: string;
+  cardBg: string;
+  cardBorder: string;
 }
 
 export const SUBSCRIPTION_TIER_STYLES: Record<SubscriptionTier, TierStyleConfig> = {
   FREE: {
     name: "Free",
-    badgeBorder: "border-blue-500/30",
-    badgeBg: "bg-blue-500/10 dark:bg-blue-950/30",
+    badgeBorder: "border-blue-500/40 dark:border-blue-400/40",
+    badgeBg: "bg-blue-500/[0.08] dark:bg-blue-950/40",
     badgeText: "text-blue-700 dark:text-blue-300",
-    checkmarkColor: "text-blue-500 dark:text-blue-400",
+    checkmarkCircleBg: "bg-blue-600 dark:bg-blue-500",
+    checkmarkColor: "text-white",
     accentColor: "blue",
+    ringColor: "ring-blue-500/20",
+    cardBg: "bg-blue-50/50 dark:bg-blue-950/20",
+    cardBorder: "border-blue-200/50 dark:border-blue-900/30",
   },
   SILVER: {
     name: "Silver",
-    badgeBorder: "border-slate-400/30",
-    badgeBg: "bg-slate-500/10 dark:bg-slate-800/30",
-    badgeText: "text-slate-700 dark:text-slate-200",
-    checkmarkColor: "text-slate-400 dark:text-slate-300",
+    badgeBorder: "border-slate-400/50 dark:border-slate-500/40",
+    badgeBg: "bg-slate-500/[0.08] dark:bg-slate-800/40",
+    badgeText: "text-slate-800 dark:text-slate-200",
+    checkmarkCircleBg: "bg-slate-700 dark:bg-slate-400",
+    checkmarkColor: "text-white",
     accentColor: "slate",
+    ringColor: "ring-slate-400/20",
+    cardBg: "bg-slate-50/50 dark:bg-slate-900/20",
+    cardBorder: "border-slate-200/50 dark:border-slate-800/30",
   },
   GOLD: {
     name: "Gold",
-    badgeBorder: "border-amber-500/35",
-    badgeBg: "bg-amber-500/10 dark:bg-amber-950/30",
+    badgeBorder: "border-amber-500/50 dark:border-amber-400/40",
+    badgeBg: "bg-amber-500/[0.10] dark:bg-amber-950/40",
     badgeText: "text-amber-800 dark:text-amber-300",
-    checkmarkColor: "text-amber-500 dark:text-amber-400",
+    checkmarkCircleBg: "bg-amber-600 dark:bg-amber-500",
+    checkmarkColor: "text-white",
     accentColor: "amber",
+    ringColor: "ring-amber-500/20",
+    cardBg: "bg-amber-50/50 dark:bg-amber-950/20",
+    cardBorder: "border-amber-200/50 dark:border-amber-900/30",
   },
   PLATINUM: {
     name: "Platinum",
-    badgeBorder: "border-indigo-500/35",
-    badgeBg: "bg-indigo-500/10 dark:bg-indigo-950/30",
+    badgeBorder: "border-indigo-500/50 dark:border-indigo-400/40",
+    badgeBg: "bg-indigo-500/[0.10] dark:bg-indigo-950/40",
     badgeText: "text-indigo-800 dark:text-indigo-300",
-    checkmarkColor: "text-indigo-500 dark:text-indigo-400",
+    checkmarkCircleBg: "bg-indigo-600 dark:bg-indigo-500",
+    checkmarkColor: "text-white",
     accentColor: "indigo",
+    ringColor: "ring-indigo-500/20",
+    cardBg: "bg-indigo-50/50 dark:bg-indigo-950/20",
+    cardBorder: "border-indigo-200/50 dark:border-indigo-900/30",
   },
   DIAMOND: {
     name: "Diamond",
-    badgeBorder: "border-cyan-500/35",
-    badgeBg: "bg-cyan-500/10 dark:bg-cyan-950/30",
+    badgeBorder: "border-cyan-500/50 dark:border-cyan-400/40",
+    badgeBg: "bg-cyan-500/[0.10] dark:bg-cyan-950/40",
     badgeText: "text-cyan-800 dark:text-cyan-300",
-    checkmarkColor: "text-cyan-500 dark:text-cyan-400",
+    checkmarkCircleBg: "bg-cyan-600 dark:bg-cyan-500",
+    checkmarkColor: "text-white",
     accentColor: "cyan",
+    ringColor: "ring-cyan-500/20",
+    cardBg: "bg-cyan-50/50 dark:bg-cyan-950/20",
+    cardBorder: "border-cyan-200/50 dark:border-cyan-900/30",
   },
 };
 

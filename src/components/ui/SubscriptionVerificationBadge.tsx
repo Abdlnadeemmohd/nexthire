@@ -40,54 +40,62 @@ export function SubscriptionVerificationBadge({
       : "Recruiter";
 
   const sizeClasses = {
-    sm: "px-2 py-0.5 text-[11px] gap-1 rounded-lg",
-    md: "px-2.5 py-1 text-xs gap-1.5 rounded-xl font-medium",
-    lg: "px-3.5 py-1.5 text-sm gap-2 rounded-2xl font-bold",
-  }[size] || "px-2.5 py-1 text-xs gap-1.5 rounded-xl font-medium";
+    sm: "px-2.5 py-0.5 text-[11px] gap-1.5 rounded-lg font-bold tracking-tight",
+    md: "px-3 py-1 text-xs gap-2 rounded-xl font-bold tracking-tight",
+    lg: "px-3.5 py-1.5 text-sm gap-2.5 rounded-xl font-bold tracking-tight",
+  }[size] || "px-3 py-1 text-xs gap-2 rounded-xl font-bold tracking-tight";
 
-  const checkmarkSizes = {
-    sm: "text-[12px]",
-    md: "text-[14px]",
-    lg: "text-[16px]",
-  }[size] || "text-[14px]";
+  const circleSizes = {
+    sm: "w-3.5 h-3.5",
+    md: "w-4 h-4",
+    lg: "w-5 h-5",
+  }[size] || "w-4 h-4";
+
+  const svgSizes = {
+    sm: "w-2 h-2",
+    md: "w-2.5 h-2.5",
+    lg: "w-3 h-3",
+  }[size] || "w-2.5 h-2.5";
 
   // 1. PENDING State
   if (normalizedStatus === "PENDING") {
     return (
       <span
-        aria-label={`${roleLabel} verification is pending`}
-        className={`inline-flex items-center font-medium border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 transition-colors shadow-2xs ${sizeClasses} ${className}`}
+        aria-label={`${roleLabel}, verification is pending`}
+        className={`inline-flex items-center border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300 transition-all shadow-2xs ${sizeClasses} ${className}`}
       >
-        <span className={`material-symbols-outlined text-[13px]`}>hourglass_top</span>
-        <span>Verification Pending</span>
+        <span>{roleLabel}</span>
+        <span className="material-symbols-outlined text-[13px] text-amber-600 dark:text-amber-400">hourglass_top</span>
       </span>
     );
   }
 
-  // 2. UNVERIFIED State (No checkmark, neutral subtle styling)
+  // 2. UNVERIFIED State (Tile adopts subtle tier identity without verification checkmark)
   if (normalizedStatus === "UNVERIFIED") {
     return (
       <span
-        aria-label={`${roleLabel} profile, verification not completed`}
-        className={`inline-flex items-center font-medium border border-outline-variant/30 bg-surface-container-high/80 text-on-surface-variant transition-colors shadow-2xs ${sizeClasses} ${className}`}
+        aria-label={`${roleLabel}, ${tierStyle.name} Tier, verification not completed`}
+        className={`inline-flex items-center border ${tierStyle.badgeBorder} ${tierStyle.badgeBg} ${tierStyle.badgeText} transition-all shadow-2xs ${sizeClasses} ${className}`}
       >
         <span>{roleLabel}</span>
       </span>
     );
   }
 
-  // 3. VERIFIED State (Recruiter ✓ with tier-colored checkmark & subtle tier styling)
+  // 3. VERIFIED State (Recruiter [●✓] with tier-colored tile + solid circle with white checkmark)
   return (
     <span
       aria-label={`Verified ${roleLabel}, ${tierStyle.name} Tier`}
-      className={`inline-flex items-center font-bold border ${tierStyle.badgeBorder} ${tierStyle.badgeBg} ${tierStyle.badgeText} transition-all shadow-2xs ${sizeClasses} ${className}`}
+      className={`inline-flex items-center border ${tierStyle.badgeBorder} ${tierStyle.badgeBg} ${tierStyle.badgeText} transition-all shadow-2xs ${sizeClasses} ${className}`}
     >
       <span>{roleLabel}</span>
       <span
-        className={`font-black ${tierStyle.checkmarkColor} ${checkmarkSizes} leading-none select-none`}
+        className={`inline-flex items-center justify-center rounded-full ${tierStyle.checkmarkCircleBg} text-white leading-none select-none flex-shrink-0 shadow-2xs ${circleSizes}`}
         aria-hidden="true"
       >
-        ✓
+        <svg className={`${svgSizes} fill-none stroke-current stroke-[3]`} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
       </span>
     </span>
   );

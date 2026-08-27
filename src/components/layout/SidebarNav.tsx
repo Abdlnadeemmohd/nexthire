@@ -5,6 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import {
+  SUBSCRIPTION_TIER_STYLES,
+  normalizeSubscriptionTier,
+} from "@/lib/subscriptionTiers";
 
 interface SidebarNavProps {
   portal: "seeker" | "recruiter" | "admin";
@@ -13,6 +17,9 @@ interface SidebarNavProps {
 export function SidebarNav({ portal }: SidebarNavProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  const normalizedTier = normalizeSubscriptionTier((user as any)?.subscriptionTier);
+  const tierStyle = SUBSCRIPTION_TIER_STYLES[normalizedTier] || SUBSCRIPTION_TIER_STYLES.FREE;
 
   // Precise Route Active Matching: EXACT 1 active item per page
 const isItemActive = (currentPath: string, targetHref: string): boolean => {
@@ -176,14 +183,14 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
         </nav>
       </div>
 
-      {/* Spacious Bottom User Profile Card */}
+      {/* Bottom Profile Card */}
       <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex-shrink-0">
         <div className="p-3 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl space-y-3 shadow-xs">
           <div className="flex items-center gap-3">
             <img
               src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
               alt={user?.name || "User Avatar"}
-              className="w-10 h-10 rounded-xl object-cover border border-outline-variant/40 flex-shrink-0"
+              className={`w-10 h-10 rounded-xl object-cover border border-outline-variant/40 ring-2 ${tierStyle.ringColor} flex-shrink-0`}
             />
             <div className="min-w-0 flex-1">
               <h4 className="font-bold text-xs text-on-surface truncate">{user?.name || "User"}</h4>
