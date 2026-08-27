@@ -163,35 +163,45 @@ export default function RecruiterDashboardPage() {
             {/* Header Banner */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-6">
               <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
                     Recruiter Workspace
                   </h1>
-                  <SubscriptionVerificationBadge
-                    role="recruiter"
-                    tier={(user as any)?.subscriptionTier}
-                    verificationStatus={user?.isVerified ? "VERIFIED" : "UNVERIFIED"}
-                    size="md"
-                  />
-                  {(() => {
-                    const normalizedTier = normalizeSubscriptionTier((user as any)?.subscriptionTier);
-                    const tierStyle = SUBSCRIPTION_TIER_STYLES[normalizedTier] || SUBSCRIPTION_TIER_STYLES.FREE;
-                    return (
-                      <Link
-                        href="/recruiter/billing"
-                        className={`px-2.5 py-0.5 ${tierStyle.statusPill} text-[11px] font-bold rounded-lg flex items-center gap-1.5 hover:opacity-90 transition-all shadow-2xs`}
-                        title="Manage Subscription Plan"
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${tierStyle.statusDot} animate-pulse`}></span>
-                        <span>{tierStyle.name} Plan</span>
-                        <span className="text-[10px] opacity-70 underline font-normal ml-0.5">Manage</span>
-                      </Link>
-                    );
-                  })()}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <SubscriptionVerificationBadge
+                      role="recruiter"
+                      tier={(user as any)?.subscriptionTier}
+                      verificationStatus={user?.isVerified ? "VERIFIED" : "UNVERIFIED"}
+                      size="md"
+                    />
+                    {(() => {
+                      const normalizedTier = normalizeSubscriptionTier((user as any)?.subscriptionTier);
+                      const tierStyle = SUBSCRIPTION_TIER_STYLES[normalizedTier] || SUBSCRIPTION_TIER_STYLES.FREE;
+                      return (
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-3 py-1.5 ${tierStyle.badgeBorder} ${tierStyle.badgeBg} ${tierStyle.badgeText} text-[13px] font-semibold rounded-xl border flex items-center gap-2 shadow-2xs transition-all`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${tierStyle.statusDot} flex-shrink-0`}></span>
+                            <span>{tierStyle.name} Plan</span>
+                          </span>
+                          <Link
+                            href="/recruiter/billing"
+                            className="px-2.5 py-1 text-xs font-semibold text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-lg transition-all underline-offset-2 hover:underline focus:outline-none focus:ring-1 focus:ring-primary"
+                            title="Manage Subscription Plan"
+                            aria-label={`Manage ${tierStyle.name} Subscription Plan`}
+                          >
+                            Manage
+                          </Link>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
-                <p className="text-on-surface-variant text-xs sm:text-sm font-body-md mt-0.5">
+                <p className="text-on-surface-variant text-xs sm:text-sm font-body-md mt-1">
                   {user?.companyName || "Employer Workspace"} • Talent Acquisition Suite
                 </p>
+
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
