@@ -185,8 +185,9 @@ export function parseRecruiterIntent(rawPrompt: string): {
 
   if (
     norm.includes("hiring plan") ||
-    norm.includes("hiring target") ||
-    norm.includes("hit our hiring target")
+    norm.includes("hit our hiring target") ||
+    norm.includes("hiring targets") ||
+    norm.includes("hiring plan status")
   ) {
     return { intent: "GET_HIRING_PLAN_STATUS" };
   }
@@ -201,7 +202,6 @@ export function parseRecruiterIntent(rawPrompt: string): {
 
   if (
     norm.includes("executive risk") ||
-    norm.includes("hiring risk") ||
     norm.includes("organizational risk") ||
     norm.includes("risk radar") ||
     norm.includes("risks should leadership know about")
