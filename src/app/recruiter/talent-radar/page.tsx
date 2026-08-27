@@ -6,7 +6,6 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { useAuth } from "@/context/AuthContext";
@@ -152,14 +151,7 @@ export default function RecruiterTalentRadarPage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full pb-20 sm:pb-24">
-            <Breadcrumbs
-              items={[
-                { label: "Home", href: "/recruiter" },
-                { label: "Talent Radar" },
-              ]}
-            />
-
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
             {/* Header Title & Actions */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-6">
               <div className="space-y-1">

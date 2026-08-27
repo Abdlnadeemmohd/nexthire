@@ -10,7 +10,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 interface Candidate {
   id: string;
@@ -241,9 +240,7 @@ export default function CandidateSearchPage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full pb-20 sm:pb-24">
-            <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Candidate Search" }]} />
-
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
             {/* Header & Entitlements Meter */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
               <div>

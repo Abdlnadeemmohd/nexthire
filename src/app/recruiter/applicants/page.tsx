@@ -8,7 +8,6 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { StatusBadge } from "@/components/ui/Badge";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InterviewScheduleModal, ScheduledInterviewEvent } from "@/components/recruiter/InterviewScheduleModal";
 import { StructuredRejectionModal, RejectionFeedbackData } from "@/components/recruiter/StructuredRejectionModal";
@@ -166,9 +165,7 @@ export default function RecruiterApplicantsPage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-6 max-w-[1600px] w-full pb-20 sm:pb-24">
-            <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "ATS Candidate Pipeline" }]} />
-
+          <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
             {/* Header & Tabs */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/20 pb-4">
               <div>

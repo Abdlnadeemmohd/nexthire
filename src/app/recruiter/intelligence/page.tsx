@@ -6,7 +6,6 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
@@ -114,14 +113,7 @@ export default function RecruiterHiringIntelligencePage() {
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
-            <Breadcrumbs
-                items={[
-                  { label: "Dashboard", href: "/recruiter" },
-                  { label: "Hiring Funnel Intelligence & Strategy", href: "/recruiter/intelligence" },
-                ]}
-              />
-
-              {/* Header Title & Actions */}
+            {/* Header Title & Actions */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-outline-variant/20 pb-6">
                 <div>
                   <div className="flex items-center gap-2.5 flex-wrap">

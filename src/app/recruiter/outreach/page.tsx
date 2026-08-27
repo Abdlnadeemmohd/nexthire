@@ -7,7 +7,6 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/context/AuthContext";
@@ -399,13 +398,6 @@ export default function OutreachPage() {
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
-            <Breadcrumbs
-              items={[
-                { label: "Dashboard", href: "/recruiter" },
-                { label: "AI Outreach & Engagement", href: "/recruiter/outreach" },
-              ]}
-            />
-
             {/* Header Title + Action */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
               <div>

@@ -6,7 +6,6 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 interface PlanConfig {
   id: string;
@@ -125,9 +124,7 @@ export default function RecruiterBillingPage() {
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full space-y-8 pb-20 sm:pb-24">
-            <Breadcrumbs items={[{ label: "Home", href: "/recruiter" }, { label: "Billing & Subscriptions" }]} />
-
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-8 pb-16">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
               <div>

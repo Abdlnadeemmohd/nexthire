@@ -6,7 +6,6 @@ import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { CandidateIntelligenceModal } from "@/components/recruiter/CandidateIntelligenceModal";
@@ -199,14 +198,7 @@ export default function RecruiterCopilotPage() {
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
           <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-4 pb-16">
-              <Breadcrumbs
-                items={[
-                  { label: "Dashboard", href: "/recruiter" },
-                  { label: "Recruiter Copilot", href: "/recruiter/copilot" },
-                ]}
-              />
-
-              {/* Copilot Header */}
+            {/* Copilot Header */}
               <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
