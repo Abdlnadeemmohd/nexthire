@@ -394,7 +394,7 @@ export default function OutreachPage() {
     <ProtectedRoute requiredPortal="recruiter">
       <TopAppBar />
 
-      <div className="flex bg-[#030712] text-slate-100 min-h-screen pt-16 font-sans">
+      <div className="flex bg-surface min-h-screen pt-16">
         <SidebarNav portal="recruiter" />
 
         <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
@@ -407,39 +407,41 @@ export default function OutreachPage() {
             />
 
             {/* Header Title + Action */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-[#0b0f19] to-[#0f172a] p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6">
               <div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                    <span className="material-icons-round text-2xl">campaign</span>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                    <span className="material-symbols-outlined text-2xl">campaign</span>
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                      AI Recruiter Outreach
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
+                    <div className="flex items-center gap-2">
+                      <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
+                        AI Recruiter Outreach
+                      </h1>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold border border-primary/20">
                         Zero-Fabrication Engine
                       </span>
-                    </h1>
-                    <p className="text-sm text-slate-400 mt-0.5">
+                    </div>
+                    <p className="text-on-surface-variant text-xs sm:text-sm font-body-md mt-0.5">
                       Grounded candidate sequences, human approval gate, dual-channel dispatch & response intelligence.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <Link
                   href="/recruiter/copilot"
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 transition flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-surface-container-high text-on-surface font-label-md font-bold text-xs hover:bg-surface-container-highest border border-outline-variant/30 transition-all flex items-center gap-1.5 shadow-2xs"
                 >
-                  <span className="material-icons-round text-lg text-indigo-400">smart_toy</span>
+                  <span className="material-symbols-outlined text-lg text-primary">smart_toy</span>
                   Ask Copilot
                 </Link>
                 <button
                   onClick={() => setCreateModalOpen(true)}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-label-md font-bold text-xs hover:bg-primary-container transition-all shadow-xs flex items-center gap-1.5"
                 >
-                  <span className="material-icons-round text-lg">add_circle</span>
+                  <span className="material-symbols-outlined text-lg">add_circle</span>
                   Create Campaign
                 </button>
               </div>
@@ -447,69 +449,69 @@ export default function OutreachPage() {
 
             {/* Overview Analytics Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-              <div className="bg-[#0b0f19] border border-slate-800/80 p-4 rounded-xl">
-                <p className="text-xs font-medium text-slate-400">Active Campaigns</p>
-                <p className="text-2xl font-bold text-white mt-1">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-2xs">
+                <p className="text-xs font-label-md uppercase font-semibold text-outline">Active Campaigns</p>
+                <p className="text-2xl font-bold text-on-surface mt-1">
                   {aggregateMetrics.activeCampaigns}
-                  <span className="text-xs text-slate-500 font-normal ml-1">/ {aggregateMetrics.totalCampaigns}</span>
+                  <span className="text-xs text-on-surface-variant font-normal ml-1">/ {aggregateMetrics.totalCampaigns}</span>
                 </p>
               </div>
-              <div className="bg-[#0b0f19] border border-slate-800/80 p-4 rounded-xl">
-                <p className="text-xs font-medium text-slate-400">Enrolled Candidates</p>
-                <p className="text-2xl font-bold text-indigo-400 mt-1">{aggregateMetrics.totalEnrolled}</p>
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-2xs">
+                <p className="text-xs font-label-md uppercase font-semibold text-outline">Enrolled Candidates</p>
+                <p className="text-2xl font-bold text-primary mt-1">{aggregateMetrics.totalEnrolled}</p>
               </div>
-              <div className="bg-[#0b0f19] border border-slate-800/80 p-4 rounded-xl">
-                <p className="text-xs font-medium text-slate-400">Delivered Messages</p>
-                <p className="text-2xl font-bold text-emerald-400 mt-1">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-2xs">
+                <p className="text-xs font-label-md uppercase font-semibold text-outline">Delivered Messages</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                   {aggregateMetrics.totalDelivered}
                   {aggregateMetrics.overallDeliveryRate !== null && (
-                    <span className="text-xs text-emerald-500/80 font-normal ml-1">({aggregateMetrics.overallDeliveryRate}%)</span>
+                    <span className="text-xs text-emerald-600/80 dark:text-emerald-400/80 font-normal ml-1">({aggregateMetrics.overallDeliveryRate}%)</span>
                   )}
                 </p>
               </div>
-              <div className="bg-[#0b0f19] border border-slate-800/80 p-4 rounded-xl">
-                <p className="text-xs font-medium text-slate-400">Replies Received</p>
-                <p className="text-2xl font-bold text-amber-400 mt-1">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-2xs">
+                <p className="text-xs font-label-md uppercase font-semibold text-outline">Replies Received</p>
+                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
                   {aggregateMetrics.totalReplied}
                   {aggregateMetrics.overallReplyRate !== null && (
-                    <span className="text-xs text-amber-500/80 font-normal ml-1">({aggregateMetrics.overallReplyRate}%)</span>
+                    <span className="text-xs text-amber-600/80 dark:text-amber-400/80 font-normal ml-1">({aggregateMetrics.overallReplyRate}%)</span>
                   )}
                 </p>
               </div>
-              <div className="bg-[#0b0f19] border border-slate-800/80 p-4 rounded-xl">
-                <p className="text-xs font-medium text-slate-400">Positive Interest</p>
-                <p className="text-2xl font-bold text-emerald-400 mt-1">
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-2xs">
+                <p className="text-xs font-label-md uppercase font-semibold text-outline">Positive Interest</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                   {aggregateMetrics.totalPositive}
                   {aggregateMetrics.overallPositiveRate !== null && (
-                    <span className="text-xs text-emerald-500/80 font-normal ml-1">({aggregateMetrics.overallPositiveRate}%)</span>
+                    <span className="text-xs text-emerald-600/80 dark:text-emerald-400/80 font-normal ml-1">({aggregateMetrics.overallPositiveRate}%)</span>
                   )}
                 </p>
               </div>
-              <div className="bg-[#0b0f19] border border-slate-800/80 p-4 rounded-xl">
-                <p className="text-xs font-medium text-slate-400">Opt-Outs</p>
-                <p className="text-2xl font-bold text-slate-400 mt-1">{aggregateMetrics.totalOptOut}</p>
+              <div className="glass-card bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-2xl shadow-2xs">
+                <p className="text-xs font-label-md uppercase font-semibold text-outline">Opt-Outs</p>
+                <p className="text-2xl font-bold text-on-surface-variant mt-1">{aggregateMetrics.totalOptOut}</p>
               </div>
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#0b0f19] p-4 rounded-xl border border-slate-800">
+            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/20 shadow-2xs">
               <div className="relative flex-1 w-full">
-                <span className="material-icons-round absolute left-3 top-2.5 text-slate-500 text-lg">search</span>
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">search</span>
                 <input
                   type="text"
                   placeholder="Search campaigns by name or job role..."
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  className="w-full bg-[#030712] border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition"
+                  className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl pl-9 pr-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary transition"
                 />
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-xs text-slate-400">Status:</span>
+                <span className="text-xs font-semibold text-on-surface-variant">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-[#030712] border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="ACTIVE">Active</option>
@@ -523,8 +525,8 @@ export default function OutreachPage() {
 
             {/* Campaign Listing */}
             {loading ? (
-              <div className="p-12 text-center text-slate-500 bg-[#0b0f19] rounded-2xl border border-slate-800">
-                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <div className="p-12 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/20">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                 Loading outreach campaigns...
               </div>
             ) : filteredCampaigns.length === 0 ? (
@@ -548,34 +550,34 @@ export default function OutreachPage() {
                   return (
                     <div
                       key={campaign.id}
-                      className={`bg-[#0b0f19] border rounded-2xl p-5 transition hover:border-slate-700 ${
-                        selectedCampaign?.id === campaign.id ? "border-indigo-500/60 ring-1 ring-indigo-500/20" : "border-slate-800"
+                      className={`bg-surface-container-lowest border rounded-2xl p-5 transition shadow-2xs hover:border-outline-variant/40 ${
+                        selectedCampaign?.id === campaign.id ? "border-primary/60 ring-1 ring-primary/20" : "border-outline-variant/20"
                       }`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2.5 flex-wrap">
-                            <h3 className="text-lg font-bold text-white">{campaign.name}</h3>
+                            <h3 className="text-lg font-bold text-on-surface">{campaign.name}</h3>
                             <span
                               className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
                                 campaign.status === "ACTIVE"
-                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                                   : campaign.status === "DRAFT"
-                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
                                   : campaign.status === "PAUSED"
-                                  ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                  : "bg-slate-800 text-slate-400 border-slate-700"
+                                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                                  : "bg-surface-container-high text-on-surface-variant border-outline-variant/30"
                               }`}
                             >
                               {campaign.status}
                             </span>
                             {campaign.job && (
-                              <span className="text-xs text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700">
+                              <span className="text-xs text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md border border-outline-variant/30">
                                 💼 {campaign.job.title}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-on-surface-variant">
                             Created {new Date(campaign.createdAt).toLocaleDateString()} by {campaign.recruiter.name} &bull; {campaign.recipients.length} candidate(s) enrolled
                           </p>
                         </div>
@@ -585,9 +587,9 @@ export default function OutreachPage() {
                           {isDraft && (
                             <button
                               onClick={() => openApprovalModal(campaign)}
-                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white text-xs font-semibold shadow-md shadow-amber-500/20 transition flex items-center gap-1.5"
+                              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5"
                             >
-                              <span className="material-icons-round text-base">rate_review</span>
+                              <span className="material-symbols-outlined text-base">rate_review</span>
                               Review & Approve ({campaign.recipients.length})
                             </button>
                           )}
@@ -595,9 +597,9 @@ export default function OutreachPage() {
                           {campaign.status === "ACTIVE" && (
                             <button
                               onClick={() => handlePauseResume(campaign)}
-                              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition flex items-center gap-1"
+                              className="px-3 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-medium border border-outline-variant/30 transition flex items-center gap-1"
                             >
-                              <span className="material-icons-round text-base text-blue-400">pause</span>
+                              <span className="material-symbols-outlined text-base text-primary">pause</span>
                               Pause
                             </button>
                           )}
@@ -605,18 +607,18 @@ export default function OutreachPage() {
                           {campaign.status === "PAUSED" && (
                             <button
                               onClick={() => handlePauseResume(campaign)}
-                              className="px-3 py-2 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 text-xs font-medium border border-emerald-800 transition flex items-center gap-1"
+                              className="px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium border border-emerald-500/30 transition flex items-center gap-1"
                             >
-                              <span className="material-icons-round text-base text-emerald-400">play_arrow</span>
+                              <span className="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400">play_arrow</span>
                               Resume
                             </button>
                           )}
 
                           <button
                             onClick={() => setSelectedCampaign(selectedCampaign?.id === campaign.id ? null : campaign)}
-                            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition flex items-center gap-1"
+                            className="px-3 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-medium border border-outline-variant/30 transition flex items-center gap-1"
                           >
-                            <span className="material-icons-round text-base text-indigo-400">
+                            <span className="material-symbols-outlined text-base text-primary">
                               {selectedCampaign?.id === campaign.id ? "expand_less" : "expand_more"}
                             </span>
                             {selectedCampaign?.id === campaign.id ? "Hide Details" : "View Sequence & Candidates"}
@@ -626,9 +628,9 @@ export default function OutreachPage() {
                             <button
                               onClick={() => handleCancel(campaign)}
                               title="Cancel campaign"
-                              className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 text-xs border border-slate-800 transition"
+                              className="p-2 rounded-xl bg-surface-container-high hover:bg-rose-500/10 hover:text-rose-600 text-on-surface-variant text-xs border border-outline-variant/30 transition"
                             >
-                              <span className="material-icons-round text-base">close</span>
+                              <span className="material-symbols-outlined text-base">close</span>
                             </button>
                           )}
                         </div>
@@ -636,50 +638,50 @@ export default function OutreachPage() {
 
                       {/* Performance Bar */}
                       {m && (
-                        <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div className="mt-4 pt-4 border-t border-outline-variant/20 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                           <div>
-                            <span className="text-slate-400">Delivered: </span>
-                            <span className="text-white font-semibold">{m.deliveredCount}</span>
-                            {m.deliveryRate !== null && <span className="text-emerald-400 ml-1">({m.deliveryRate}%)</span>}
+                            <span className="text-on-surface-variant">Delivered: </span>
+                            <span className="text-on-surface font-semibold">{m.deliveredCount}</span>
+                            {m.deliveryRate !== null && <span className="text-emerald-600 dark:text-emerald-400 ml-1">({m.deliveryRate}%)</span>}
                           </div>
                           <div>
-                            <span className="text-slate-400">Replies: </span>
-                            <span className="text-white font-semibold">{m.repliedCount}</span>
-                            {m.replyRate !== null && <span className="text-amber-400 ml-1">({m.replyRate}%)</span>}
+                            <span className="text-on-surface-variant">Replies: </span>
+                            <span className="text-on-surface font-semibold">{m.repliedCount}</span>
+                            {m.replyRate !== null && <span className="text-amber-600 dark:text-amber-400 ml-1">({m.replyRate}%)</span>}
                           </div>
                           <div>
-                            <span className="text-slate-400">Positive Interest: </span>
-                            <span className="text-white font-semibold">{m.positiveReplyCount}</span>
-                            {m.positiveReplyRate !== null && <span className="text-emerald-400 ml-1">({m.positiveReplyRate}%)</span>}
+                            <span className="text-on-surface-variant">Positive Interest: </span>
+                            <span className="text-on-surface font-semibold">{m.positiveReplyCount}</span>
+                            {m.positiveReplyRate !== null && <span className="text-emerald-600 dark:text-emerald-400 ml-1">({m.positiveReplyRate}%)</span>}
                           </div>
                           <div>
-                            <span className="text-slate-400">Opt-Outs / Bounces: </span>
-                            <span className="text-slate-300 font-semibold">{m.optedOutCount} / {m.bouncedCount}</span>
+                            <span className="text-on-surface-variant">Opt-Outs / Bounces: </span>
+                            <span className="text-on-surface font-semibold">{m.optedOutCount} / {m.bouncedCount}</span>
                           </div>
                         </div>
                       )}
 
                       {/* Expanded Campaign Details: Sequence Steps & Recipient Roster */}
                       {selectedCampaign?.id === campaign.id && (
-                        <div className="mt-6 pt-6 border-t border-slate-800 space-y-6">
+                        <div className="mt-6 pt-6 border-t border-outline-variant/20 space-y-6">
                           {/* Multi-Step Sequence Flow */}
                           <div>
-                            <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2">
-                              <span className="material-icons-round text-base text-indigo-400">schedule</span>
+                            <h4 className="text-sm font-bold text-on-surface uppercase tracking-wider mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-base text-primary">schedule</span>
                               Outreach Sequence Schedule
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                               {campaign.sequenceSteps.map((step) => (
-                                <div key={step.id} className="bg-[#030712] border border-slate-800 p-3.5 rounded-xl space-y-2">
+                                <div key={step.id} className="bg-surface-container-low border border-outline-variant/20 p-3.5 rounded-xl space-y-2">
                                   <div className="flex items-center justify-between text-xs">
-                                    <span className="font-bold text-indigo-400">Step {step.stepOrder}</span>
-                                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]">
+                                    <span className="font-bold text-primary">Step {step.stepOrder}</span>
+                                    <span className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface text-[11px]">
                                       Day {step.delayDays}
                                     </span>
                                   </div>
-                                  <p className="text-xs font-semibold text-white truncate">{step.subjectTemplate}</p>
-                                  <p className="text-[11px] text-slate-400 line-clamp-2">{step.bodyTemplate}</p>
-                                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-500">
+                                  <p className="text-xs font-semibold text-on-surface truncate">{step.subjectTemplate}</p>
+                                  <p className="text-[11px] text-on-surface-variant line-clamp-2">{step.bodyTemplate}</p>
+                                  <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20 text-[11px] text-outline">
                                     <span>{step.messageType.replace(/_/g, " ")}</span>
                                     <span>{step.isEnabled ? "🟢 Active" : "⚪ Disabled"}</span>
                                   </div>
@@ -690,14 +692,13 @@ export default function OutreachPage() {
 
                           {/* Recipient Engagement Roster */}
                           <div>
-                            <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2">
-                              <span className="material-icons-round text-base text-emerald-400">people</span>
+                            <h4 className="text-sm font-bold text-on-surface uppercase tracking-wider mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400">people</span>
                               Candidate Recipients & Engagement ({campaign.recipients.length})
                             </h4>
 
-                            <div className="bg-[#030712] border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800">
+                            <div className="bg-surface-container-low border border-outline-variant/20 rounded-xl overflow-hidden divide-y divide-outline-variant/20">
                               {campaign.recipients.map((recipient) => {
-                                const step1Msg = recipient.messages[0];
                                 const isOptOut = recipient.status === "OPTED_OUT";
                                 const isPositive = recipient.responseClassification === "POSITIVE_INTEREST";
 
@@ -705,42 +706,42 @@ export default function OutreachPage() {
                                   <div key={recipient.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div className="space-y-1">
                                       <div className="flex items-center gap-2">
-                                        <p className="text-sm font-bold text-white">{recipient.candidate.name}</p>
+                                        <p className="text-sm font-bold text-on-surface">{recipient.candidate.name}</p>
                                         <span
                                           className={`text-[11px] px-2 py-0.5 rounded font-semibold border ${
                                             isPositive
-                                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
                                               : isOptOut
-                                              ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                                              ? "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20"
                                               : recipient.status === "REPLIED"
-                                              ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                                              ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
                                               : recipient.status === "DELIVERED"
-                                              ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
-                                              : "bg-slate-800 text-slate-400 border-slate-700"
+                                              ? "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20"
+                                              : "bg-surface-container-high text-on-surface-variant border-outline-variant/30"
                                           }`}
                                         >
                                           {recipient.status}
                                         </span>
                                         {recipient.engagementIntent && (
-                                          <span className="text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                                          <span className="text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded">
                                             {recipient.engagementIntent}
                                           </span>
                                         )}
                                       </div>
-                                      <p className="text-xs text-slate-400">
+                                      <p className="text-xs text-on-surface-variant">
                                         {recipient.candidate.headline || "Technical Professional"} &bull; {recipient.candidate.location || "Remote"}
                                       </p>
 
                                       {/* Recommended Next Action Banner */}
                                       {recipient.recommendedNextAction && (
-                                        <div className="mt-2 p-2.5 rounded-lg bg-indigo-950/40 border border-indigo-800/40 text-xs flex items-center justify-between gap-2">
-                                          <span className="text-indigo-200">
+                                        <div className="mt-2 p-2.5 rounded-lg bg-primary/5 border border-primary/15 text-xs flex items-center justify-between gap-2">
+                                          <span className="text-on-surface">
                                             💡 <strong>Next Action:</strong> {recipient.recommendedNextAction}
                                           </span>
                                           {isPositive && (
                                             <Link
                                               href={`/messages?contactId=${recipient.candidateId}`}
-                                              className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition text-[11px] shrink-0"
+                                              className="px-2.5 py-1 rounded bg-primary hover:bg-primary-container text-on-primary font-medium transition text-[11px] shrink-0"
                                             >
                                               Chat & Schedule
                                             </Link>
@@ -753,9 +754,9 @@ export default function OutreachPage() {
                                     <div className="flex items-center gap-2">
                                       <Link
                                         href={`/messages?contactId=${recipient.candidateId}`}
-                                        className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition flex items-center gap-1"
+                                        className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-medium border border-outline-variant/30 transition flex items-center gap-1"
                                       >
-                                        <span className="material-icons-round text-sm text-indigo-400">chat</span>
+                                        <span className="material-symbols-outlined text-sm text-primary">chat</span>
                                         Open Chat
                                       </Link>
                                     </div>
@@ -779,41 +780,41 @@ export default function OutreachPage() {
 
         {/* --- CREATE CAMPAIGN WIZARD MODAL --- */}
         {createModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl my-8">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl my-8 text-on-surface">
+              <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-icons-round text-indigo-400">auto_awesome</span>
-                  <h3 className="text-lg font-bold text-white">Create AI Outreach Campaign</h3>
+                  <span className="material-symbols-outlined text-primary">auto_awesome</span>
+                  <h3 className="text-lg font-bold text-on-surface">Create AI Outreach Campaign</h3>
                 </div>
                 <button
                   onClick={() => setCreateModalOpen(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg transition"
+                  className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg transition"
                 >
-                  <span className="material-icons-round">close</span>
+                  <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
 
               <form onSubmit={handleCreateCampaign} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Campaign Name *</label>
+                  <label className="block text-xs font-medium text-on-surface-variant mb-1">Campaign Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Senior Backend Engineer - Q3 Sourcing"
                     value={newCampaignName}
                     onChange={(e) => setNewCampaignName(e.target.value)}
-                    className="w-full bg-[#030712] border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Associate Job Opening</label>
+                    <label className="block text-xs font-medium text-on-surface-variant mb-1">Associate Job Opening</label>
                     <select
                       value={selectedJobId}
                       onChange={(e) => setSelectedJobId(e.target.value)}
-                      className="w-full bg-[#030712] border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                     >
                       <option value="">General Engineering Role</option>
                       {availableJobs.map((j) => (
@@ -825,11 +826,11 @@ export default function OutreachPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Personalization Level</label>
+                    <label className="block text-xs font-medium text-on-surface-variant mb-1">Personalization Level</label>
                     <select
                       value={personalizationLevel}
                       onChange={(e) => setPersonalizationLevel(e.target.value as any)}
-                      className="w-full bg-[#030712] border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                     >
                       <option value="STANDARD">Standard (Role Relevance)</option>
                       <option value="PERSONALIZED">Personalized (Verified Skills)</option>
@@ -841,13 +842,13 @@ export default function OutreachPage() {
                 {/* Candidate Selection */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-medium text-slate-300">
+                    <label className="block text-xs font-medium text-on-surface-variant">
                       Select Candidates ({selectedCandidates.length} selected) *
                     </label>
-                    <span className="text-[11px] text-indigo-400">Zero-Fabrication Guard Enabled</span>
+                    <span className="text-[11px] text-primary font-medium">Zero-Fabrication Guard Enabled</span>
                   </div>
 
-                  <div className="max-h-48 overflow-y-auto bg-[#030712] border border-slate-800 rounded-lg p-2 divide-y divide-slate-800/60">
+                  <div className="max-h-48 overflow-y-auto bg-surface-container-low border border-outline-variant/30 rounded-xl p-2 divide-y divide-outline-variant/20">
                     {availableCandidates.map((cand) => {
                       const isSelected = selectedCandidates.includes(cand.id);
                       return (
@@ -858,17 +859,17 @@ export default function OutreachPage() {
                               isSelected ? prev.filter((id) => id !== cand.id) : [...prev, cand.id]
                             );
                           }}
-                          className={`p-2 rounded-md flex items-center justify-between cursor-pointer transition ${
-                            isSelected ? "bg-indigo-950/40 text-indigo-200" : "hover:bg-slate-900/60 text-slate-300"
+                          className={`p-2 rounded-lg flex items-center justify-between cursor-pointer transition ${
+                            isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-surface-container-high text-on-surface"
                           }`}
                         >
                           <div>
-                            <p className="text-xs font-bold text-white">{cand.name}</p>
-                            <p className="text-[11px] text-slate-400 truncate">{cand.headline || cand.skills.join(", ")}</p>
+                            <p className="text-xs font-bold text-on-surface">{cand.name}</p>
+                            <p className="text-[11px] text-on-surface-variant truncate">{cand.headline || cand.skills.join(", ")}</p>
                           </div>
                           <span
-                            className={`material-icons-round text-base ${
-                              isSelected ? "text-indigo-400" : "text-slate-600"
+                            className={`material-symbols-outlined text-base ${
+                              isSelected ? "text-primary" : "text-outline"
                             }`}
                           >
                             {isSelected ? "check_box" : "check_box_outline_blank"}
@@ -880,28 +881,28 @@ export default function OutreachPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Recruiter Custom Context / Value Pitch (Optional)</label>
+                  <label className="block text-xs font-medium text-on-surface-variant mb-1">Recruiter Custom Context / Value Pitch (Optional)</label>
                   <textarea
                     rows={2}
                     placeholder="e.g. We just closed our Series B and are scaling our database team..."
                     value={customContext}
                     onChange={(e) => setCustomContext(e.target.value)}
-                    className="w-full bg-[#030712] border border-slate-800 rounded-lg p-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-3 text-xs text-on-surface focus:outline-none focus:border-primary"
                   />
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+                <div className="pt-3 border-t border-outline-variant/20 flex items-center justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setCreateModalOpen(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+                    className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-medium border border-outline-variant/30 transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creating || selectedCandidates.length === 0}
-                    className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center gap-2"
+                    className="px-5 py-2 rounded-xl bg-primary text-on-primary hover:bg-primary-container disabled:opacity-50 text-xs font-semibold shadow-xs transition flex items-center gap-2"
                   >
                     {creating ? "Generating Drafts..." : "Generate Grounded Drafts"}
                   </button>
@@ -913,29 +914,29 @@ export default function OutreachPage() {
 
         {/* --- HUMAN APPROVAL GATE MODAL --- */}
         {approvalModalOpen && approvingCampaign && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl my-8">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl my-8 text-on-surface">
+              <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <span className="material-icons-round text-amber-400">rate_review</span>
+                  <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-amber-500">rate_review</span>
                     Human Approval Gate: {approvingCampaign.name}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-on-surface-variant mt-0.5">
                     Review and customize each candidate's personalized draft before approving and dispatching.
                   </p>
                 </div>
                 <button
                   onClick={() => setApprovalModalOpen(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg transition"
+                  className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg transition"
                 >
-                  <span className="material-icons-round">close</span>
+                  <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
 
               {/* Safety & Duplicate Warnings Banner */}
-              <div className="p-3 bg-amber-950/30 border border-amber-800/40 rounded-xl text-xs text-amber-200 flex items-start gap-2">
-                <span className="material-icons-round text-amber-400 text-base mt-0.5">verified_user</span>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-base mt-0.5">verified_user</span>
                 <div>
                   <strong>Mandatory Approval Policy:</strong> NextHire will never send an AI-generated cold message without your explicit approval. Approving dispatches Step 1 via in-app chat & Resend transactional email.
                 </div>
@@ -947,22 +948,22 @@ export default function OutreachPage() {
                   const draft = editableMessages[recipient.id] || { subject: "", body: "" };
 
                   return (
-                    <div key={recipient.id} className="bg-[#030712] border border-slate-800 p-4 rounded-xl space-y-3">
+                    <div key={recipient.id} className="bg-surface-container-low border border-outline-variant/20 p-4 rounded-xl space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs flex items-center justify-center font-bold">
+                          <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-bold">
                             {idx + 1}
                           </span>
-                          <span className="text-xs font-bold text-white">{recipient.candidate.name}</span>
-                          <span className="text-[11px] text-slate-400">({recipient.candidate.headline || "Candidate"})</span>
+                          <span className="text-xs font-bold text-on-surface">{recipient.candidate.name}</span>
+                          <span className="text-[11px] text-on-surface-variant">({recipient.candidate.headline || "Candidate"})</span>
                         </div>
-                        <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800">
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                           Step 1 Draft
                         </span>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-medium text-slate-400 mb-1">Subject</label>
+                        <label className="block text-[11px] font-medium text-on-surface-variant mb-1">Subject</label>
                         <input
                           type="text"
                           value={draft.subject}
@@ -972,12 +973,12 @@ export default function OutreachPage() {
                               [recipient.id]: { ...prev[recipient.id], subject: e.target.value },
                             }))
                           }
-                          className="w-full bg-[#0b0f19] border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                          className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-2.5 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-medium text-slate-400 mb-1">Message Body</label>
+                        <label className="block text-[11px] font-medium text-on-surface-variant mb-1">Message Body</label>
                         <textarea
                           rows={4}
                           value={draft.body}
@@ -987,7 +988,7 @@ export default function OutreachPage() {
                               [recipient.id]: { ...prev[recipient.id], body: e.target.value },
                             }))
                           }
-                          className="w-full bg-[#0b0f19] border border-slate-800 rounded p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                          className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
                         />
                       </div>
                     </div>
@@ -995,15 +996,15 @@ export default function OutreachPage() {
                 })}
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                <p className="text-xs text-slate-400">
+              <div className="pt-3 border-t border-outline-variant/20 flex items-center justify-between">
+                <p className="text-xs text-on-surface-variant">
                   Ready to send to <strong>{approvingCampaign.recipients.length}</strong> candidate(s)
                 </p>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setApprovalModalOpen(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+                    className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-medium border border-outline-variant/30 transition"
                   >
                     Cancel
                   </button>
@@ -1011,9 +1012,9 @@ export default function OutreachPage() {
                     type="button"
                     disabled={approving}
                     onClick={handleApproveAndDispatch}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-emerald-500/20 transition flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold shadow-xs transition flex items-center gap-2"
                   >
-                    <span className="material-icons-round text-base">send</span>
+                    <span className="material-symbols-outlined text-base">send</span>
                     {approving ? "Dispatching..." : "Approve & Send Step 1"}
                   </button>
                 </div>
