@@ -100,6 +100,34 @@ export default function CandidateProfilePage() {
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [uploadStatusText, setUploadStatusText] = useState("Uploading to secure storage...");
 
+  // In-App Resume Previewer State Machine
+  const [showViewerModal, setShowViewerModal] = useState(false);
+  const [viewerStatus, setViewerStatus] = useState<"LOADING" | "SUCCESS" | "MISSING" | "ERROR">("LOADING");
+  const [viewerDocUrl, setViewerDocUrl] = useState<string | null>(null);
+  const [viewerErrorMessage, setViewerErrorMessage] = useState<string>("");
+
+  const handleOpenResumeViewer = async () => {
+    setShowViewerModal(true);
+    setViewerStatus("LOADING");
+    setViewerErrorMessage("");
+    try {
+      const res = await fetch("/api/documents/download?format=json");
+      const data = await res.json();
+      if (res.ok && data.success && data.downloadUrl) {
+        setViewerDocUrl(data.downloadUrl);
+        setViewerStatus("SUCCESS");
+      } else if (res.status === 404 || data.code === "RESUME_NOT_FOUND") {
+        setViewerStatus("MISSING");
+      } else {
+        setViewerStatus("ERROR");
+        setViewerErrorMessage(data.error || "Unable to load document right now.");
+      }
+    } catch (err: any) {
+      setViewerStatus("ERROR");
+      setViewerErrorMessage(err.message || "Failed to load document.");
+    }
+  };
+
   // Load Profile from PostgreSQL via /api/candidate/profile
   const loadProfile = async () => {
     try {
@@ -618,15 +646,14 @@ export default function CandidateProfilePage() {
                 </button>
 
                 {resumeUrl && (
-                  <a
-                    href="/api/documents/download"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={handleOpenResumeViewer}
                     className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-xs"
                   >
-                    <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    <span className="material-symbols-outlined text-sm">visibility</span>
                     View Resume
-                  </a>
+                  </button>
                 )}
               </div>
             </div>
@@ -764,6 +791,131 @@ export default function CandidateProfilePage() {
                     />
                   </label>
                 </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Resume Previewer Modal */}
+      {showViewerModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-surface rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col border border-outline-variant/30 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-low/50">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                  <span className="material-symbols-outlined text-lg">description</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-on-surface">Verified Primary Resume</h3>
+                  <p className="text-[11px] text-on-surface-variant font-mono">{resumeName}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {viewerStatus === "SUCCESS" && viewerDocUrl && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const iframe = document.getElementById("resume-preview-iframe") as HTMLIFrameElement;
+                        iframe?.contentWindow?.print();
+                      }}
+                      className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-xs rounded-xl border border-outline-variant/30 transition-colors flex items-center gap-1 shadow-2xs"
+                    >
+                      <span className="material-symbols-outlined text-sm">print</span>
+                      <span className="hidden sm:inline">Print</span>
+                    </button>
+                    <a
+                      href={viewerDocUrl}
+                      download={resumeName}
+                      className="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-colors flex items-center gap-1 shadow-2xs"
+                    >
+                      <span className="material-symbols-outlined text-sm">download</span>
+                      <span className="hidden sm:inline">Download</span>
+                    </a>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowViewerModal(false)}
+                  className="p-1.5 text-outline hover:text-on-surface rounded-xl hover:bg-surface-container transition-colors"
+                  aria-label="Close resume viewer"
+                >
+                  <span className="material-symbols-outlined text-xl">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-surface-container-lowest flex flex-col items-center justify-center min-h-[450px]">
+              {viewerStatus === "LOADING" && (
+                <div className="flex flex-col items-center justify-center py-16 space-y-3">
+                  <span className="material-symbols-outlined text-4xl text-primary animate-spin">
+                    progress_activity
+                  </span>
+                  <p className="text-sm font-bold text-on-surface">Loading resume...</p>
+                  <p className="text-xs text-on-surface-variant">Retrieving encrypted document stream...</p>
+                </div>
+              )}
+
+              {viewerStatus === "MISSING" && (
+                <div className="max-w-md text-center py-12 px-4 space-y-4">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto border border-amber-500/20">
+                    <span className="material-symbols-outlined text-3xl">upload_file</span>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-on-surface">Resume not available</h4>
+                    <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
+                      Upload your resume to view it here and enable instant AI skill matching and employer visibility.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowViewerModal(false);
+                      setShowResumeModal(true);
+                    }}
+                    className="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs inline-flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                    Upload Resume (PDF)
+                  </button>
+                </div>
+              )}
+
+              {viewerStatus === "ERROR" && (
+                <div className="max-w-md text-center py-12 px-4 space-y-4">
+                  <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto border border-rose-500/20">
+                    <span className="material-symbols-outlined text-3xl">error</span>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-on-surface">Unable to load document</h4>
+                    <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
+                      {viewerErrorMessage || "We couldn't retrieve your resume right now. Please try again."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenResumeViewer}
+                    className="px-5 py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-xs rounded-xl border border-outline-variant/30 transition-all shadow-xs inline-flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-sm">refresh</span>
+                    Try Again
+                  </button>
+                </div>
+              )}
+
+              {viewerStatus === "SUCCESS" && viewerDocUrl && (
+                <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-outline-variant/30 bg-surface shadow-inner">
+                  <iframe
+                    id="resume-preview-iframe"
+                    src={viewerDocUrl}
+                    title="Verified Candidate Resume"
+                    className="w-full h-full"
+                  />
+                </div>
               )}
             </div>
           </div>

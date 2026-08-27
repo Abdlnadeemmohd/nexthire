@@ -88,6 +88,9 @@ export default function ResumeStudioPage() {
           }
           if (d.skillsList && Array.isArray(d.skillsList) && d.skillsList.length > 0) {
             setSkills(d.skillsList.map((s: any) => (typeof s === "string" ? s : s.name)));
+          } else if (d.skills && typeof d.skills === "string") {
+            const parsedSkills = d.skills.split(",").map((s: string) => s.trim()).filter(Boolean);
+            if (parsedSkills.length > 0) setSkills(parsedSkills);
           }
           if (d.experience && Array.isArray(d.experience) && d.experience.length > 0) {
             setExperiences(d.experience);

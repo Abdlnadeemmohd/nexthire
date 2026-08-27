@@ -197,45 +197,82 @@ export async function POST(request: Request) {
     const { AIEngine } = await import("@/lib/aiEngine");
     const extracted = AIEngine.extractResumeProfileData(extractedText, fileName || "resume.pdf");
 
-    // Fetch existing profile to preserve any user-entered manual data
+    // Fetch existing profile to preserve any user-entered manual data and perform intelligent merge
     const existingProfile = await prisma.profile.findUnique({
       where: { userId: authUser.id },
     });
 
-    let skillsToSave = existingProfile?.skills || "";
-    if (!skillsToSave.trim() && extracted.skills.length > 0) {
-      skillsToSave = extracted.skills.join(", ");
-    }
+    // 1. Merge Skills with Case-Insensitive Deduplication
+    const skillMap = new Map<string, string>();
+    (existingProfile?.skills || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((s) => skillMap.set(s.toLowerCase(), s));
 
-    let experienceToSave = existingProfile?.experience || "[]";
-    try {
-      const parsedExp = JSON.parse(experienceToSave);
-      if ((!Array.isArray(parsedExp) || parsedExp.length === 0) && extracted.experience.length > 0) {
-        experienceToSave = JSON.stringify(extracted.experience);
+    (extracted.skills || []).forEach((s) => {
+      if (!skillMap.has(s.toLowerCase())) {
+        skillMap.set(s.toLowerCase(), s);
       }
-    } catch {
-      experienceToSave = JSON.stringify(extracted.experience);
-    }
+    });
+    const skillsToSave = Array.from(skillMap.values()).join(", ");
 
-    let educationToSave = existingProfile?.education || "[]";
+    // 2. Merge Work Experience without duplicating company + role
+    let existingExp: any[] = [];
     try {
-      const parsedEdu = JSON.parse(educationToSave);
-      if ((!Array.isArray(parsedEdu) || parsedEdu.length === 0) && extracted.education.length > 0) {
-        educationToSave = JSON.stringify(extracted.education);
-      }
+      existingExp = JSON.parse(existingProfile?.experience || "[]");
     } catch {
-      educationToSave = JSON.stringify(extracted.education);
+      existingExp = [];
     }
+    if (!Array.isArray(existingExp)) existingExp = [];
 
-    let portfolioToSave = existingProfile?.portfolio || "{}";
-    try {
-      const parsedPort = JSON.parse(portfolioToSave);
-      if (Object.keys(parsedPort).length === 0 && Object.keys(extracted.portfolio).length > 0) {
-        portfolioToSave = JSON.stringify(extracted.portfolio);
+    const mergedExp = [...existingExp];
+    (extracted.experience || []).forEach((newExp) => {
+      const isDuplicate = existingExp.some(
+        (e) =>
+          (e.company || "").toLowerCase() === (newExp.company || "").toLowerCase() &&
+          (e.role || "").toLowerCase() === (newExp.role || "").toLowerCase()
+      );
+      if (!isDuplicate && newExp.company && newExp.role) {
+        mergedExp.push(newExp);
       }
+    });
+    const experienceToSave = JSON.stringify(mergedExp.length > 0 ? mergedExp : extracted.experience);
+
+    // 3. Merge Education without duplicating institution + degree
+    let existingEdu: any[] = [];
+    try {
+      existingEdu = JSON.parse(existingProfile?.education || "[]");
     } catch {
-      portfolioToSave = JSON.stringify(extracted.portfolio);
+      existingEdu = [];
     }
+    if (!Array.isArray(existingEdu)) existingEdu = [];
+
+    const mergedEdu = [...existingEdu];
+    (extracted.education || []).forEach((newEdu) => {
+      const isDuplicate = existingEdu.some(
+        (e) =>
+          (e.institution || "").toLowerCase() === (newEdu.institution || "").toLowerCase() &&
+          (e.degree || "").toLowerCase() === (newEdu.degree || "").toLowerCase()
+      );
+      if (!isDuplicate && newEdu.institution) {
+        mergedEdu.push(newEdu);
+      }
+    });
+    const educationToSave = JSON.stringify(mergedEdu.length > 0 ? mergedEdu : extracted.education);
+
+    // 4. Merge Portfolio Links
+    let existingPort: any = {};
+    try {
+      existingPort = JSON.parse(existingProfile?.portfolio || "{}");
+    } catch {
+      existingPort = {};
+    }
+    const mergedPort = { ...extracted.portfolio, ...existingPort };
+    if (!mergedPort.github && extracted.portfolio?.github) mergedPort.github = extracted.portfolio.github;
+    if (!mergedPort.linkedin && extracted.portfolio?.linkedin) mergedPort.linkedin = extracted.portfolio.linkedin;
+    if (!mergedPort.website && extracted.portfolio?.website) mergedPort.website = extracted.portfolio.website;
+    const portfolioToSave = JSON.stringify(mergedPort);
 
     // 7. Non-Destructive Safe Profile Upsert
     const updatedProfile = await prisma.profile.upsert({
@@ -257,14 +294,20 @@ export async function POST(request: Request) {
       },
     });
 
-    // Update headline and bio on User if default or empty
+    // Update headline, bio, location, and phone on User if missing
     const currentUser = await prisma.user.findUnique({ where: { id: authUser.id } });
     const userUpdate: any = {};
-    if (!currentUser?.headline || currentUser.headline.includes("Verified via Firebase")) {
-      userUpdate.headline = extracted.headline || "Technical Professional";
+    if (!currentUser?.headline || currentUser.headline.includes("Verified via Firebase") || currentUser.headline === "Technical Professional") {
+      if (extracted.headline) userUpdate.headline = extracted.headline;
     }
     if (!currentUser?.bio?.trim() && extracted.summary) {
       userUpdate.bio = extracted.summary;
+    }
+    if (!currentUser?.phone?.trim() && extracted.phone) {
+      userUpdate.phone = extracted.phone;
+    }
+    if (!currentUser?.location?.trim() && extracted.location) {
+      userUpdate.location = extracted.location;
     }
     if (Object.keys(userUpdate).length > 0) {
       await prisma.user.update({

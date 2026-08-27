@@ -1,6 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { TopAppBar } from "@/components/layout/TopAppBar";
+import { SidebarNav } from "@/components/layout/SidebarNav";
+import { Footer } from "@/components/layout/Footer";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
@@ -336,26 +341,41 @@ export default function RecruiterInterviewsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest text-on-surface p-6 lg:p-10">
-      {/* Header Banner */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">psychology</span>
-              Phase 10 Intelligence
-            </span>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-              Evidence-Backed Decisions
-            </span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-on-surface">
-            Interview Intelligence Workspace
-          </h1>
-          <p className="text-sm text-on-surface-variant mt-1">
-            Prepare evidence-grounded interview plans, record structured scorecards, and make auditable hiring decisions.
-          </p>
-        </div>
+    <ProtectedRoute requiredPortal="recruiter">
+      <div className="min-h-screen bg-surface flex flex-col">
+        <TopAppBar />
+
+        <div className="flex flex-1 pt-16">
+          <SidebarNav portal="recruiter" />
+
+          <main className="flex-1 lg:pl-[270px] flex flex-col bg-surface min-h-[calc(100vh-4rem)]">
+            <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-6">
+              <Breadcrumbs
+                items={[
+                  { label: "Dashboard", href: "/recruiter" },
+                  { label: "Interview Intelligence", href: "/recruiter/interviews" },
+                ]}
+              />
+
+              {/* Header Banner */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">psychology</span>
+                      Phase 10 Intelligence
+                    </span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      Evidence-Backed Decisions
+                    </span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">
+                    Interview Intelligence Workspace
+                  </h1>
+                  <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
+                    Prepare evidence-grounded interview plans, record structured scorecards, and make auditable hiring decisions.
+                  </p>
+                </div>
 
         <div className="flex items-center gap-3">
           {selectedForComparison.length >= 2 && (
@@ -1159,6 +1179,12 @@ export default function RecruiterInterviewsPage() {
           </div>
         </div>
       )}
-    </div>
+            </div>
+          </main>
+
+          <Footer />
+        </div>
+      </div>
+    </ProtectedRoute>
   );
 }

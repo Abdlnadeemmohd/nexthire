@@ -184,10 +184,17 @@ export async function GET(request: Request) {
     }
 
     if (!resolvedDocumentUrl) {
+      if (acceptHeader.includes("text/html") && !requestedFormat) {
+        // Redirect browser navigation gracefully to profile or candidate view
+        const redirectTarget = requestedUserId ? `/candidate/${requestedUserId}/resume` : "/profile";
+        return NextResponse.redirect(new URL(`${redirectTarget}?status=no_resume`, request.url));
+      }
+
       return NextResponse.json(
         {
           success: false,
-          error: "Resume unavailable. The document could not be retrieved right now.",
+          error: "Resume unavailable. The document has not been uploaded yet.",
+          code: "RESUME_NOT_FOUND",
         },
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
@@ -232,7 +239,13 @@ export async function GET(request: Request) {
       }
     }
 
-    const resolvedMimeType = inferMimeType(resolvedDocumentUrl);
+    let resolvedMimeType = inferMimeType(resolvedDocumentUrl);
+    if (resolvedDocumentUrl.startsWith("data:")) {
+      const mimeMatch = resolvedDocumentUrl.match(/^data:([^;]+);base64,/);
+      if (mimeMatch) {
+        resolvedMimeType = mimeMatch[1];
+      }
+    }
 
     // 4. Return JSON response if explicitly requested by client API
     if (requestedFormat === "json" || (acceptHeader.includes("application/json") && !acceptHeader.includes("text/html"))) {
@@ -300,8 +313,7 @@ export async function GET(request: Request) {
       }
     }
 
-
-    // Local file fallback if document is inaccessible or mock
+    // Local file fallback if document is inaccessible
     if (!fileBuffer) {
       try {
         const fs = await import("fs/promises");
@@ -317,7 +329,7 @@ export async function GET(request: Request) {
       return new Response(new Uint8Array(fileBuffer as any), {
         status: 200,
         headers: {
-          "Content-Type": "application/pdf",
+          "Content-Type": resolvedMimeType || "application/pdf",
           "Content-Disposition": `inline; filename="${documentName}"`,
           "Cache-Control": "private, no-store, max-age=0, must-revalidate",
           "Pragma": "no-cache",
@@ -325,17 +337,22 @@ export async function GET(request: Request) {
       });
     }
 
+    if (acceptHeader.includes("text/html")) {
+      return NextResponse.redirect(new URL("/profile?status=retrieval_failed", request.url));
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: "Resume unavailable. The document could not be retrieved right now.",
+        code: "RETRIEVAL_FAILED",
       },
       { status: 404, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {
     console.error("[Document Download Route Error]:", err);
     return NextResponse.json(
-      { success: false, error: "Resume unavailable. The document could not be retrieved right now." },
+      { success: false, error: "Resume unavailable. An unexpected server error occurred." },
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

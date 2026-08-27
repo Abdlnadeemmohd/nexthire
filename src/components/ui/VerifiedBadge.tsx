@@ -4,8 +4,9 @@ import React from "react";
 import { UserRole } from "@/lib/auth";
 
 export interface VerifiedBadgeProps {
-  role?: UserRole | "COMPANY" | "PREMIUM_RECRUITER" | "HIRING_PARTNER";
-  tier?: "TRIAL" | "SILVER" | "GOLD" | "DIAMOND" | "PLATINUM" | string;
+  role?: UserRole | "COMPANY" | "PREMIUM_RECRUITER" | "HIRING_PARTNER" | string;
+  tier?: "TRIAL" | "FREE" | "SILVER" | "GOLD" | "DIAMOND" | "PLATINUM" | string;
+  isVerified?: boolean;
   size?: "sm" | "md" | "lg";
   customLabel?: string;
   showIconOnly?: boolean;
@@ -14,107 +15,74 @@ export interface VerifiedBadgeProps {
 
 export function VerifiedBadge({
   role = "JOB_SEEKER",
-  tier,
+  tier = "FREE",
+  isVerified = true,
   size = "sm",
   customLabel,
   showIconOnly = false,
   className = "",
 }: VerifiedBadgeProps) {
-  // Determine role specifications with honest trust labels & tier styling
-  const getBadgeSpecs = () => {
-    switch (role) {
-      case "PLATFORM_ADMIN":
-        return {
-          label: customLabel || "Platform Admin",
-          colorClasses: "bg-rose-50 text-rose-800 border-rose-200",
-          iconColor: "text-rose-700",
-          ariaLabel: "Verified Platform Administrator",
-        };
-      case "RECRUITER":
-      case "PREMIUM_RECRUITER":
-        if (tier === "PLATINUM" || tier === "DIAMOND") {
-          return {
-            label: customLabel || "Verified Recruiter (Diamond)",
-            colorClasses: "bg-cyan-50 text-cyan-900 border-cyan-400 font-bold",
-            iconColor: "text-cyan-600",
-            ariaLabel: "Verified Recruiter Profile (Diamond Partner)",
-          };
-        }
-        if (tier === "GOLD") {
-          return {
-            label: customLabel || "Verified Recruiter (Gold)",
-            colorClasses: "bg-amber-100/80 text-amber-950 border-amber-400 font-bold",
-            iconColor: "text-amber-600",
-            ariaLabel: "Verified Recruiter Profile (Gold Tier)",
-          };
-        }
-        if (tier === "SILVER") {
-          return {
-            label: customLabel || "Verified Recruiter (Silver)",
-            colorClasses: "bg-slate-100 text-slate-800 border-slate-300 font-bold",
-            iconColor: "text-slate-600",
-            ariaLabel: "Verified Recruiter Profile (Silver Tier)",
-          };
-        }
-        return {
-          label: customLabel || "Verified Recruiter",
-          colorClasses: "bg-blue-50 text-blue-800 border-blue-200 font-bold",
-          iconColor: "text-blue-700",
-          ariaLabel: "Verified Recruiter Profile",
-        };
-      case "COMPANY":
-        return {
-          label: customLabel || "Verified Employer",
-          colorClasses: "bg-emerald-50 text-emerald-800 border-emerald-200",
-          iconColor: "text-emerald-700",
-          ariaLabel: "Verified Employer Organization",
-        };
-      case "HIRING_PARTNER":
-        return {
-          label: customLabel || "Hiring Partner",
-          colorClasses: "bg-purple-50 text-purple-800 border-purple-200",
-          iconColor: "text-purple-700",
-          ariaLabel: "Official Hiring Partner",
-        };
-      case "JOB_SEEKER":
-      default:
-        return {
-          label: customLabel || "Verified Candidate",
-          colorClasses: "bg-slate-100 text-slate-700 border-slate-300",
-          iconColor: "text-slate-600",
-          ariaLabel: "Verified Candidate Account",
-        };
-    }
-  };
+  // Map role
+  const normalizedRole =
+    role === "COMPANY" || role === "HIRING_PARTNER"
+      ? "employer"
+      : role === "RECRUITER" || role === "PREMIUM_RECRUITER"
+      ? "recruiter"
+      : "seeker";
 
-  const specs = getBadgeSpecs();
+  // Tier color mapping
+  const normalizedTier = (
+    ["SILVER", "GOLD", "PLATINUM", "DIAMOND"].includes((tier || "").toUpperCase())
+      ? (tier || "").toUpperCase()
+      : "FREE"
+  );
 
   const sizeClasses = {
-    sm: "px-2 py-0.5 text-[10px] gap-1",
-    md: "px-2.5 py-1 text-xs gap-1.5",
-    lg: "px-3 py-1.5 text-sm gap-2",
-  }[size];
+    sm: "px-2 py-0.5 text-[11px] gap-1 rounded-lg",
+    md: "px-2.5 py-1 text-xs gap-1.5 rounded-xl font-medium",
+    lg: "px-3.5 py-1.5 text-sm gap-2 rounded-2xl font-bold",
+  }[size] || "px-2 py-0.5 text-[11px] gap-1 rounded-lg";
 
   const iconSizes = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base",
-  }[size];
+    sm: "text-[13px]",
+    md: "text-[15px]",
+    lg: "text-[18px]",
+  }[size] || "text-[13px]";
+
+  if (!isVerified) {
+    const unverifiedLabel = customLabel || (normalizedRole === "employer" ? "Employer" : normalizedRole === "seeker" ? "Job Seeker" : "Recruiter");
+    return (
+      <span
+        aria-label={`${unverifiedLabel} profile`}
+        className={`inline-flex items-center font-medium border border-outline-variant/30 bg-surface-container-high/80 text-on-surface-variant transition-colors shadow-2xs ${sizeClasses} ${className}`}
+      >
+        <span>{unverifiedLabel}</span>
+      </span>
+    );
+  }
+
+  // Tier-based styles for verified badges
+  const tierColorClasses: Record<string, string> = {
+    GOLD: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+    SILVER: "border-slate-400/40 bg-slate-500/10 text-slate-800 dark:text-slate-200",
+    PLATINUM: "border-indigo-500/40 bg-indigo-500/10 text-indigo-800 dark:text-indigo-300",
+    DIAMOND: "border-cyan-500/40 bg-cyan-500/10 text-cyan-800 dark:text-cyan-300",
+    FREE: "border-blue-500/40 bg-blue-500/10 text-blue-800 dark:text-blue-300",
+  };
+
+  const currentTierStyle = tierColorClasses[normalizedTier] || tierColorClasses.FREE;
+  const label = customLabel || "✓ Verified";
+  const roleDesc = normalizedRole === "employer" ? "employer" : normalizedRole === "seeker" ? "candidate" : "recruiter";
 
   return (
     <span
-      role="status"
-      aria-label={specs.ariaLabel}
-      title={specs.ariaLabel}
-      className={`inline-flex items-center font-bold rounded-full border border-solid uppercase whitespace-nowrap flex-shrink-0 select-none ${specs.colorClasses} ${sizeClasses} ${className}`}
+      aria-label={`Verified ${roleDesc} profile`}
+      className={`inline-flex items-center font-bold border ${currentTierStyle} transition-all shadow-2xs ${sizeClasses} ${className}`}
     >
-      <span
-        aria-hidden="true"
-        className={`material-symbols-outlined font-bold flex-shrink-0 ${iconSizes} ${specs.iconColor}`}
-      >
-        verified
+      <span className={`material-symbols-outlined font-black text-emerald-600 dark:text-emerald-400 ${iconSizes}`}>
+        check_circle
       </span>
-      {!showIconOnly && <span>{specs.label}</span>}
+      {!showIconOnly && <span>{label}</span>}
     </span>
   );
 }
