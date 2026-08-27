@@ -392,13 +392,13 @@ export default function OutreachPage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans">
-        <TopAppBar />
+      <TopAppBar />
 
-        <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
-          <SidebarNav portal="recruiter" />
+      <div className="flex bg-[#030712] text-slate-100 min-h-screen pt-16 font-sans">
+        <SidebarNav portal="recruiter" />
 
-          <main className="flex-1 min-w-0 space-y-6">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
             <Breadcrumbs
               items={[
                 { label: "Dashboard", href: "/recruiter" },
@@ -772,9 +772,10 @@ export default function OutreachPage() {
               </div>
             )}
           </main>
-        </div>
 
-        <Footer />
+          <Footer />
+        </div>
+      </div>
 
         {/* --- CREATE CAMPAIGN WIZARD MODAL --- */}
         {createModalOpen && (
@@ -1020,7 +1021,6 @@ export default function OutreachPage() {
             </div>
           </div>
         )}
-      </div>
     </ProtectedRoute>
   );
 }

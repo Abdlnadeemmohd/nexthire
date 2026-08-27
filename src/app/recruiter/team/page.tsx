@@ -206,13 +206,13 @@ export default function RecruiterTeamPage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-        <TopAppBar />
+      <TopAppBar />
 
-        <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
-          <SidebarNav portal="recruiter" />
+      <div className="flex bg-surface min-h-screen pt-16">
+        <SidebarNav portal="recruiter" />
 
-          <main className="flex-1 min-w-0 space-y-6">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
             {/* Breadcrumbs */}
             <Breadcrumbs
               items={[
@@ -259,31 +259,33 @@ export default function RecruiterTeamPage() {
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex overflow-x-auto border-b border-slate-200 dark:border-slate-800 gap-2 pb-px">
-              {[
-                { id: "overview", label: "Overview", icon: "dashboard" },
-                { id: "workload", label: "Team Workload", icon: "monitoring" },
-                { id: "handoffs", label: `Handoffs (${handoffs.filter((h) => h.status === "PENDING").length})`, icon: "swap_horiz" },
-                { id: "tasks", label: `Hiring Tasks (${tasks.filter((t) => t.status !== "COMPLETED").length})`, icon: "checklist" },
-                { id: "duplicate", label: `Duplicate Work (${teamData?.duplicateWorkAlerts?.length || 0})`, icon: "warning" },
-                { id: "productivity", label: "Productivity", icon: "speed" },
-                { id: "funnel", label: "Team Funnel", icon: "insights" },
-                { id: "activity", label: "Activity Log", icon: "history" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-xl transition whitespace-nowrap border-b-2 ${
-                    activeTab === tab.id
-                      ? "border-blue-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900"
-                      : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-lg">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
+            {/* Navigation Tabs - One line on desktop, controlled container scrolling on mobile */}
+            <div className="w-full border-b border-slate-200 dark:border-slate-800 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-px">
+              <div className="flex items-center justify-between xl:justify-start gap-1 xl:gap-2 min-w-max lg:min-w-0">
+                {[
+                  { id: "overview", label: "Overview", icon: "dashboard" },
+                  { id: "workload", label: "Team Workload", icon: "monitoring" },
+                  { id: "handoffs", label: `Handoffs (${handoffs.filter((h) => h.status === "PENDING").length})`, icon: "swap_horiz" },
+                  { id: "tasks", label: `Hiring Tasks (${tasks.filter((t) => t.status !== "COMPLETED").length})`, icon: "checklist" },
+                  { id: "duplicate", label: `Duplicate Work (${teamData?.duplicateWorkAlerts?.length || 0})`, icon: "warning" },
+                  { id: "productivity", label: "Productivity", icon: "speed" },
+                  { id: "funnel", label: "Team Funnel", icon: "insights" },
+                  { id: "activity", label: "Activity Log", icon: "history" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as TabType)}
+                    className={`flex items-center gap-1 xl:gap-1.5 px-2.5 lg:px-2 xl:px-3 py-2 text-xs xl:text-sm font-medium rounded-t-xl transition-all whitespace-nowrap border-b-2 ${
+                      activeTab === tab.id
+                        ? "border-blue-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900 font-bold"
+                        : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base xl:text-lg flex-shrink-0">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {loading ? (
@@ -999,9 +1001,9 @@ export default function RecruiterTeamPage() {
               </div>
             )}
           </main>
-        </div>
 
-        <Footer />
+          <Footer />
+        </div>
       </div>
     </ProtectedRoute>
   );

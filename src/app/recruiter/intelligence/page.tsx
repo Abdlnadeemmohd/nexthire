@@ -107,15 +107,14 @@ export default function RecruiterHiringIntelligencePage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-        <TopAppBar />
+      <TopAppBar />
 
-        <div className="flex-1 flex overflow-hidden">
-          <SidebarNav portal="recruiter" />
+      <div className="flex bg-slate-900 text-slate-100 min-h-screen pt-16 font-sans">
+        <SidebarNav portal="recruiter" />
 
-          <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto space-y-6">
-              <Breadcrumbs
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
+            <Breadcrumbs
                 items={[
                   { label: "Recruiter Dashboard", href: "/recruiter" },
                   { label: "Hiring Funnel Intelligence & Strategy" },
@@ -257,58 +256,60 @@ export default function RecruiterHiringIntelligencePage() {
                     </div>
                   </div>
 
-                  {/* Navigation Tabs */}
-                  <div className="flex border-b border-slate-800 space-x-6 text-sm font-medium">
-                    <button
-                      onClick={() => setActiveTab("overview")}
-                      className={`pb-3 border-b-2 transition ${
-                        activeTab === "overview"
-                          ? "border-indigo-500 text-indigo-400 font-semibold"
-                          : "border-transparent text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      🎯 Action Center & Strategy ({overview.strategicRecommendations.length})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("funnel")}
-                      className={`pb-3 border-b-2 transition ${
-                        activeTab === "funnel"
-                          ? "border-indigo-500 text-indigo-400 font-semibold"
-                          : "border-transparent text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      📊 Visual Stage Funnel
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("bottlenecks")}
-                      className={`pb-3 border-b-2 transition ${
-                        activeTab === "bottlenecks"
-                          ? "border-indigo-500 text-indigo-400 font-semibold"
-                          : "border-transparent text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      ⚠️ Operational Bottlenecks ({overview.bottlenecks.length})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("stalled")}
-                      className={`pb-3 border-b-2 transition ${
-                        activeTab === "stalled"
-                          ? "border-indigo-500 text-indigo-400 font-semibold"
-                          : "border-transparent text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      ⏳ Stalled Candidates ({overview.stalledCandidates.length})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("workload")}
-                      className={`pb-3 border-b-2 transition ${
-                        activeTab === "workload"
-                          ? "border-indigo-500 text-indigo-400 font-semibold"
-                          : "border-transparent text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      👥 Recruiter Workload
-                    </button>
+                  {/* Navigation Tabs - One line on desktop, controlled container scrolling on mobile */}
+                  <div className="w-full border-b border-slate-800 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-px">
+                    <div className="flex items-center justify-between xl:justify-start gap-2 xl:gap-4 min-w-max lg:min-w-0">
+                      <button
+                        onClick={() => setActiveTab("overview")}
+                        className={`pb-3 text-xs sm:text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                          activeTab === "overview"
+                            ? "border-indigo-500 text-indigo-400 font-semibold"
+                            : "border-transparent text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        🎯 Action Center & Strategy ({overview.strategicRecommendations.length})
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("funnel")}
+                        className={`pb-3 text-xs sm:text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                          activeTab === "funnel"
+                            ? "border-indigo-500 text-indigo-400 font-semibold"
+                            : "border-transparent text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        📊 Visual Stage Funnel
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("bottlenecks")}
+                        className={`pb-3 text-xs sm:text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                          activeTab === "bottlenecks"
+                            ? "border-indigo-500 text-indigo-400 font-semibold"
+                            : "border-transparent text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        ⚠️ Operational Bottlenecks ({overview.bottlenecks.length})
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("stalled")}
+                        className={`pb-3 text-xs sm:text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                          activeTab === "stalled"
+                            ? "border-indigo-500 text-indigo-400 font-semibold"
+                            : "border-transparent text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        ⏳ Stalled Candidates ({overview.stalledCandidates.length})
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("workload")}
+                        className={`pb-3 text-xs sm:text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                          activeTab === "workload"
+                            ? "border-indigo-500 text-indigo-400 font-semibold"
+                            : "border-transparent text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        👥 Recruiter Workload
+                      </button>
+                    </div>
                   </div>
 
                   {/* TAB 1: Action Center & Strategy */}
@@ -740,11 +741,10 @@ export default function RecruiterHiringIntelligencePage() {
                   )}
                 </>
               )}
-            </div>
           </main>
-        </div>
 
-        <Footer />
+          <Footer />
+        </div>
       </div>
     </ProtectedRoute>
   );

@@ -87,13 +87,13 @@ export default function RecruiterMarketIntelligencePage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-        <TopAppBar />
+      <TopAppBar />
 
-        <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
-          <SidebarNav portal="recruiter" />
+      <div className="flex bg-surface min-h-screen pt-16">
+        <SidebarNav portal="recruiter" />
 
-          <main className="flex-1 min-w-0 space-y-6">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
             {/* Breadcrumb Navigation */}
             <Breadcrumbs
               items={[
@@ -152,29 +152,31 @@ export default function RecruiterMarketIntelligencePage() {
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-1 overflow-x-auto">
-              {[
-                { id: "overview", label: "Overview & Strategy", icon: "dashboard" },
-                { id: "skills", label: "Skill Scarcity", icon: "psychology" },
-                { id: "location", label: "Geographic & Remote", icon: "location_on" },
-                { id: "seniority", label: "Seniority & Experience", icon: "badge" },
-                { id: "strictness", label: "Requirement Strictness", icon: "tune" },
-                { id: "trends", label: "Market Trends", icon: "trending_up" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg transition-all ${
-                    activeTab === tab.id
-                      ? "border-b-2 border-primary text-primary bg-primary/5 dark:bg-primary/10"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
+            {/* Navigation Tabs - One line on desktop, controlled container scrolling on mobile */}
+            <div className="w-full border-b border-slate-200 dark:border-slate-800 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-px">
+              <div className="flex items-center justify-between xl:justify-start gap-1 xl:gap-2 min-w-max lg:min-w-0">
+                {[
+                  { id: "overview", label: "Overview & Strategy", icon: "dashboard" },
+                  { id: "skills", label: "Skill Scarcity", icon: "psychology" },
+                  { id: "location", label: "Geographic & Remote", icon: "location_on" },
+                  { id: "seniority", label: "Seniority & Experience", icon: "badge" },
+                  { id: "strictness", label: "Requirement Strictness", icon: "tune" },
+                  { id: "trends", label: "Market Trends", icon: "trending_up" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center gap-1.5 px-3 lg:px-2.5 xl:px-3.5 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all whitespace-nowrap border-b-2 ${
+                      activeTab === tab.id
+                        ? "border-primary text-primary bg-primary/5 dark:bg-primary/10 font-bold"
+                        : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base xl:text-lg flex-shrink-0">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Loading Skeleton */}
@@ -711,9 +713,9 @@ export default function RecruiterMarketIntelligencePage() {
               </div>
             </div>
           </main>
-        </div>
 
-        <Footer />
+          <Footer />
+        </div>
       </div>
     </ProtectedRoute>
   );

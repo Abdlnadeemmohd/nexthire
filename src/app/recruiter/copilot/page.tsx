@@ -192,12 +192,13 @@ export default function RecruiterCopilotPage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-surface flex flex-col">
-        <TopAppBar />
-        <div className="flex flex-1 pt-16">
-          <SidebarNav portal="recruiter" />
-          <main className="flex-1 lg:pl-[270px] flex flex-col bg-surface min-h-[calc(100vh-4rem)]">
-            <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-4">
+      <TopAppBar />
+
+      <div className="flex bg-surface min-h-screen pt-16">
+        <SidebarNav portal="recruiter" />
+
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-4 pb-16">
               <Breadcrumbs
                 items={[
                   { label: "Dashboard", href: "/recruiter" },
@@ -501,9 +502,9 @@ export default function RecruiterCopilotPage() {
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
               </div>
-            </div>
-            <Footer />
           </main>
+
+          <Footer />
         </div>
 
         {/* Candidate Intelligence Modal */}

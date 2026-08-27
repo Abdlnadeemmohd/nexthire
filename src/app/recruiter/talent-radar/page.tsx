@@ -170,9 +170,7 @@ export default function RecruiterTalentRadarPage() {
                   <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
                     Recruiter Talent Radar
                   </h1>
-                  {user?.isVerified && (
-                    <VerifiedBadge role="RECRUITER" tier={(user as any)?.subscriptionTier} size="md" />
-                  )}
+                  <VerifiedBadge isVerified={user?.isVerified} role="RECRUITER" tier={(user as any)?.subscriptionTier} size="md" />
                 </div>
                 <p className="text-on-surface-variant text-xs sm:text-sm font-body-md">
                   Real-time market intelligence, candidate supply matching & actionable hiring signals.

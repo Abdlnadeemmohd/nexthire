@@ -342,14 +342,13 @@ export default function RecruiterInterviewsPage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-surface flex flex-col">
-        <TopAppBar />
+      <TopAppBar />
 
-        <div className="flex flex-1 pt-16">
-          <SidebarNav portal="recruiter" />
+      <div className="flex bg-surface min-h-screen pt-16">
+        <SidebarNav portal="recruiter" />
 
-          <main className="flex-1 lg:pl-[270px] flex flex-col bg-surface min-h-[calc(100vh-4rem)]">
-            <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-6">
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-16">
               <Breadcrumbs
                 items={[
                   { label: "Dashboard", href: "/recruiter" },
@@ -1179,8 +1178,7 @@ export default function RecruiterInterviewsPage() {
           </div>
         </div>
       )}
-            </div>
-          </main>
+    </main>
 
           <Footer />
         </div>

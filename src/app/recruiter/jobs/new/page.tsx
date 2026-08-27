@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
+import { Footer } from "@/components/layout/Footer";
 import { useToast } from "@/components/ui/Toast";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -289,6 +290,8 @@ export default function PostJobPage() {
               )}
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

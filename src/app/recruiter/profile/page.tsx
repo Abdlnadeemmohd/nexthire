@@ -380,13 +380,12 @@ export default function RecruiterProfilePage() {
                         {profileData.name || "Talent Acquisition Partner"}
                       </h1>
 
-                      {profileData.isVerified && (
-                        <VerifiedBadge
-                          role="RECRUITER"
-                          tier={profileData.subscriptionTier}
-                          size="md"
-                        />
-                      )}
+                      <VerifiedBadge
+                        isVerified={profileData.isVerified}
+                        role="RECRUITER"
+                        tier={profileData.subscriptionTier}
+                        size="md"
+                      />
 
                       {/* Recruiter Hiring Availability Status */}
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 border border-blue-500/25 select-none">

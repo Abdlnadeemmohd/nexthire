@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
+import { Footer } from "@/components/layout/Footer";
 import { CandidateIntelligenceModal } from "@/components/recruiter/CandidateIntelligenceModal";
 
 interface AssessmentItem {
@@ -204,11 +205,13 @@ export default function RecruiterAssessmentsPage() {
 
   return (
     <ProtectedRoute requiredPortal="recruiter">
-      <div className="min-h-screen bg-surface flex flex-col">
-        <TopAppBar />
-        <div className="flex flex-1 pt-16">
-          <SidebarNav portal="recruiter" />
-          <main className="flex-1 lg:pl-[270px] p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <TopAppBar />
+
+      <div className="flex bg-surface min-h-screen pt-16">
+        <SidebarNav portal="recruiter" />
+
+        <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6 pb-16">
             
             {/* Header Banner */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
@@ -608,6 +611,8 @@ export default function RecruiterAssessmentsPage() {
             />
 
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

@@ -192,11 +192,12 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
-            {user?.isVerified ? (
-              <VerifiedBadge role={user?.role} tier={(user as any)?.subscriptionTier} size="sm" />
-            ) : (
-              <span className="text-[10px] text-outline font-medium">Standard Account</span>
-            )}
+            <VerifiedBadge
+              role={user?.role}
+              tier={(user as any)?.subscriptionTier}
+              isVerified={user?.isVerified}
+              size="sm"
+            />
 
             <button
               onClick={logout}
