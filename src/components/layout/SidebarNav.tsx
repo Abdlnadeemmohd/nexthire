@@ -194,8 +194,8 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
       </div>
 
       {/* Bottom Profile Card */}
-      <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex-shrink-0">
-        <div className={`p-3 bg-surface-container-lowest border ${tierStyle.cardBorder} rounded-2xl space-y-3 shadow-xs transition-colors duration-150`}>
+      <div className="p-3.5 border-t border-outline-variant/20 bg-surface-container-low flex-shrink-0">
+        <div className={`p-3.5 bg-surface-container-lowest border ${tierStyle.cardBorder} rounded-2xl space-y-3 shadow-xs transition-colors duration-150`}>
           <div className="flex items-center gap-3">
             <img
               src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
@@ -208,24 +208,28 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
-            <VerifiedBadge
-              role={user?.role}
-              tier={(user as any)?.subscriptionTier}
-              isVerified={user?.isVerified}
-              size="sm"
-            />
+          <div className="flex items-center justify-between pt-2.5 border-t border-outline-variant/15 gap-2">
+            <div className="min-w-0">
+              <VerifiedBadge
+                role={user?.role}
+                tier={(user as any)?.subscriptionTier}
+                isVerified={user?.isVerified}
+                size="sm"
+              />
+            </div>
 
             <button
               onClick={logout}
-              className="p-1.5 text-outline hover:text-error hover:bg-error-container/20 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
+              className="p-1.5 text-outline hover:text-error hover:bg-error-container/20 rounded-xl transition-colors flex items-center justify-center text-[11px] font-bold flex-shrink-0"
               title="Sign Out"
+              aria-label="Sign Out"
             >
-              <span className="material-symbols-outlined text-base">logout</span>
+              <span className="material-symbols-outlined text-lg">logout</span>
             </button>
           </div>
         </div>
       </div>
+
     </aside>
   );
 }
