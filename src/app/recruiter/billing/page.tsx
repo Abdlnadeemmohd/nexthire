@@ -7,6 +7,10 @@ import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/context/AuthContext";
+import {
+  SUBSCRIPTION_TIER_STYLES,
+  normalizeSubscriptionTier,
+} from "@/lib/subscriptionTiers";
 
 interface PlanConfig {
   id: string;
@@ -55,7 +59,7 @@ interface EntitlementsData {
 
 export default function RecruiterBillingPage() {
   const { showToast } = useToast();
-  const { updateUserProfile, refreshUser } = useAuth();
+  const { user, updateUserProfile, refreshUser } = useAuth();
   const [plans, setPlans] = useState<PlanConfig[]>([]);
   const [entitlements, setEntitlements] = useState<EntitlementsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,75 +145,86 @@ export default function RecruiterBillingPage() {
                 </p>
               </div>
 
-              <div className="px-4 py-2 bg-surface-container-high text-on-surface text-xs font-bold rounded-2xl border border-outline-variant/30 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                {entitlements?.isTrial ? "Trial Mode Active" : `${entitlements?.planName || "Active Plan"}`}
-              </div>
+              {(() => {
+                const activeTier = normalizeSubscriptionTier(entitlements?.planTier || (user as any)?.subscriptionTier);
+                const activeTierStyle = SUBSCRIPTION_TIER_STYLES[activeTier] || SUBSCRIPTION_TIER_STYLES.FREE;
+                return (
+                  <div className={`px-4 py-2 ${activeTierStyle.statusPill} text-xs font-bold rounded-2xl flex items-center gap-2 shadow-2xs`}>
+                    <span className={`w-2 h-2 rounded-full ${activeTierStyle.statusDot} animate-pulse`}></span>
+                    {entitlements?.isTrial ? "Trial Mode Active" : `${entitlements?.planName || `${activeTierStyle.name} Tier`}`}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Current Active Plan Status & Usage Overview */}
-            {entitlements && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Active Plan Card */}
-                <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 bg-surface-container-high text-primary text-xs font-bold rounded-full">
-                      Current Plan
-                    </span>
-                    <span className="text-xs font-mono font-bold text-outline">{entitlements.planTier}</span>
-                  </div>
-                  <h3 className="font-display text-2xl font-bold text-on-surface">{entitlements.planName}</h3>
-                  <p className="text-xs text-on-surface-variant">
-                    {entitlements.isTrial
-                      ? "One-time evaluation mode with 5 candidate searches."
-                      : `Active paid tier with daily allowances.`}
-                  </p>
-                </div>
+            {entitlements && (() => {
+              const currentTier = normalizeSubscriptionTier(entitlements.planTier || (user as any)?.subscriptionTier);
+              const currentTierStyle = SUBSCRIPTION_TIER_STYLES[currentTier] || SUBSCRIPTION_TIER_STYLES.FREE;
 
-                {/* Sourcing / Unlock Allowance Meter */}
-                <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-3">
-                  <span className="px-3 py-1 bg-surface-container-high text-on-surface text-xs font-bold rounded-full">
-                    {entitlements.isTrial ? "Trial Searches" : "Daily Candidate Unlocks"}
-                  </span>
-                  {entitlements.isTrial ? (
-                    <div>
-                      <div className="text-2xl font-bold text-on-surface">
-                        {entitlements.trialSearchesUsed} / {entitlements.trialSearchesLimit}
-                      </div>
-                      <p className="text-xs text-primary font-semibold mt-1">
-                        {Math.max(0, entitlements.trialSearchesLimit - entitlements.trialSearchesUsed)} searches remaining
-                      </p>
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Active Plan Card */}
+                  <div className={`glass-card bg-surface-container-lowest border ${currentTierStyle.cardBorder} rounded-3xl p-6 space-y-3 shadow-xs`}>
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 ${currentTierStyle.badgeBg} ${currentTierStyle.badgeText} border ${currentTierStyle.badgeBorder} text-xs font-bold rounded-full`}>
+                        Current Plan
+                      </span>
+                      <span className={`text-xs font-mono font-bold ${currentTierStyle.badgeText}`}>{entitlements.planTier}</span>
                     </div>
-                  ) : (
-                    <div>
-                      <div className="text-2xl font-bold text-on-surface">
-                        {entitlements.candidateUnlocksRemainingToday} Left
-                      </div>
-                      <p className="text-xs text-on-surface-variant mt-1">
-                        Used {entitlements.candidateUnlocksUsedToday} of {entitlements.candidateUnlockLimit} today
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Resume Downloads & Jobs Meter */}
-                <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-3">
-                  <span className="px-3 py-1 bg-surface-container-high text-on-surface text-xs font-bold rounded-full">
-                    Resume Downloads & Vacancies
-                  </span>
-                  <div>
-                    <div className="text-2xl font-bold text-on-surface">
-                      {entitlements.isTrial ? "0 Resumes" : `${entitlements.resumeUnlocksRemainingToday} Resumes Left`}
-                    </div>
-                    <p className="text-xs text-on-surface-variant mt-1">
+                    <h3 className="font-display text-2xl font-bold text-on-surface">{entitlements.planName}</h3>
+                    <p className="text-xs text-on-surface-variant">
                       {entitlements.isTrial
-                        ? `${entitlements.trialJobPostingsUsed}/${entitlements.trialJobPostingsLimit} trial jobs posted`
-                        : `Up to ${entitlements.jobPostingLimit} active job vacancies`}
+                        ? "One-time evaluation mode with 5 candidate searches."
+                        : `Active paid tier with daily allowances.`}
                     </p>
                   </div>
+
+                  {/* Sourcing / Unlock Allowance Meter */}
+                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-3">
+                    <span className="px-3 py-1 bg-surface-container-high text-on-surface text-xs font-bold rounded-full">
+                      {entitlements.isTrial ? "Trial Searches" : "Daily Candidate Unlocks"}
+                    </span>
+                    {entitlements.isTrial ? (
+                      <div>
+                        <div className="text-2xl font-bold text-on-surface">
+                          {entitlements.trialSearchesUsed} / {entitlements.trialSearchesLimit}
+                        </div>
+                        <p className="text-xs text-primary font-semibold mt-1">
+                          {Math.max(0, entitlements.trialSearchesLimit - entitlements.trialSearchesUsed)} searches remaining
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-2xl font-bold text-on-surface">
+                          {entitlements.candidateUnlocksRemainingToday} Left
+                        </div>
+                        <p className="text-xs text-on-surface-variant mt-1">
+                          Used {entitlements.candidateUnlocksUsedToday} of {entitlements.candidateUnlockLimit} today
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Resume Downloads & Jobs Meter */}
+                  <div className="glass-card bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 space-y-3">
+                    <span className="px-3 py-1 bg-surface-container-high text-on-surface text-xs font-bold rounded-full">
+                      Resume Downloads & Vacancies
+                    </span>
+                    <div>
+                      <div className="text-2xl font-bold text-on-surface">
+                        {entitlements.isTrial ? "0 Resumes" : `${entitlements.resumeUnlocksRemainingToday} Resumes Left`}
+                      </div>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        {entitlements.isTrial
+                          ? `${entitlements.trialJobPostingsUsed}/${entitlements.trialJobPostingsLimit} trial jobs posted`
+                          : `Up to ${entitlements.jobPostingLimit} active job vacancies`}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Subscription Ladder Grid */}
             <div className="space-y-4">
@@ -230,6 +245,8 @@ export default function RecruiterBillingPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 sm:gap-6">
                   {plans.map((plan) => {
+                    const planTierNormalized = normalizeSubscriptionTier(plan.tier);
+                    const planTierStyle = SUBSCRIPTION_TIER_STYLES[planTierNormalized] || SUBSCRIPTION_TIER_STYLES.FREE;
                     const isCurrent = entitlements?.planId === plan.id;
                     const isPopular = plan.id === "gold";
 
@@ -238,9 +255,9 @@ export default function RecruiterBillingPage() {
                         key={plan.id}
                         className={`glass-card rounded-3xl p-6 flex flex-col justify-between space-y-6 transition-all relative ${
                           isCurrent
-                            ? "border-2 border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20"
+                            ? `${planTierStyle.cardActiveBorder}`
                             : isPopular
-                            ? "border-2 border-amber-500/40 bg-surface-container-lowest shadow-sm hover:border-amber-500/60"
+                            ? "border-2 border-amber-500/40 bg-surface-container-lowest shadow-xs hover:border-amber-500/60"
                             : "border border-outline-variant/30 bg-surface-container-lowest hover:border-outline-variant/50"
                         }`}
                       >
@@ -253,7 +270,7 @@ export default function RecruiterBillingPage() {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <h3 className="font-bold text-base text-on-surface">{plan.name}</h3>
-                            <span className="text-[10px] font-mono font-bold text-outline">{plan.tier}</span>
+                            <span className={`text-[10px] font-mono font-bold ${isCurrent ? planTierStyle.badgeText : "text-outline"}`}>{plan.tier}</span>
                           </div>
 
                           <div>
@@ -282,7 +299,7 @@ export default function RecruiterBillingPage() {
 
                         <div>
                           {isCurrent ? (
-                            <div className="w-full py-2.5 bg-primary/10 text-primary font-bold text-xs rounded-xl text-center border border-primary/30">
+                            <div className={`w-full py-2.5 ${planTierStyle.activeButtonBg} font-bold text-xs rounded-xl text-center shadow-2xs`}>
                               Active Tier
                             </div>
                           ) : plan.id === "trial" ? (

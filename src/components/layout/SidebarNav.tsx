@@ -185,12 +185,12 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
 
       {/* Bottom Profile Card */}
       <div className="p-4 border-t border-outline-variant/20 bg-surface-container-low flex-shrink-0">
-        <div className="p-3 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl space-y-3 shadow-xs">
+        <div className={`p-3 bg-surface-container-lowest border ${tierStyle.cardBorder} rounded-2xl space-y-3 shadow-xs transition-colors duration-150`}>
           <div className="flex items-center gap-3">
             <img
               src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"}
               alt={user?.name || "User Avatar"}
-              className={`w-10 h-10 rounded-xl object-cover border border-outline-variant/40 ring-2 ${tierStyle.ringColor} flex-shrink-0`}
+              className={`w-10 h-10 rounded-xl object-cover border border-outline-variant/40 ring-2 ${tierStyle.ringColor} flex-shrink-0 transition-all duration-150`}
             />
             <div className="min-w-0 flex-1">
               <h4 className="font-bold text-xs text-on-surface truncate">{user?.name || "User"}</h4>
