@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { AuthUser, UserRole } from "@/lib/auth";
+import { AuthUser, UserRole, getLogoutRouteForRole } from "@/lib/auth";
 import { authService } from "@/services/authService";
 
 export type { UserRole };
@@ -140,6 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isLoggingOutRef.current) return;
     isLoggingOutRef.current = true;
 
+    // Capture the target logout destination based on the current user's role before clearing state
+    const currentRole = user?.role;
+    const targetLogoutUrl = getLogoutRouteForRole(currentRole);
+
     try {
       // 1. Immediately wipe React user state
       setUser(null);
@@ -150,12 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 3. Broadcast storage event for header and notification counter synchronization
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("storage"));
-        window.location.href = "/";
+        window.location.href = targetLogoutUrl;
       }
     } catch (err) {
       console.error("[Logout execution notice]:", err);
       if (typeof window !== "undefined") {
-        window.location.href = "/";
+        window.location.href = targetLogoutUrl || "/";
       }
     } finally {
       isLoggingOutRef.current = false;

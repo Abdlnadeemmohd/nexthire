@@ -107,7 +107,12 @@ function JobSearchContent() {
     return sorted;
   }, [filteredJobs, sortBy]);
 
-  const portalType = user?.role === "RECRUITER" ? "recruiter" : user?.role === "PLATFORM_ADMIN" ? "admin" : "seeker";
+  const portalType =
+    user?.role === "RECRUITER" || user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN"
+      ? "recruiter"
+      : user?.role === "PLATFORM_ADMIN"
+      ? "admin"
+      : "seeker";
 
   return (
     <>

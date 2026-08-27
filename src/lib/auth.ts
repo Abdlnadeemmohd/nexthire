@@ -524,6 +524,15 @@ export function getHomeRouteForUser(user?: { role?: UserRole | string | null } |
   return getHomeRouteForRole(user?.role);
 }
 
+export function getLogoutRouteForRole(role?: UserRole | string | null): string {
+  if (role === "JOB_SEEKER") return "/jobs";
+  return "/login";
+}
+
+export function getLogoutRouteForUser(user?: { role?: UserRole | string | null } | null): string {
+  return getLogoutRouteForRole(user?.role);
+}
+
 export function getPortalHome(user?: { role?: UserRole | string | null } | null): string {
   return getHomeRouteForRole(user?.role);
 }
