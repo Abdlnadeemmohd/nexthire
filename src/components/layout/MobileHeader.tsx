@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { UserRole } from "@/context/AuthContext";
+import { getHomeRouteForRole } from "@/lib/auth";
 import { MobileDrawer } from "@/components/layout/MobileDrawer";
 import { MobileSearchScreen } from "@/components/layout/MobileSearchScreen";
 
@@ -14,6 +15,7 @@ interface MobileHeaderProps {
 export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSearchScreenOpen, setIsSearchScreenOpen] = useState(false);
+  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
 
   return (
     <>
@@ -29,7 +31,7 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
           </button>
 
           <Link
-            href="/"
+            href={homeHref}
             className="flex items-center gap-1.5 sm:gap-2 min-w-0 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all"
             aria-label="NextHire home"
           >
@@ -41,6 +43,7 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
             </span>
           </Link>
         </div>
+
 
         {/* Right: Search Trigger, Notifications & Auth Controls */}
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">

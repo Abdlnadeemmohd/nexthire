@@ -486,7 +486,6 @@ export function isRecruiterManager(role?: string): boolean {
 
 export function hasManagerAccess(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
   if (!user) return false;
-  if (user.isTester) return true;
   return user.role === "RECRUITER_MANAGER" || user.role === "COMPANY_ADMIN" || user.role === "PLATFORM_ADMIN";
 }
 
@@ -504,6 +503,25 @@ export function canViewTeamOutreach(user?: { role?: UserRole | string; isTester?
 
 export function canViewCompanyMarketIntelligence(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
   return hasManagerAccess(user);
+}
+
+/**
+ * Returns the canonical home/landing route according to the user's authenticated role.
+ * - JOB_SEEKER: /dashboard (Find Work / Applications)
+ * - RECRUITER / RECRUITER_MANAGER / COMPANY_ADMIN: /recruiter
+ * - PLATFORM_ADMIN: /admin
+ * - Unauthenticated / unknown: /
+ */
+export function getHomeRouteForRole(role?: UserRole | string | null): string {
+  if (!role) return "/";
+  if (role === "PLATFORM_ADMIN") return "/admin";
+  if (role === "RECRUITER" || role === "RECRUITER_MANAGER" || role === "COMPANY_ADMIN") return "/recruiter";
+  if (role === "JOB_SEEKER") return "/dashboard";
+  return "/";
+}
+
+export function getHomeRouteForUser(user?: { role?: UserRole | string | null } | null): string {
+  return getHomeRouteForRole(user?.role);
 }
 
 export function hasRouteAccess(userRole: UserRole | undefined, pathname: string): boolean {

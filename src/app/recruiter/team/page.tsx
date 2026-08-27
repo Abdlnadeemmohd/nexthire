@@ -206,8 +206,8 @@ export default function RecruiterTeamPage() {
   const isManager =
     user?.role === "RECRUITER_MANAGER" ||
     user?.role === "COMPANY_ADMIN" ||
-    user?.role === "PLATFORM_ADMIN" ||
-    user?.isTester;
+    user?.role === "PLATFORM_ADMIN";
+
 
   if (!isManager) {
     return (

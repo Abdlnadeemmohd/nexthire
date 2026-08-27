@@ -5,6 +5,9 @@ import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useAuth } from "@/context/AuthContext";
+import { getHomeRouteForRole } from "@/lib/auth";
+
 
 interface PublicResumeData {
   id: string;
@@ -55,7 +58,10 @@ export default function PublicCandidateResumePage({
 }: {
   params: { id: string };
 }) {
+  const { user } = useAuth();
+  const homeHref = getHomeRouteForRole(user?.role);
   const [data, setData] = useState<PublicResumeData | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<"NOT_FOUND" | "PRIVATE" | "ERROR" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -182,10 +188,11 @@ export default function PublicCandidateResumePage({
                 title="Resume Unavailable"
                 description={errorMessage}
                 actionLabel="Back to Home"
-                actionHref="/"
+                actionHref={homeHref}
               />
             </div>
           )}
+
 
           {/* General Error State */}
           {!loading && errorStatus === "ERROR" && (

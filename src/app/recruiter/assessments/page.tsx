@@ -39,8 +39,8 @@ export default function RecruiterAssessmentsPage() {
   const isManager =
     user?.role === "RECRUITER_MANAGER" ||
     user?.role === "COMPANY_ADMIN" ||
-    user?.role === "PLATFORM_ADMIN" ||
-    user?.isTester;
+    user?.role === "PLATFORM_ADMIN";
+
 
   const [assessments, setAssessments] = useState<AssessmentItem[]>([]);
   const [jobs, setJobs] = useState<JobOption[]>([]);

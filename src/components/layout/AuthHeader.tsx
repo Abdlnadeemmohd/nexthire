@@ -1,18 +1,19 @@
 "use client";
-
 import React from "react";
 import Link from "next/link";
-
+import { useAuth } from "@/context/AuthContext";
+import { getHomeRouteForRole } from "@/lib/auth";
 interface AuthHeaderProps {
   currentAction?: "login" | "register" | "reset";
 }
-
 export function AuthHeader({ currentAction }: AuthHeaderProps) {
+  const { user, isAuthenticated } = useAuth();
+  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
   return (
     <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex items-center justify-between">
       {/* Brand Logo - Sole Navigation to Homepage */}
       <Link
-        href="/"
+        href={homeHref}
         className="flex items-center gap-2.5 group rounded-xl p-1 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all min-h-[44px] touch-target"
         aria-label="NextHire home"
       >

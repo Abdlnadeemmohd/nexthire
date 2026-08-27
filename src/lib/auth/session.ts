@@ -125,12 +125,13 @@ export async function getAuthenticatedUser(requestOrToken?: string | Request): P
 
     let subscriptionTier = "TRIAL";
     try {
-      if (u.role === "RECRUITER") {
+      if (u.role === "RECRUITER" || u.role === "RECRUITER_MANAGER" || u.role === "COMPANY_ADMIN") {
         const { getRecruiterEntitlements } = await import("@/lib/billing/entitlements");
         const entitlements = await getRecruiterEntitlements(u.id);
         subscriptionTier = entitlements.planTier;
       }
     } catch {}
+
 
     const isVerified = verificationStatus === "VERIFIED";
     const isTester = (u as any).isTester === true || isTesterAccount(u.email);

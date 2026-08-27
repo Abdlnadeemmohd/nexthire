@@ -70,8 +70,9 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
     }
 
     if (portal === "recruiter") {
-      const isManager = user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.isTester;
+      const isManager = user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN";
       const navItems = [
+
         { label: "Home", href: "/recruiter", icon: "home" },
         { label: "Recruiter Copilot", href: "/recruiter/copilot", icon: "smart_toy" },
         { label: "Funnel Intelligence", href: "/recruiter/intelligence", icon: "insights" },

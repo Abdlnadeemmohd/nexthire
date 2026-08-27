@@ -8,7 +8,8 @@ import { useToast } from "@/components/ui/Toast";
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase/client";
-import { hasRouteAccess } from "@/lib/auth";
+import { hasRouteAccess, getHomeRouteForRole } from "@/lib/auth";
+
 
 function LoginFormContent() {
   const router = useRouter();
@@ -40,16 +41,13 @@ function LoginFormContent() {
 
       if (result.success && result.user) {
         showToast(`Welcome back, ${result.user.name}!`, "success");
-        let targetUrl = "/dashboard";
-        if (result.user.role === "PLATFORM_ADMIN") {
-          targetUrl = "/admin";
-        } else if (result.user.role === "RECRUITER") {
-          targetUrl = "/recruiter";
-        } else if (redirectUrl && hasRouteAccess(result.user.role, redirectUrl)) {
+        let targetUrl = getHomeRouteForRole(result.user.role);
+        if (redirectUrl && hasRouteAccess(result.user.role, redirectUrl)) {
           targetUrl = redirectUrl;
         }
         window.location.href = targetUrl;
       } else {
+
         setErrorMsg(result.error || "Firebase authentication token verification failed.");
       }
     } catch (err: any) {
@@ -85,19 +83,11 @@ function LoginFormContent() {
 
       const isRedirectAllowed = redirectUrl && hasRouteAccess(result.user.role, redirectUrl);
 
-      let targetUrl = "/dashboard";
-      if (isRedirectAllowed) {
-        targetUrl = redirectUrl;
-      } else if (result.user.role === "PLATFORM_ADMIN") {
-        targetUrl = "/admin";
-      } else if (result.user.role === "RECRUITER") {
-        targetUrl = "/recruiter";
-      } else {
-        targetUrl = "/dashboard";
-      }
+      let targetUrl = isRedirectAllowed ? redirectUrl : getHomeRouteForRole(result.user.role);
 
       window.location.href = targetUrl;
     } else {
+
       setErrorMsg(result.error || "Invalid authentication credentials.");
     }
   };

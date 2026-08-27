@@ -7,6 +7,7 @@ import { NotificationCenterPanel } from "./NotificationCenterPanel";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { HeaderSearchDropdown } from "./HeaderSearchDropdown";
 import { useAuth, UserRole } from "@/context/AuthContext";
+import { getHomeRouteForRole } from "@/lib/auth";
 
 interface DesktopHeaderProps {
   isAuthenticated: boolean;
@@ -23,6 +24,9 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+
+  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
+
 
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -194,7 +198,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <Link
-            href="/"
+            href={homeHref}
             className="flex items-center gap-2.5 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-1 transition-all"
             aria-label="NextHire home"
           >
@@ -206,6 +210,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
             </span>
           </Link>
         </div>
+
 
         {/* Center: Dynamic Desktop Navigation with Progressive Breakpoint Adaptation */}
         <nav className="flex items-center gap-2 lg:gap-4 xl:gap-7 min-w-0">

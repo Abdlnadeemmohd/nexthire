@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { getHomeRouteForRole } from "@/lib/auth";
+
 
 interface FooterLink {
   label: string;
@@ -101,13 +103,15 @@ const RECRUITER_FOOTER: FooterSection[] = [
 ];
 
 export function Footer() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const [openSection, setOpenSection] = useState<string | null>(null);
   const developerUrl = process.env.NEXT_PUBLIC_DEVELOPER_URL;
 
   const toggleSection = (section: string) => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
+
+  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
 
   // Authoritatively derive navigation sections from session state
   const sections = useMemo(() => {
@@ -140,7 +144,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className={isSingleSection ? "max-w-md space-y-3" : "md:col-span-2 space-y-3"}>
             <Link
-              href="/"
+              href={homeHref}
               className="flex items-center gap-2.5 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all inline-flex"
               aria-label="NextHire home"
             >
@@ -151,6 +155,7 @@ export function Footer() {
                 Next<span className="text-primary">Hire</span>
               </span>
             </Link>
+
             <p className="text-on-surface-variant text-xs leading-relaxed max-w-sm">
               Connecting exceptional talent with world-class tech companies through intelligent AI skill-first matching and verified recruitment workflows.
             </p>

@@ -121,8 +121,9 @@ export async function getRecruiterEntitlements(userId: string): Promise<Recruite
 
   // 1. Ensure RecruiterTrial record exists
   let trial = user.trials[0];
-  if (!trial && user.role === "RECRUITER") {
+  if (!trial && (user.role === "RECRUITER" || user.role === "RECRUITER_MANAGER" || user.role === "COMPANY_ADMIN")) {
     // Check if company has an existing trial
+
     if (user.companyId) {
       const companyTrial = await prisma.recruiterTrial.findFirst({
         where: { companyId: user.companyId },

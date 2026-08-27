@@ -219,8 +219,9 @@ export default function RecruiterDashboardPage() {
             </div>
 
             {/* Recruiter Manager Quick Access Banner */}
-            {(user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.isTester) && (
+            {(user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN") && (
               <div className="bg-gradient-to-r from-blue-900/30 via-indigo-950/20 to-surface-container-lowest border border-blue-500/30 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold border border-blue-500/30 flex items-center gap-1">

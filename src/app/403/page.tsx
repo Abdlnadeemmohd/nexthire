@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/context/AuthContext";
+import { getHomeRouteForRole } from "@/lib/auth";
 
 export default function AccessDeniedPage() {
   const { user } = useAuth();
@@ -12,11 +13,14 @@ export default function AccessDeniedPage() {
   const getAuthorizedPortal = () => {
     if (!user) return { title: "Sign In Page", link: "/login" };
     if (user.role === "PLATFORM_ADMIN") return { title: "Admin Console", link: "/admin" };
-    if (user.role === "RECRUITER") return { title: "Employer Portal", link: "/recruiter" };
+    if (user.role === "RECRUITER" || user.role === "RECRUITER_MANAGER" || user.role === "COMPANY_ADMIN") {
+      return { title: "Employer Portal", link: "/recruiter" };
+    }
     return { title: "Seeker Dashboard", link: "/dashboard" };
   };
 
   const portal = getAuthorizedPortal();
+  const homeHref = getHomeRouteForRole(user?.role);
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-mesh">
@@ -51,7 +55,7 @@ export default function AccessDeniedPage() {
               Return to {portal.title}
             </Link>
             <Link
-              href="/"
+              href={homeHref}
               className="w-full sm:w-auto px-6 py-3 bg-surface-container-high text-on-surface font-label-md font-bold text-xs rounded-full hover:bg-surface-container transition-all touch-target"
             >
               Back to Home
@@ -59,6 +63,7 @@ export default function AccessDeniedPage() {
           </div>
         </div>
       </main>
+
 
       <Footer />
     </div>
