@@ -129,29 +129,29 @@ export function Footer() {
   return (
     <footer
       data-avoid-copilot="true"
-      className="bg-surface-container border-t border-outline-variant/20 pt-6 sm:pt-10 pb-6 sm:pb-8 transition-colors duration-200 mt-auto w-full flex-shrink-0"
+      className="bg-surface-container border-t border-outline-variant/20 pt-6 sm:pt-8 pb-5 sm:pb-6 transition-colors duration-200 mt-auto w-full flex-shrink-0"
       role="contentinfo"
     >
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
         {/* Main Footer Links Container */}
         <div
           className={
             isSingleSection
-              ? "flex flex-col md:flex-row justify-between items-start gap-6 md:gap-12"
-              : "grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8"
+              ? "flex flex-col md:flex-row justify-between items-start gap-5 md:gap-8"
+              : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-5 md:gap-6 lg:gap-8"
           }
         >
           {/* Brand Column */}
-          <div className={isSingleSection ? "max-w-md space-y-3" : "md:col-span-2 space-y-3"}>
+          <div className={isSingleSection ? "max-w-md space-y-2" : "sm:col-span-2 space-y-2.5"}>
             <Link
               href={homeHref}
-              className="flex items-center gap-2.5 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all inline-flex"
+              className="flex items-center gap-2 group outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl p-0.5 transition-all inline-flex"
               aria-label="NextHire home"
             >
-              <div className="w-8 h-8 bg-primary text-on-primary rounded-xl flex items-center justify-center font-bold font-display text-lg shadow-xs">
+              <div className="w-7 h-7 bg-primary text-on-primary rounded-lg flex items-center justify-center font-bold font-display text-base shadow-xs">
                 N
               </div>
-              <span className="font-display font-bold text-lg text-on-surface tracking-tight">
+              <span className="font-display font-bold text-base sm:text-lg text-on-surface tracking-tight">
                 Next<span className="text-primary">Hire</span>
               </span>
             </Link>
@@ -162,36 +162,52 @@ export function Footer() {
           </div>
 
           {/* Navigation Columns */}
-          {isSingleSection ? (
-            <nav aria-label="Legal navigation" className="w-full md:w-auto md:min-w-[200px]">
-              {sections.map((section) => (
-                <div key={section.id} className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(section.id)}
-                    aria-expanded={openSection === section.id}
-                    className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-                  >
-                    <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-                      {section.title}
-                    </h4>
-                    <span
-                      className="material-symbols-outlined text-sm md:hidden text-outline transition-transform duration-200"
-                      aria-hidden="true"
-                    >
-                      {openSection === section.id ? "expand_less" : "expand_more"}
-                    </span>
-                  </button>
-                  <ul
-                    className={`space-y-1.5 text-xs text-on-surface-variant ${
-                      openSection === section.id ? "block" : "hidden md:block"
+          {sections.map((section) => {
+            const isOpen = openSection === section.id;
+            const contentId = `footer-nav-${section.id}`;
+            return (
+              <nav
+                key={section.id}
+                aria-label={`${section.title} navigation`}
+                className="border-t md:border-t-0 border-outline-variant/20 pt-2.5 md:pt-0"
+              >
+                {/* Mobile Accordion Toggle (< md) */}
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  aria-expanded={isOpen}
+                  aria-controls={contentId}
+                  className="w-full flex md:hidden justify-between items-center py-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg group"
+                >
+                  <span className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider group-hover:text-primary transition-colors">
+                    {section.title}
+                  </span>
+                  <span
+                    className={`material-symbols-outlined text-sm text-outline transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-primary" : ""
                     }`}
+                    aria-hidden="true"
                   >
+                    expand_more
+                  </span>
+                </button>
+
+                {/* Desktop Static Heading (>= md) */}
+                <h4 className="hidden md:block font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider mb-2.5">
+                  {section.title}
+                </h4>
+
+                {/* Navigation Links: Visible always on md+, collapsible on mobile */}
+                <div
+                  id={contentId}
+                  className={`${isOpen ? "block" : "hidden"} md:!block`}
+                >
+                  <ul className="space-y-1.5 text-xs text-on-surface-variant pb-2 md:pb-0">
                     {section.links.map((link) => (
                       <li key={link.label}>
                         <Link
                           href={link.href}
-                          className="hover:text-primary transition-colors py-1 inline-block focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none rounded"
+                          className="hover:text-primary transition-colors py-0.5 inline-block focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none rounded"
                         >
                           {link.label}
                         </Link>
@@ -199,54 +215,13 @@ export function Footer() {
                     ))}
                   </ul>
                 </div>
-              ))}
-            </nav>
-          ) : (
-            sections.map((section) => (
-              <nav
-                key={section.id}
-                aria-label={`${section.title} navigation`}
-                className="space-y-2.5 border-t md:border-t-0 border-outline-variant/20 pt-3 md:pt-0"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleSection(section.id)}
-                  aria-expanded={openSection === section.id}
-                  className="w-full flex justify-between items-center cursor-pointer md:cursor-default py-2 md:py-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-                >
-                  <h4 className="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">
-                    {section.title}
-                  </h4>
-                  <span
-                    className="material-symbols-outlined text-sm md:hidden text-outline transition-transform duration-200"
-                    aria-hidden="true"
-                  >
-                    {openSection === section.id ? "expand_less" : "expand_more"}
-                  </span>
-                </button>
-                <ul
-                  className={`space-y-1.5 text-xs text-on-surface-variant ${
-                    openSection === section.id ? "block" : "hidden md:block"
-                  }`}
-                >
-                  {section.links.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="hover:text-primary transition-colors py-1 inline-block focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none rounded"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
               </nav>
-            ))
-          )}
+            );
+          })}
         </div>
 
         {/* Bottom Copyright & Version Bar */}
-        <div className="border-t border-outline-variant/20 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-outline font-label-md text-center sm:text-left">
+        <div className="border-t border-outline-variant/20 pt-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 text-xs text-outline font-label-md text-center sm:text-left">
           <p>© {new Date().getFullYear()} NextHire. All rights reserved.</p>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-outline">
