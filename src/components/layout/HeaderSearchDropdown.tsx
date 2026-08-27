@@ -25,16 +25,21 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const role = user?.role || "JOB_SEEKER";
+  const isRecruiterUser = role === "RECRUITER" || role === "RECRUITER_MANAGER" || role === "COMPANY_ADMIN";
 
   useEffect(() => {
     if (role === "JOB_SEEKER") {
       setRecentSearches(["Next.js Engineer", "Full Stack Developer", "Resume Studio", "Remote Jobs"]);
-    } else if (role === "RECRUITER") {
-      setRecentSearches(["Full-Stack Candidate", "Candidate Pipeline", "Post New Job", "Billing"]);
+    } else if (isRecruiterUser) {
+      setRecentSearches(
+        role === "RECRUITER_MANAGER"
+          ? ["Team Workload", "Candidate Pipeline", "Recruiter Allocation", "Post New Job"]
+          : ["Full-Stack Candidate", "Candidate Pipeline", "Post New Job", "Billing"]
+      );
     } else {
       setRecentSearches(["User Directory", "Company Moderation", "SaaS Subscriptions", "System Audit"]);
     }
-  }, [role]);
+  }, [role, isRecruiterUser]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -72,15 +77,31 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
       ];
     }
 
-    if (role === "RECRUITER") {
-      return [
+    if (isRecruiterUser) {
+      const recruiterActions: SearchItem[] = [
         { id: "act-r1", title: "Post a New Job Listing", subtitle: "Create job requisition with AI assistance", category: "ACTIONS", href: "/recruiter/jobs/new", icon: "add_circle" },
         { id: "act-r2", title: "Candidate Recruitment Pipeline", subtitle: "Review Kanban stages & schedule interviews", category: "ACTIONS", href: "/recruiter/applicants", icon: "view_kanban" },
         { id: "act-r3", title: "Search Candidates Database", subtitle: "Source verified engineering talent", category: "ACTIONS", href: "/recruiter/candidates", icon: "badge" },
+      ];
+
+      if (role === "RECRUITER_MANAGER") {
+        recruiterActions.unshift({
+          id: "act-rm1",
+          title: "Team & Operations",
+          subtitle: "Coordinate team assignments and recruiter workload",
+          category: "ACTIONS",
+          href: "/recruiter/team",
+          icon: "group",
+        });
+      }
+
+      recruiterActions.push(
         { id: "act-r4", title: "Billing & Subscription Plans", subtitle: "Manage employer tier & invoice receipts", category: "ACTIONS", href: "/recruiter/billing", icon: "credit_card" },
         { id: "comp-rec", title: "Employer Company Profile", subtitle: "Manage company brand and open jobs", category: "COMPANY", href: "/recruiter/company", icon: "business" },
-        { id: "help-rec", title: "Employer Verification Help", subtitle: "Submit verification documents or contact support", category: "HELP", href: "/help", icon: "help" },
-      ];
+        { id: "help-rec", title: "Employer Verification Help", subtitle: "Submit verification documents or contact support", category: "HELP", href: "/help", icon: "help" }
+      );
+
+      return recruiterActions;
     }
 
     // PLATFORM_ADMIN Database
@@ -100,7 +121,7 @@ export function HeaderSearchDropdown({ isOpen, onClose }: HeaderSearchDropdownPr
   const placeholderText =
     role === "JOB_SEEKER"
       ? "Search jobs, companies, skills..."
-      : role === "RECRUITER"
+      : isRecruiterUser
       ? "Search candidates, jobs, companies..."
       : "Search users, subscriptions, tickets...";
 

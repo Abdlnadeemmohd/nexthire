@@ -98,12 +98,18 @@ export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileD
             <div className="space-y-2">
               <h4 className="text-[11px] font-bold text-outline uppercase tracking-wider">Workspace Actions</h4>
               <nav className="space-y-1">
-                {user?.role === "RECRUITER" ? (
+                {user?.role === "RECRUITER" || user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" ? (
                   <>
                     <Link href="/recruiter" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
                       <span className="material-symbols-outlined text-tertiary text-lg">dashboard</span>
                       Recruiter Pipeline
                     </Link>
+                    {user?.role === "RECRUITER_MANAGER" && (
+                      <Link href="/recruiter/team" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
+                        <span className="material-symbols-outlined text-tertiary text-lg">group</span>
+                        Team & Operations
+                      </Link>
+                    )}
                     <Link href="/recruiter/profile" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container">
                       <span className="material-symbols-outlined text-tertiary text-lg">badge</span>
                       My Recruiter Profile

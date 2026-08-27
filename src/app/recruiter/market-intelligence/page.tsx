@@ -102,7 +102,9 @@ export default function RecruiterMarketIntelligencePage() {
                     Market Intelligence Engine
                   </span>
                   <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                    PLATFORM OBSERVED
+                    {user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.isTester
+                      ? "COMPANY TALENT SUPPLY (MANAGER)"
+                      : "ASSIGNED REQUISITIONS (RECRUITER)"}
                   </span>
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">

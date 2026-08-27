@@ -149,14 +149,20 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
       ];
     }
 
-    if (user.role === "RECRUITER") {
-      return [
+    if (user.role === "RECRUITER" || user.role === "RECRUITER_MANAGER" || user.role === "COMPANY_ADMIN") {
+      const items = [
         { label: "Recruiter Suite", href: "/recruiter" },
+      ];
+      if (user.role === "RECRUITER_MANAGER") {
+        items.push({ label: "Team & Operations", href: "/recruiter/team" });
+      }
+      items.push(
         { label: "Applicants", href: "/recruiter/applicants" },
         { label: "Post a Job", href: "/recruiter/jobs/new" },
         { label: "Company Profile", href: "/recruiter/company" },
         { label: "Billing & Plans", href: "/recruiter/billing" },
-      ];
+      );
+      return items;
     }
 
     if (user.role === "PLATFORM_ADMIN") {
@@ -327,7 +333,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="material-symbols-outlined text-base text-primary group-hover:scale-110 transition-transform">search</span>
                     <span className="truncate text-outline text-xs">
-                      {user?.role === "RECRUITER"
+                      {user?.role === "RECRUITER" || user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN"
                         ? "Search candidates, jobs..."
                         : user?.role === "PLATFORM_ADMIN"
                         ? "Search users, tickets..."

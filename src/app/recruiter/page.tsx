@@ -11,6 +11,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { SubscriptionVerificationBadge } from "@/components/ui/SubscriptionVerificationBadge";
+import {
+  SUBSCRIPTION_TIER_STYLES,
+  normalizeSubscriptionTier,
+} from "@/lib/subscriptionTiers";
 
 interface RecruiterJob {
   id: string;
@@ -169,6 +173,21 @@ export default function RecruiterDashboardPage() {
                     verificationStatus={user?.isVerified ? "VERIFIED" : "UNVERIFIED"}
                     size="md"
                   />
+                  {(() => {
+                    const normalizedTier = normalizeSubscriptionTier((user as any)?.subscriptionTier);
+                    const tierStyle = SUBSCRIPTION_TIER_STYLES[normalizedTier] || SUBSCRIPTION_TIER_STYLES.FREE;
+                    return (
+                      <Link
+                        href="/recruiter/billing"
+                        className={`px-2.5 py-0.5 ${tierStyle.statusPill} text-[11px] font-bold rounded-lg flex items-center gap-1.5 hover:opacity-90 transition-all shadow-2xs`}
+                        title="Manage Subscription Plan"
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${tierStyle.statusDot} animate-pulse`}></span>
+                        <span>{tierStyle.name} Plan</span>
+                        <span className="text-[10px] opacity-70 underline font-normal ml-0.5">Manage</span>
+                      </Link>
+                    );
+                  })()}
                 </div>
                 <p className="text-on-surface-variant text-xs sm:text-sm font-body-md mt-0.5">
                   {user?.companyName || "Employer Workspace"} • Talent Acquisition Suite
@@ -198,6 +217,33 @@ export default function RecruiterDashboardPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Recruiter Manager Quick Access Banner */}
+            {(user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.isTester) && (
+              <div className="bg-gradient-to-r from-blue-900/30 via-indigo-950/20 to-surface-container-lowest border border-blue-500/30 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold border border-blue-500/30 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs">manage_accounts</span>
+                      Recruiter Manager Workspace
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-on-surface">
+                    Team Operations, Workload Allocation & Cross-Recruiter Coordination
+                  </h3>
+                  <p className="text-xs text-on-surface-variant max-w-2xl">
+                    Coordinate your recruiting team, reassign candidate workloads, review cross-recruiter handoffs, and eliminate duplicated outreach across your organization.
+                  </p>
+                </div>
+                <Link
+                  href="/recruiter/team"
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base">groups</span>
+                  Open Team Operations
+                </Link>
+              </div>
+            )}
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json(
       { success: false, error: "Unauthorized: Recruiter session required" },
       { status: 403 }
@@ -22,9 +28,22 @@ export async function GET(request: Request) {
     );
   }
 
+  const isManager =
+    authUser.role === "RECRUITER_MANAGER" ||
+    authUser.role === "COMPANY_ADMIN" ||
+    authUser.role === "PLATFORM_ADMIN" ||
+    authUser.isTester;
+
   try {
+    const whereClause: any = {};
+    if (companyId) whereClause.companyId = companyId;
+    // Normal recruiter only sees their personal campaigns
+    if (!isManager) {
+      whereClause.recruiterId = authUser.id;
+    }
+
     const campaigns = await prisma.outreachCampaign.findMany({
-      where: companyId ? { companyId } : {},
+      where: whereClause,
       include: {
         job: { select: { id: true, title: true, location: true } },
         recruiter: { select: { id: true, name: true, email: true } },
@@ -47,9 +66,46 @@ export async function GET(request: Request) {
       };
     });
 
+    // Detect duplicate outreach conflicts if manager
+    let outreachConflicts: any[] = [];
+    if (isManager) {
+      const candidateToRecruiters = new Map<string, { candidateName: string; recruiterNames: Set<string>; campaignNames: Set<string> }>();
+      campaigns.forEach((camp) => {
+        const recName = camp.recruiter?.name || "Unknown Recruiter";
+        camp.recipients.forEach((r) => {
+          const candId = r.candidateId;
+          const candName = r.candidate.name;
+          if (!candidateToRecruiters.has(candId)) {
+            candidateToRecruiters.set(candId, {
+              candidateName: candName,
+              recruiterNames: new Set([recName]),
+              campaignNames: new Set([camp.name]),
+            });
+          } else {
+            const entry = candidateToRecruiters.get(candId)!;
+            entry.recruiterNames.add(recName);
+            entry.campaignNames.add(camp.name);
+          }
+        });
+      });
+
+      candidateToRecruiters.forEach((data, candId) => {
+        if (data.recruiterNames.size > 1) {
+          outreachConflicts.push({
+            candidateId: candId,
+            candidateName: data.candidateName,
+            recruiters: Array.from(data.recruiterNames),
+            campaigns: Array.from(data.campaignNames),
+          });
+        }
+      });
+    }
+
     return NextResponse.json({
       success: true,
       data: campaignsWithMetrics,
+      isManager,
+      outreachConflicts,
     });
   } catch (err: any) {
     console.error("[GET /api/recruiter/outreach/campaigns Error]:", err);

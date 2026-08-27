@@ -264,12 +264,17 @@ export async function getJobMarketIntelligence(
 /**
  * Returns aggregated Market Intelligence overview across all company open requisitions.
  */
-export async function getMarketOverview(companyId: string): Promise<MarketOverview> {
+export async function getMarketOverview(companyId: string, recruiterId?: string): Promise<MarketOverview> {
+  const jobWhere: any = {
+    companyId,
+    status: "ACTIVE",
+  };
+  if (recruiterId) {
+    jobWhere.creatorId = recruiterId;
+  }
+
   const activeJobs = await prisma.job.findMany({
-    where: {
-      companyId,
-      status: "ACTIVE",
-    },
+    where: jobWhere,
     select: {
       id: true,
       title: true,

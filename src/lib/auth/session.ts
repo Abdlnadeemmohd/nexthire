@@ -120,6 +120,7 @@ export async function getAuthenticatedUser(requestOrToken?: string | Request): P
 
     const u = dbSession.user;
     const { getUserVerificationStatus } = await import("@/lib/auth/verification");
+    const { isTesterAccount, getAccountType } = await import("@/lib/auth/tester");
     const verificationStatus = await getUserVerificationStatus(u.id, u.role);
 
     let subscriptionTier = "TRIAL";
@@ -132,12 +133,16 @@ export async function getAuthenticatedUser(requestOrToken?: string | Request): P
     } catch {}
 
     const isVerified = verificationStatus === "VERIFIED";
+    const isTester = (u as any).isTester === true || isTesterAccount(u.email);
+    const accountType = getAccountType(u);
 
     return {
       id: u.id,
       name: u.name,
       email: u.email,
       role: u.role as UserRole,
+      isTester,
+      accountType,
       avatar:
         u.avatar ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",

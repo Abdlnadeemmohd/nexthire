@@ -4,7 +4,13 @@ import { getHandoffs, createHandoff } from "@/lib/collaboration";
 
 export async function GET(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
@@ -13,8 +19,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: "No company associated" }, { status: 400 });
   }
 
+  const isManager =
+    authUser.role === "RECRUITER_MANAGER" ||
+    authUser.role === "COMPANY_ADMIN" ||
+    authUser.role === "PLATFORM_ADMIN" ||
+    authUser.isTester;
+
   const { searchParams } = new URL(req.url);
-  const recruiterId = searchParams.get("recruiterId") || undefined;
+  const requestedRecruiterId = searchParams.get("recruiterId") || undefined;
+  const recruiterId = isManager ? requestedRecruiterId : authUser.id;
   const status = (searchParams.get("status") as any) || undefined;
   const candidateId = searchParams.get("candidateId") || undefined;
 
@@ -29,7 +42,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 

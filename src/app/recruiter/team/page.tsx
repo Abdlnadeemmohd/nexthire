@@ -203,6 +203,48 @@ export default function RecruiterTeamPage() {
     }
   };
 
+  const isManager =
+    user?.role === "RECRUITER_MANAGER" ||
+    user?.role === "COMPANY_ADMIN" ||
+    user?.role === "PLATFORM_ADMIN" ||
+    user?.isTester;
+
+  if (!isManager) {
+    return (
+      <ProtectedRoute requiredPortal="recruiter">
+        <TopAppBar />
+        <div className="flex bg-surface min-h-screen pt-16">
+          <SidebarNav portal="recruiter" />
+          <div className="flex-1 lg:pl-[270px] flex flex-col min-h-[calc(100vh-4rem)]">
+            <main className="flex-1 p-6 lg:p-12 max-w-4xl mx-auto w-full flex items-center justify-center">
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-sm max-w-lg">
+                <div className="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
+                  <span className="material-symbols-outlined text-3xl">lock</span>
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-on-surface">Management Access Required</h2>
+                  <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+                    The Recruiting Team operations workspace is restricted to Recruiter Managers and Administrators. You can manage your personal candidate pipeline, outreach, and assigned jobs from your dashboard.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    href="/recruiter"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-container transition-all shadow-xs"
+                  >
+                    <span className="material-symbols-outlined text-base">dashboard</span>
+                    Return to Recruiter Dashboard
+                  </Link>
+                </div>
+              </div>
+            </main>
+            <Footer />
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute requiredPortal="recruiter">
       <TopAppBar />

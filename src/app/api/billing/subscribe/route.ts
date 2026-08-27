@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from "@/lib/auth/session";
 import { assertUserVerified, VerificationRequiredError } from "@/lib/auth/verification";
 import { SUBSCRIPTION_PLANS, syncSubscriptionPlans } from "@/lib/billing/plans";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
-import { getRecruiterEntitlements } from "@/lib/billing/entitlements";
+import { getRecruiterEntitlements, hasRecruiterConsumedTrial } from "@/lib/billing/entitlements";
 
 export async function POST(request: Request) {
   const authUser = await getAuthenticatedUser();
@@ -43,21 +43,49 @@ export async function POST(request: Request) {
       );
     }
 
-    // Deactivate previous active subscriptions
-    await prisma.subscription.updateMany({
-      where: { userId: authUser.id, status: "ACTIVE" },
-      data: { status: "EXPIRED" },
-    });
-
     if (isFreeOrTrial || plan?.id === "trial") {
+      // 1. Enforce strict server-level one-time Free/Trial eligibility per Recruiter ID
+      const trialConsumed = await hasRecruiterConsumedTrial(authUser.id);
+      if (trialConsumed) {
+        return NextResponse.json(
+          { success: false, error: "Free trial has already been used for this account." },
+          { status: 400 }
+        );
+      }
+
+      // Deactivate previous active subscriptions
+      await prisma.subscription.updateMany({
+        where: { userId: authUser.id, status: "ACTIVE" },
+        data: { status: "EXPIRED" },
+      });
+
+      // Activate the one-time Free Trial
+      await prisma.recruiterTrial.upsert({
+        where: { recruiterId: authUser.id },
+        create: {
+          recruiterId: authUser.id,
+          companyId: authUser.companyId || "00000000-0000-0000-0000-000000000001",
+          candidateSearchLimit: 5,
+          candidateSearchesUsed: 0,
+          jobPostingLimit: 1,
+          jobPostingsUsed: 0,
+          status: "ACTIVE",
+        },
+        update: {
+          status: "ACTIVE",
+          candidateSearchesUsed: 0,
+          jobPostingsUsed: 0,
+        },
+      });
+
       await logAuditEvent(
         authUser.id,
-        "SUBSCRIPTION_CANCELLED",
+        "SUBSCRIPTION_ACTIVATED",
         "Subscription",
         authUser.id,
         {
           planId: "trial",
-          planName: "Trial / Free Tier",
+          planName: "Trial Mode",
         }
       );
 
@@ -65,7 +93,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: "Successfully reverted to Free / Evaluation Tier",
+        message: authUser.isTester ? "Successfully switched to Free / Evaluation Tier!" : "Successfully activated your one-time Free Trial!",
         subscription: null,
         entitlements,
         subscriptionTier: "FREE",
@@ -77,9 +105,24 @@ export async function POST(request: Request) {
       });
     }
 
+    // 2. Paid Plan Activation (SILVER, GOLD, PLATINUM, DIAMOND)
     const targetPlan = plan!;
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + targetPlan.durationDays * 24 * 60 * 60 * 1000);
+
+    // Deactivate previous active subscriptions
+    await prisma.subscription.updateMany({
+      where: { userId: authUser.id, status: "ACTIVE" },
+      data: { status: "EXPIRED" },
+    });
+
+    // For real users, mark trial as permanently COMPLETED
+    if (!authUser.isTester) {
+      await prisma.recruiterTrial.updateMany({
+        where: { recruiterId: authUser.id },
+        data: { status: "COMPLETED", completedAt: new Date() },
+      });
+    }
 
     // Create new active subscription
     const newSub = await prisma.subscription.create({
@@ -116,7 +159,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully upgraded to NextHire ${targetPlan.name}!`,
+      message: `Successfully switched to NextHire ${targetPlan.name}!`,
       subscription: newSub,
       entitlements,
       subscriptionTier: targetPlan.tier,

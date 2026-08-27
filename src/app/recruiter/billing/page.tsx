@@ -311,10 +311,10 @@ export default function RecruiterBillingPage() {
                               {subscribingPlanId === plan.id ? (
                                 <>
                                   <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                  Switching...
+                                  Activating...
                                 </>
                               ) : (
-                                "Switch to Free Tier"
+                                "Start Free Trial"
                               )}
                             </button>
                           ) : (
@@ -329,7 +329,7 @@ export default function RecruiterBillingPage() {
                                   Activating...
                                 </>
                               ) : (
-                                `Upgrade to ${plan.name}`
+                                `Switch to ${plan.name}`
                               )}
                             </button>
                           )}

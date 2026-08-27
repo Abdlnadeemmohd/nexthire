@@ -1,4 +1,4 @@
-export type UserRole = "JOB_SEEKER" | "RECRUITER" | "PLATFORM_ADMIN";
+export type UserRole = "JOB_SEEKER" | "RECRUITER" | "RECRUITER_MANAGER" | "COMPANY_ADMIN" | "PLATFORM_ADMIN";
 
 export type EmploymentStatus =
   | "UNEMPLOYED"
@@ -103,10 +103,10 @@ export interface CandidateLink {
 export interface CandidateAchievement {
   id: string;
   title: string;
-  issuer?: string;
   date?: string;
-  category?: "Award" | "Honor" | "Hackathon" | "Competition" | "Milestone" | "Other";
+  category?: "Award" | "Honor" | "Hackathon" | "Competition" | "Milestone" | "Other" | string;
   description?: string;
+  issuer?: string;
   url?: string;
 }
 
@@ -114,6 +114,7 @@ export interface CandidatePublication {
   id: string;
   title: string;
   publisher?: string;
+  publicationDate?: string;
   date?: string;
   url?: string;
   description?: string;
@@ -123,7 +124,7 @@ export interface CandidatePublication {
 export interface CandidateLanguage {
   id: string;
   language: string;
-  proficiency: "Native" | "Fluent" | "Professional" | "Conversational" | "Elementary";
+  proficiency: "Native" | "Fluent" | "Professional" | "Conversational" | "Elementary" | "Basic" | string;
 }
 
 export interface CandidateVolunteer {
@@ -140,7 +141,7 @@ export interface CandidateVolunteer {
 
 export interface CandidateCourse {
   id: string;
-  title: string;
+  title?: string;
   name?: string;
   provider?: string;
   institution?: string;
@@ -149,6 +150,7 @@ export interface CandidateCourse {
   certificateUrl?: string;
   url?: string;
   description?: string;
+  skills?: string[];
 }
 
 export interface CandidatePreferences {
@@ -160,28 +162,39 @@ export interface CandidatePreferences {
     | "Unemployed"
     | "Not Looking"
     | string;
-  openToWorkStatus:
+  openToWorkStatus?:
     | "ACTIVELY_LOOKING"
     | "OPEN_TO_OFFERS"
     | "OPEN_TO_RECRUITERS"
     | "FREELANCE_CONTRACT"
-    | "NOT_LOOKING";
-  preferredRoles: string[];
-  preferredTypes: string[];
-  remotePreference: "REMOTE" | "HYBRID" | "ONSITE" | "ANY";
-  relocation: "YES" | "NO" | "OPEN";
+    | "NOT_LOOKING"
+    | string;
+  targetRoles?: string[];
+  preferredRoles?: string[];
+  preferredLocations?: string[];
+  preferredTypes?: string[];
+  workModels?: ("Onsite" | "Hybrid" | "Remote")[];
+  remotePreference?: "REMOTE" | "HYBRID" | "ONSITE" | "ANY" | string;
+  relocation?: "YES" | "NO" | "OPEN" | string;
+  openToRelocation?: boolean;
   expectedSalaryMin?: number;
   expectedSalaryMax?: number;
-  currency: string;
-  salaryPeriod: "YEAR" | "MONTH";
-  noticePeriod: "IMMEDIATE" | "1_WEEK" | "2_WEEKS" | "1_MONTH" | "2_MONTHS" | "3_MONTHS_PLUS";
+  expectedSalaryCurrency?: string;
+  currency?: string;
+  salaryPeriod?: "YEAR" | "MONTH" | string;
+  noticePeriod?: "IMMEDIATE" | "1_WEEK" | "2_WEEKS" | "1_MONTH" | "2_MONTHS" | "3_MONTHS_PLUS" | string;
+  noticePeriodDays?: number;
+  industries?: string[];
 }
 
 export interface CandidateVisibility {
-  isDiscoverable: boolean;
-  isPublic: boolean;
-  contactVisibility: "DIRECT" | "ON_REQUEST" | "MASKED";
-  resumeVisibility: "ALL" | "UNLOCKED_ONLY";
+  isPublic?: boolean;
+  searchable?: boolean;
+  isDiscoverable?: boolean;
+  contactVisibility?: "DIRECT" | "ON_REQUEST" | "MASKED" | string;
+  resumeVisibility?: "ALL" | "UNLOCKED_ONLY" | string;
+  hideFromCurrentCompany?: boolean;
+  currentCompanyName?: string;
 }
 
 export type RecruiterHiringStatus =
@@ -191,7 +204,8 @@ export type RecruiterHiringStatus =
   | "BUILDING_PIPELINE"
   | "HIRING_MULTIPLE"
   | "NOT_HIRING"
-  | "INACTIVE";
+  | "INACTIVE"
+  | string;
 
 export interface CompanyAssociation {
   companyId: string;
@@ -204,17 +218,18 @@ export interface CompanyAssociation {
     | "AGENCY_CLIENT"
     | "VENTURE_PORTFOLIO"
     | "ADVISORY"
-    | "OTHER";
+    | "OTHER"
+    | string;
   role: string;
   startDate?: string;
   endDate?: string;
-  isCurrent: boolean;
+  isCurrent?: boolean;
   logoUrl?: string;
   isVerifiedCompany?: boolean;
 }
 
 export interface RecruiterProfileData {
-  status: RecruiterHiringStatus;
+  status?: RecruiterHiringStatus;
   headline?: string;
   recruiterRole?: string;
   yearsExperience?: number;
@@ -232,6 +247,12 @@ export interface RecruiterProfileData {
   links?: CandidateLink[];
   achievements?: string[];
   companyAssociations?: CompanyAssociation[];
+  companyWebsite?: string;
+  companySize?: string;
+  industry?: string;
+  hiringDomains?: string[];
+  totalHires?: number;
+  activeListingsCount?: number;
 }
 
 export interface CompanyValue {
@@ -282,11 +303,15 @@ export interface AuthUser {
   avatar: string;
   status: "VERIFIED" | "PENDING" | "BLOCKED";
   isVerified?: boolean;
+  isTester?: boolean;
+  accountType?: "NORMAL" | "QA_TESTER";
   subscriptionTier?: string;
   verificationStatus?: "PENDING" | "VERIFIED" | "REJECTED" | "SUSPENDED";
   badgeStatus?: "APPROVED" | "PENDING" | "SUSPENDED" | "REJECTED";
   companyId?: string;
   companyName?: string;
+  managerId?: string;
+  managerName?: string;
   headline?: string;
   phone?: string;
   address?: string;
@@ -321,11 +346,16 @@ export interface AuthUser {
 }
 
 export const PRECONFIGURED_USERS: AuthUser[] = [
+  // =========================================================================
+  // A. FULL-ACCESS QA ACCOUNTS (Dedicated QA Testing)
+  // =========================================================================
   {
     id: "owner-1",
     name: "Stage 1 Platform Owner",
     email: "owner@nexthire.cloud",
     role: "PLATFORM_ADMIN",
+    isTester: true,
+    accountType: "QA_TESTER",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60",
     status: "VERIFIED",
     badgeStatus: "APPROVED",
@@ -339,6 +369,8 @@ export const PRECONFIGURED_USERS: AuthUser[] = [
     name: "Stage 1 Recruiter",
     email: "recruiter@nexthire.cloud",
     role: "RECRUITER",
+    isTester: true,
+    accountType: "QA_TESTER",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
     status: "VERIFIED",
     badgeStatus: "APPROVED",
@@ -355,6 +387,8 @@ export const PRECONFIGURED_USERS: AuthUser[] = [
     name: "Stage 1 Candidate",
     email: "jobseeker@nexthire.cloud",
     role: "JOB_SEEKER",
+    isTester: true,
+    accountType: "QA_TESTER",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
     status: "VERIFIED",
     badgeStatus: "APPROVED",
@@ -374,7 +408,103 @@ export const PRECONFIGURED_USERS: AuthUser[] = [
       github: "https://github.com",
     },
   },
+
+  // =========================================================================
+  // B. LIVE / REALISTIC USER ACCOUNTS (Normal Production Rules)
+  // =========================================================================
+  {
+    id: "live-seeker-1",
+    name: "Alex Rivera",
+    email: "jb1@nexthire.cloud",
+    role: "JOB_SEEKER",
+    isTester: false,
+    accountType: "NORMAL",
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60",
+    status: "PENDING",
+    badgeStatus: "PENDING",
+    headline: "Frontend Software Engineer",
+    phone: "+1 (555) 234-5678",
+    city: "Austin",
+    country: "United States",
+    bio: "Live Job Seeker testing standard candidate application workflows and real profile requirements.",
+    employmentStatus: "OPEN_TO_OPPORTUNITIES",
+    experience: [],
+    education: [],
+    certifications: [],
+  },
+  {
+    id: "live-recruiter-1",
+    name: "Marcus Vance",
+    email: "rc1@nexthire.cloud",
+    role: "RECRUITER",
+    isTester: false,
+    accountType: "NORMAL",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
+    status: "PENDING",
+    badgeStatus: "PENDING",
+    companyName: "Acme Corporation",
+    companyId: "00000000-0000-0000-0000-000000000002",
+    managerId: "live-manager-1",
+    managerName: "Elena Rostova",
+    headline: "Technical Recruiter",
+    phone: "+1 (555) 345-6789",
+    city: "New York",
+    country: "United States",
+    bio: "Live Recruiter working under Talent Manager at Acme Corp.",
+  },
+  {
+    id: "live-manager-1",
+    name: "Elena Rostova",
+    email: "rcm@nexthire.cloud",
+    role: "RECRUITER_MANAGER",
+    isTester: false,
+    accountType: "NORMAL",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=60",
+    status: "VERIFIED",
+    badgeStatus: "APPROVED",
+    companyName: "Acme Corporation",
+    companyId: "00000000-0000-0000-0000-000000000002",
+    headline: "Head of Recruiting & Talent Acquisition",
+    phone: "+1 (555) 456-7890",
+    city: "New York",
+    country: "United States",
+    bio: "Recruiting Manager directing technical hiring and managing recruiter allocations at Acme Corp.",
+  },
 ];
+
+export function isRecruiterOrAdmin(role?: string): boolean {
+  return role === "RECRUITER" || role === "RECRUITER_MANAGER" || role === "COMPANY_ADMIN" || role === "PLATFORM_ADMIN";
+}
+
+export function isRecruiterRole(role?: string): boolean {
+  return role === "RECRUITER" || role === "RECRUITER_MANAGER";
+}
+
+export function isRecruiterManager(role?: string): boolean {
+  return role === "RECRUITER_MANAGER" || role === "COMPANY_ADMIN" || role === "PLATFORM_ADMIN";
+}
+
+export function hasManagerAccess(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
+  if (!user) return false;
+  if (user.isTester) return true;
+  return user.role === "RECRUITER_MANAGER" || user.role === "COMPANY_ADMIN" || user.role === "PLATFORM_ADMIN";
+}
+
+export function canManageTeam(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
+  return hasManagerAccess(user);
+}
+
+export function canManageAssessments(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
+  return hasManagerAccess(user);
+}
+
+export function canViewTeamOutreach(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
+  return hasManagerAccess(user);
+}
+
+export function canViewCompanyMarketIntelligence(user?: { role?: UserRole | string; isTester?: boolean } | null): boolean {
+  return hasManagerAccess(user);
+}
 
 export function hasRouteAccess(userRole: UserRole | undefined, pathname: string): boolean {
   if (!userRole) return false;
@@ -392,8 +522,8 @@ export function hasRouteAccess(userRole: UserRole | undefined, pathname: string)
     return true;
   }
 
-  // 2. Recruiter Access Controls
-  if (userRole === "RECRUITER") {
+  // 2. Recruiter & Recruiter Manager Access Controls
+  if (userRole === "RECRUITER" || userRole === "RECRUITER_MANAGER" || userRole === "COMPANY_ADMIN") {
     if (pathname.startsWith("/admin")) return false;
     if (
       pathname.startsWith("/jobseeker") ||

@@ -70,24 +70,33 @@ const isItemActive = (currentPath: string, targetHref: string): boolean => {
     }
 
     if (portal === "recruiter") {
+      const isManager = user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.isTester;
+      const navItems = [
+        { label: "Home", href: "/recruiter", icon: "home" },
+        { label: "Recruiter Copilot", href: "/recruiter/copilot", icon: "smart_toy" },
+        { label: "Funnel Intelligence", href: "/recruiter/intelligence", icon: "insights" },
+        { label: "Market Intelligence", href: "/recruiter/market-intelligence", icon: "travel_explore" },
+      ];
+
+      if (isManager) {
+        navItems.push({ label: "Recruiting Team", href: "/recruiter/team", icon: "groups" });
+      }
+
+      navItems.push(
+        { label: "Talent Radar", href: "/recruiter/talent-radar", icon: "radar" },
+        { label: "AI Outreach", href: "/recruiter/outreach", icon: "campaign" },
+        { label: "Skills Assessments", href: "/recruiter/assessments", icon: "verified" },
+        { label: "Interview Intelligence", href: "/recruiter/interviews", icon: "video_camera_front" },
+        { label: "Company Profile", href: "/recruiter/company", icon: "business" },
+        { label: "My Recruiter Profile", href: "/recruiter/profile", icon: "badge" },
+        { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },
+        { label: "Candidate Pipeline", href: "/recruiter/applicants", icon: "view_kanban" },
+      );
+
       return [
         {
           title: "Navigation",
-          items: [
-            { label: "Home", href: "/recruiter", icon: "home" },
-            { label: "Recruiter Copilot", href: "/recruiter/copilot", icon: "smart_toy" },
-            { label: "Funnel Intelligence", href: "/recruiter/intelligence", icon: "insights" },
-            { label: "Market Intelligence", href: "/recruiter/market-intelligence", icon: "travel_explore" },
-            { label: "Recruiting Team", href: "/recruiter/team", icon: "groups" },
-            { label: "Talent Radar", href: "/recruiter/talent-radar", icon: "radar" },
-            { label: "AI Outreach", href: "/recruiter/outreach", icon: "campaign" },
-            { label: "Skills Assessments", href: "/recruiter/assessments", icon: "verified" },
-            { label: "Interview Intelligence", href: "/recruiter/interviews", icon: "video_camera_front" },
-            { label: "Company Profile", href: "/recruiter/company", icon: "business" },
-            { label: "My Recruiter Profile", href: "/recruiter/profile", icon: "badge" },
-            { label: "Post a Job", href: "/recruiter/jobs/new", icon: "add_circle" },
-            { label: "Candidate Pipeline", href: "/recruiter/applicants", icon: "view_kanban" },
-          ],
+          items: navItems,
         },
         {
           title: "Recruitment",

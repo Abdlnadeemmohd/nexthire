@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { TopAppBar } from "@/components/layout/TopAppBar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
+import { useAuth } from "@/context/AuthContext";
 import { CandidateIntelligenceModal } from "@/components/recruiter/CandidateIntelligenceModal";
 
 interface AssessmentItem {
@@ -34,6 +35,13 @@ interface JobOption {
 }
 
 export default function RecruiterAssessmentsPage() {
+  const { user } = useAuth();
+  const isManager =
+    user?.role === "RECRUITER_MANAGER" ||
+    user?.role === "COMPANY_ADMIN" ||
+    user?.role === "PLATFORM_ADMIN" ||
+    user?.isTester;
+
   const [assessments, setAssessments] = useState<AssessmentItem[]>([]);
   const [jobs, setJobs] = useState<JobOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,13 +238,20 @@ export default function RecruiterAssessmentsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setIsCreateOpen(true)}
-                  className="px-4 py-2.5 bg-primary text-on-primary rounded-xl font-semibold text-sm shadow-md hover:bg-primary/90 flex items-center gap-2 transition-all"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add_task</span>
-                  Create Assessment
-                </button>
+                {isManager ? (
+                  <button
+                    onClick={() => setIsCreateOpen(true)}
+                    className="px-4 py-2.5 bg-primary text-on-primary rounded-xl font-semibold text-sm shadow-md hover:bg-primary/90 flex items-center gap-2 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add_task</span>
+                    Create Assessment
+                  </button>
+                ) : (
+                  <span className="px-3.5 py-2 bg-surface-container-high text-on-surface-variant rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-sm text-primary">assignment_turned_in</span>
+                    Candidate Testing Mode
+                  </span>
+                )}
               </div>
             </div>
 

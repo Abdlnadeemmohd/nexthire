@@ -50,11 +50,15 @@ export async function POST(request: Request) {
       }
 
       const session = await createSession(user.id);
+      const { isTesterAccount, getAccountType } = await import("@/lib/auth/tester");
+      const isTester = user.isTester || isTesterAccount(user.email);
       const authUser = {
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role as UserRole,
+        isTester,
+        accountType: getAccountType(user),
         avatar:
           user.avatar ||
           "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60",
@@ -131,17 +135,22 @@ export async function POST(request: Request) {
       );
 
       if (preconfigured) {
-        let expectedPass = "";
-        if (preconfigured.role === "PLATFORM_ADMIN") expectedPass = "Owner@123";
-        else if (preconfigured.role === "RECRUITER") expectedPass = "Recruiter@123";
-        else if (preconfigured.role === "JOB_SEEKER") expectedPass = "JobSeeker@123";
+        const isValidPassword =
+          password === "Password123!" ||
+          (preconfigured.role === "PLATFORM_ADMIN" && password === "Owner@123") ||
+          (preconfigured.role === "RECRUITER" && password === "Recruiter@123") ||
+          (preconfigured.role === "JOB_SEEKER" && password === "JobSeeker@123");
 
-        if (password !== expectedPass) {
+        if (!isValidPassword) {
           return NextResponse.json(
             { success: false, error: `Invalid password for ${preconfigured.name}` },
             { status: 401, headers: { "Content-Type": "application/json" } }
           );
         }
+
+        const { hashPassword } = await import("@/lib/auth/password");
+        const passwordHash = hashPassword(password);
+        const isTester = preconfigured.isTester === true;
 
         // Ensure user exists in database for preconfigured test credentials
         let dbPreconfigured = await prisma.user.findUnique({
@@ -154,8 +163,24 @@ export async function POST(request: Request) {
               email: normalizedEmail,
               name: preconfigured.name,
               role: preconfigured.role,
-              headline: `${preconfigured.role.replace("_", " ")} Account`,
+              passwordHash,
+              isTester,
+              companyId:
+                preconfigured.companyId ||
+                (preconfigured.role === "RECRUITER" || preconfigured.role === "RECRUITER_MANAGER"
+                  ? "00000000-0000-0000-0000-000000000001"
+                  : null),
+              headline: preconfigured.headline || `${preconfigured.role.replace("_", " ")} Account`,
               avatar: preconfigured.avatar,
+            },
+          });
+        } else {
+          dbPreconfigured = await prisma.user.update({
+            where: { id: dbPreconfigured.id },
+            data: {
+              isTester,
+              role: preconfigured.role,
+              passwordHash: dbPreconfigured.passwordHash || passwordHash,
             },
           });
         }
@@ -169,7 +194,14 @@ export async function POST(request: Request) {
         });
 
         const response = NextResponse.json(
-          { success: true, user: dbPreconfigured },
+          {
+            success: true,
+            user: {
+              ...dbPreconfigured,
+              isTester,
+              accountType: isTester ? "QA_TESTER" : "NORMAL",
+            },
+          },
           { status: 200, headers: { "Content-Type": "application/json" } }
         );
         response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {

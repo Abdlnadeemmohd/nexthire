@@ -9,7 +9,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json(
       { success: false, error: "Unauthorized: Recruiter access required" },
       { status: 403 }
@@ -48,9 +54,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN" &&
+      !authUser.isTester)
+  ) {
     return NextResponse.json(
-      { success: false, error: "Unauthorized: Recruiter access required" },
+      { success: false, error: "Forbidden: Recruiter Manager permissions required to create company assessments" },
       { status: 403 }
     );
   }

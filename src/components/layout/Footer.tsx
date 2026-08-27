@@ -114,7 +114,7 @@ export function Footer() {
     if (isLoading || !user) {
       return PUBLIC_FOOTER;
     }
-    if (user.role === "RECRUITER" || user.role === "PLATFORM_ADMIN") {
+    if (user.role === "RECRUITER" || user.role === "RECRUITER_MANAGER" || user.role === "COMPANY_ADMIN" || user.role === "PLATFORM_ADMIN") {
       return RECRUITER_FOOTER;
     }
     return JOB_SEEKER_FOOTER;

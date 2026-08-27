@@ -4,7 +4,13 @@ import { getHiringTasks, createHiringTask } from "@/lib/collaboration";
 
 export async function GET(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
@@ -13,8 +19,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: "No company associated" }, { status: 400 });
   }
 
+  const isManager =
+    authUser.role === "RECRUITER_MANAGER" ||
+    authUser.role === "COMPANY_ADMIN" ||
+    authUser.role === "PLATFORM_ADMIN" ||
+    authUser.isTester;
+
   const { searchParams } = new URL(req.url);
-  const assigneeId = searchParams.get("assigneeId") || undefined;
+  // Normal recruiter only sees their assigned tasks; manager sees all team tasks
+  const requestedAssigneeId = searchParams.get("assigneeId") || undefined;
+  const assigneeId = isManager ? requestedAssigneeId : authUser.id;
   const status = (searchParams.get("status") as any) || undefined;
   const candidateId = searchParams.get("candidateId") || undefined;
   const jobId = searchParams.get("jobId") || undefined;
@@ -30,7 +44,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
@@ -45,6 +65,20 @@ export async function POST(req: NextRequest) {
 
     if (!title || !assigneeId) {
       return NextResponse.json({ success: false, error: "Title and assigneeId are required" }, { status: 400 });
+    }
+
+    const isManager =
+      authUser.role === "RECRUITER_MANAGER" ||
+      authUser.role === "COMPANY_ADMIN" ||
+      authUser.role === "PLATFORM_ADMIN" ||
+      authUser.isTester;
+
+    // Normal recruiters can only create tasks for themselves
+    if (!isManager && assigneeId !== authUser.id) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden: Only Recruiter Managers can assign tasks to other team members" },
+        { status: 403 }
+      );
     }
 
     const task = await createHiringTask({

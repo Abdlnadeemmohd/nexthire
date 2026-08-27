@@ -132,6 +132,8 @@ export default function OutreachPage() {
   const [approvingCampaign, setApprovingCampaign] = useState<Campaign | null>(null);
   const [editableMessages, setEditableMessages] = useState<Record<string, { subject: string; body: string }>>({});
   const [approving, setApproving] = useState(false);
+  const [outreachConflicts, setOutreachConflicts] = useState<any[]>([]);
+  const [isManagerView, setIsManagerView] = useState(false);
 
   // Load Campaigns
   const loadCampaigns = async () => {
@@ -141,6 +143,10 @@ export default function OutreachPage() {
       const json = await res.json();
       if (res.ok && json.success) {
         setCampaigns(json.data || []);
+        setIsManagerView(Boolean(json.isManager));
+        if (json.outreachConflicts) {
+          setOutreachConflicts(json.outreachConflicts);
+        }
 
         const activeId = searchParams.get("campaignId");
         if (activeId && json.data) {
@@ -514,6 +520,36 @@ export default function OutreachPage() {
                 </select>
               </div>
             </div>
+
+            {/* Duplicate Outreach Conflict Banner (Manager Oversight) */}
+            {isManagerView && outreachConflicts.length > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5">
+                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 mt-0.5">
+                  <span className="material-symbols-outlined text-xl">warning</span>
+                </div>
+                <div className="space-y-1 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm font-bold text-on-surface">
+                      Outreach Conflict Alert: {outreachConflicts.length} Candidate(s) Targeted by Multiple Recruiters
+                    </h4>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 font-bold">
+                      Team Coordination Required
+                    </span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">
+                    The following candidates are enrolled in active campaigns by more than one recruiter. Review allocations to avoid sending overlapping messages:
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {outreachConflicts.map((c) => (
+                      <span key={c.candidateId} className="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-container-high border border-outline-variant/30 rounded-lg text-xs font-medium text-on-surface">
+                        <span className="font-semibold text-primary">{c.candidateName}</span>
+                        <span className="text-[10px] text-on-surface-variant">({c.recruiters.join(", ")})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Campaign Listing */}
             {loading ? (

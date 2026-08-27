@@ -13,6 +13,7 @@ model User {
   name             String
   passwordHash     String?
   role             UserRole       @default(JOB_SEEKER)
+  isTester         Boolean        @default(false)
   avatar           String?
   headline         String?
   bio              String?
@@ -23,6 +24,9 @@ model User {
   updatedAt        DateTime       @updatedAt
   companyId        String?
   firebaseUid      String?        @unique
+  managerId        String?
+  manager          User?          @relation("UserReportingHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
+  reports          User[]         @relation("UserReportingHierarchy")
   applications     Application[]  @relation("SeekerApplications")
   jobs             Job[]          @relation("RecruiterJobs")
   receivedMessages Message[]      @relation("ReceivedMessages")
@@ -353,6 +357,7 @@ model AuditEvent {
 enum UserRole {
   JOB_SEEKER
   RECRUITER
+  RECRUITER_MANAGER
   COMPANY_ADMIN
   PLATFORM_ADMIN
 }

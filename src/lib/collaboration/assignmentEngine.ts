@@ -43,7 +43,7 @@ export async function validateAssignmentPermission(actorId: string, companyId: s
     where: {
       id: actorId,
       companyId,
-      role: { in: ["RECRUITER", "COMPANY_ADMIN", "PLATFORM_ADMIN"] },
+      role: { in: ["RECRUITER", "RECRUITER_MANAGER", "COMPANY_ADMIN", "PLATFORM_ADMIN"] },
     },
   });
   return !!actor;
@@ -56,15 +56,46 @@ export async function validateAssignmentPermission(actorId: string, companyId: s
 export async function assignCandidate(input: AssignCandidateInput): Promise<CandidateAssignmentRecord> {
   const { companyId, candidateId, applicationId, jobId, recruiterId, assignedById, reason, teamId } = input;
 
-  // 1. Verify company scoping for recruiter
-  const targetRecruiter = await prisma.user.findFirst({
-    where: { id: recruiterId, companyId, role: { in: ["RECRUITER", "COMPANY_ADMIN"] } },
+  // 1. Verify actor has permissions within this company
+  const actor = await prisma.user.findUnique({
+    where: { id: assignedById },
+    select: { id: true, companyId: true, role: true },
   });
-  if (!targetRecruiter) {
-    throw new Error("Target recruiter does not belong to this company or lacks recruiter permissions.");
+
+  if (!actor || (actor.role !== "PLATFORM_ADMIN" && actor.companyId !== companyId)) {
+    throw new Error("Unauthorized: Assignment actor does not belong to this company organization.");
   }
 
-  // 2. Verify candidate exists
+  // Standard recruiters cannot manage/assign other recruiters unless they are a manager or admin
+  if (actor.role === "RECRUITER" && recruiterId !== actor.id) {
+    // Check if actor has manager role or team lead role
+    const isTeamLead = await prisma.teamMembership.findFirst({
+      where: { userId: actor.id, companyId, role: { in: ["HIRING_MANAGER", "TEAM_LEAD"] } },
+    });
+    if (!isTeamLead) {
+      throw new Error("Forbidden: Recruiter lacks manager permissions to assign work to other recruiters.");
+    }
+  }
+
+  // 2. Verify target recruiter belongs to the EXACT SAME company (Cross-company strict block)
+  const targetRecruiter = await prisma.user.findUnique({
+    where: { id: recruiterId },
+    select: { id: true, name: true, email: true, companyId: true, role: true, managerId: true },
+  });
+
+  if (!targetRecruiter) {
+    throw new Error("Target recruiter not found.");
+  }
+
+  if (targetRecruiter.companyId !== companyId) {
+    throw new Error("Cross-company assignment forbidden: Target recruiter belongs to a different company.");
+  }
+
+  if (!["RECRUITER", "RECRUITER_MANAGER", "COMPANY_ADMIN"].includes(targetRecruiter.role)) {
+    throw new Error("Target user lacks recruiter permissions.");
+  }
+
+  // 3. Verify candidate exists
   const candidate = await prisma.user.findUnique({
     where: { id: candidateId },
     select: { id: true, name: true, email: true },
@@ -271,7 +302,7 @@ export async function assignJobOwner(input: AssignJobOwnerInput): Promise<boolea
   }
 
   const newRecruiter = await prisma.user.findFirst({
-    where: { id: newRecruiterId, companyId, role: { in: ["RECRUITER", "COMPANY_ADMIN"] } },
+    where: { id: newRecruiterId, companyId, role: { in: ["RECRUITER", "RECRUITER_MANAGER", "COMPANY_ADMIN"] } },
   });
   if (!newRecruiter) {
     throw new Error("Target recruiter does not belong to this company.");

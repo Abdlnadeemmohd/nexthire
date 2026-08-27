@@ -4,7 +4,13 @@ import { assignCandidate, assignJobOwner } from "@/lib/collaboration";
 
 export async function POST(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER" &&
+      authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN")
+  ) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,6 +53,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (error: any) {
     console.error("Error assigning:", error);
-    return NextResponse.json({ success: false, error: error.message || "Failed to perform assignment" }, { status: 500 });
+    const isForbidden = error.message?.includes("Forbidden") || error.message?.includes("Cross-company") || error.message?.includes("Unauthorized");
+    return NextResponse.json({ success: false, error: error.message || "Failed to perform assignment" }, { status: isForbidden ? 403 : 400 });
   }
 }

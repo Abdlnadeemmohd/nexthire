@@ -22,6 +22,7 @@ export function getTodayDateString(): string {
 
 export interface RecruiterEntitlements {
   isTrial: boolean;
+  hasUsedFreeTrial: boolean;
   trialStatus: TrialStatus;
   trialSearchesUsed: number;
   trialSearchesLimit: number;
@@ -46,6 +47,48 @@ export interface RecruiterEntitlements {
   canDownloadResume: boolean;
   canRequestContact: boolean;
   canSearchCandidates: boolean;
+}
+
+/**
+ * Checks if a recruiter has consumed their one-time Free / Trial eligibility.
+ * Tied to the recruiter's user ID in the database.
+ * Real users (e.g. Gmail accounts) strictly consume trial once.
+ * Designated QA testers (e.g. recruiter@nexthire.cloud) retain full tier switching capability.
+ */
+export async function hasRecruiterConsumedTrial(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      trials: true,
+      subscriptions: true,
+    },
+  });
+
+  if (!user) return true;
+
+  // Designated QA testers can test all subscription tiers bidirectionally
+  const { isTesterAccount } = await import("@/lib/auth/tester");
+  if (isTesterAccount(user)) {
+    return false;
+  }
+
+  // 1. Any subscription history (paid or trial) means free trial is consumed/not available as new
+  if (user.subscriptions.length > 0) {
+    return true;
+  }
+
+  // 2. Any trial record that is completed, expired, or has had searches/job postings consumed
+  const trial = user.trials[0];
+  if (trial) {
+    if (trial.status === "COMPLETED" || trial.status === "EXPIRED" || trial.status === "SUSPENDED") {
+      return true;
+    }
+    if (trial.candidateSearchesUsed > 0 || trial.jobPostingsUsed > 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -150,6 +193,7 @@ export async function getRecruiterEntitlements(userId: string): Promise<Recruite
 
     return {
       isTrial: false,
+      hasUsedFreeTrial: true,
       trialStatus: trial?.status || "COMPLETED",
       trialSearchesUsed: trial?.candidateSearchesUsed || 5,
       trialSearchesLimit: trial?.candidateSearchLimit || 5,
@@ -184,9 +228,11 @@ export async function getRecruiterEntitlements(userId: string): Promise<Recruite
   const trialJobPostingsLimit = trial?.jobPostingLimit || 1;
   const isTrialExhausted = trialSearchesUsed >= trialSearchesLimit;
   const trialStatus: TrialStatus = isTrialExhausted ? "COMPLETED" : (trial?.status || "ACTIVE");
+  const hasUsedFreeTrial = isTrialExhausted || trialStatus === "COMPLETED" || trialStatus === "EXPIRED" || trialSearchesUsed > 0 || trialJobPostingsUsed > 0;
 
   return {
     isTrial: true,
+    hasUsedFreeTrial,
     trialStatus,
     trialSearchesUsed,
     trialSearchesLimit,

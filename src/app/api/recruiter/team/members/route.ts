@@ -5,8 +5,14 @@ import { getTeamMembers } from "@/lib/collaboration";
 
 export async function GET(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN" &&
+      !authUser.isTester)
+  ) {
+    return NextResponse.json({ success: false, error: "Forbidden: Management permissions required" }, { status: 403 });
   }
 
   const companyId = authUser.companyId;
@@ -25,8 +31,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const authUser = await getAuthenticatedUser();
-  if (!authUser || (authUser.role !== "RECRUITER" && authUser.role !== "PLATFORM_ADMIN")) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (
+    !authUser ||
+    (authUser.role !== "RECRUITER_MANAGER" &&
+      authUser.role !== "COMPANY_ADMIN" &&
+      authUser.role !== "PLATFORM_ADMIN" &&
+      !authUser.isTester)
+  ) {
+    return NextResponse.json({ success: false, error: "Forbidden: Management permissions required" }, { status: 403 });
   }
 
   const companyId = authUser.companyId;

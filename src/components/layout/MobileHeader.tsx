@@ -82,7 +82,7 @@ export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
             </div>
           ) : (
             <Link
-              href={user?.role === "RECRUITER" ? "/recruiter/profile" : "/profile"}
+              href={user?.role === "RECRUITER" || user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN" ? "/recruiter/profile" : "/profile"}
               className="touch-target flex items-center justify-center p-0.5 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label="View Profile"
             >

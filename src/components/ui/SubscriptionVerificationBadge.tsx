@@ -37,6 +37,8 @@ export function SubscriptionVerificationBadge({
       ? "Employer"
       : role === "seeker" || role === "JOB_SEEKER"
       ? "Job Seeker"
+      : role === "RECRUITER_MANAGER"
+      ? "Recruiter Manager"
       : "Recruiter";
 
   const sizeClasses = {

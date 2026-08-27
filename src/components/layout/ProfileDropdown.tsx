@@ -98,7 +98,7 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
             </>
           )}
 
-          {user?.role === "RECRUITER" && (
+          {(user?.role === "RECRUITER" || user?.role === "RECRUITER_MANAGER" || user?.role === "COMPANY_ADMIN") && (
             <>
               <Link
                 href="/recruiter"
@@ -108,6 +108,16 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
                 <span className="material-symbols-outlined text-base">dashboard</span>
                 <span>Recruiter Suite</span>
               </Link>
+              {user?.role === "RECRUITER_MANAGER" && (
+                <Link
+                  href="/recruiter/team"
+                  onClick={handleClose}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">group</span>
+                  <span>Team & Operations</span>
+                </Link>
+              )}
               <Link
                 href="/recruiter/company"
                 onClick={handleClose}
@@ -138,7 +148,7 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
                 className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-container transition-colors"
               >
                 <span className="material-symbols-outlined text-base">credit_card</span>
-                <span>Billing & Subscription</span>
+                <span>Billing & Plans</span>
               </Link>
             </>
           )}
