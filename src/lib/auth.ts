@@ -507,20 +507,24 @@ export function canViewCompanyMarketIntelligence(user?: { role?: UserRole | stri
 
 /**
  * Returns the canonical home/landing route according to the user's authenticated role.
- * - JOB_SEEKER: /dashboard (Find Work / Applications)
- * - RECRUITER / RECRUITER_MANAGER / COMPANY_ADMIN: /recruiter
- * - PLATFORM_ADMIN: /admin
- * - Unauthenticated / unknown: /
+ * - Logged-out / Unauthenticated: /jobs (Public Job Search / landing experience)
+ * - JOB_SEEKER: /jobs (Job Seeker primary job-search home)
+ * - RECRUITER / RECRUITER_MANAGER / COMPANY_ADMIN: /recruiter (Recruiter Dashboard / Workspace)
+ * - PLATFORM_ADMIN: /admin (Platform Owner / Super Admin Dashboard)
  */
 export function getHomeRouteForRole(role?: UserRole | string | null): string {
-  if (!role) return "/";
+  if (!role) return "/jobs";
   if (role === "PLATFORM_ADMIN") return "/admin";
   if (role === "RECRUITER" || role === "RECRUITER_MANAGER" || role === "COMPANY_ADMIN") return "/recruiter";
-  if (role === "JOB_SEEKER") return "/dashboard";
-  return "/";
+  if (role === "JOB_SEEKER") return "/jobs";
+  return "/jobs";
 }
 
 export function getHomeRouteForUser(user?: { role?: UserRole | string | null } | null): string {
+  return getHomeRouteForRole(user?.role);
+}
+
+export function getPortalHome(user?: { role?: UserRole | string | null } | null): string {
   return getHomeRouteForRole(user?.role);
 }
 
