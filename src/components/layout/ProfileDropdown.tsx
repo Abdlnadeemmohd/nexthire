@@ -49,9 +49,12 @@ export function ProfileDropdown({ isOpen: externalIsOpen, onClose }: ProfileDrop
               {user?.email || "user@nexthire.cloud"}
             </p>
             <div>
-              {user?.isVerified ? (
-                <VerifiedBadge role={user?.role} tier={(user as any)?.subscriptionTier} size="sm" />
-              ) : null}
+              <VerifiedBadge
+                role={user?.role}
+                tier={(user as any)?.subscriptionTier}
+                isVerified={user?.isVerified}
+                size="sm"
+              />
             </div>
           </div>
         </div>

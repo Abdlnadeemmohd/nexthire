@@ -6,6 +6,7 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Footer } from "@/components/layout/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/components/ui/Toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface PlanConfig {
   id: string;
@@ -54,6 +55,7 @@ interface EntitlementsData {
 
 export default function RecruiterBillingPage() {
   const { showToast } = useToast();
+  const { updateUserProfile, refreshUser } = useAuth();
   const [plans, setPlans] = useState<PlanConfig[]>([]);
   const [entitlements, setEntitlements] = useState<EntitlementsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,11 +91,6 @@ export default function RecruiterBillingPage() {
   }, []);
 
   const handleSubscribe = async (plan: PlanConfig) => {
-    if (plan.id === "trial") {
-      showToast("Trial Mode is automatically active for verified employers.", "info");
-      return;
-    }
-
     try {
       setSubscribingPlanId(plan.id);
       const res = await fetch("/api/billing/subscribe", {
@@ -104,10 +101,15 @@ export default function RecruiterBillingPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        showToast(`Successfully upgraded to ${plan.name}!`, "success");
+        // Immediate authoritative state synchronization across all components & persistent sidebar
+        const resolvedTier = data.subscriptionTier || plan.tier;
+        updateUserProfile({ subscriptionTier: resolvedTier });
+
+        showToast(data.message || `Successfully activated ${plan.name}!`, "success");
         await loadBillingData();
+        await refreshUser();
       } else {
-        showToast(data.error || "Failed to activate subscription.", "error");
+        showToast(data.error || "Failed to update subscription.", "error");
       }
     } catch (err) {
       showToast("Network error during subscription activation.", "error");
@@ -284,9 +286,20 @@ export default function RecruiterBillingPage() {
                               Active Tier
                             </div>
                           ) : plan.id === "trial" ? (
-                            <div className="w-full py-2.5 bg-surface-container-high text-on-surface-variant font-bold text-xs rounded-xl text-center">
-                              Evaluation Tier
-                            </div>
+                            <button
+                              onClick={() => handleSubscribe(plan)}
+                              disabled={subscribingPlanId === plan.id}
+                              className="w-full py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-xs rounded-xl border border-outline-variant/40 transition-all shadow-xs touch-target flex items-center justify-center gap-1.5"
+                            >
+                              {subscribingPlanId === plan.id ? (
+                                <>
+                                  <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                  Switching...
+                                </>
+                              ) : (
+                                "Switch to Free Tier"
+                              )}
+                            </button>
                           ) : (
                             <button
                               onClick={() => handleSubscribe(plan)}

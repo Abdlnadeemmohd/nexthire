@@ -16,6 +16,8 @@ interface AuthContextType {
   registerRecruiter: (name: string, company: string, email: string, website: string, phone: string, location: string, designation: string, pass: string) => Promise<{ success: boolean }>;
   logout: () => Promise<void>;
   updateUserProfile: (partial: Partial<AuthUser>) => void;
+  updateSubscriptionTier: (tier: string) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -160,15 +162,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setUser(data.user);
+        authService.saveSessionUser(data.user);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("storage"));
+        }
+      }
+    } catch (err) {
+      console.error("[AuthContext.refreshUser notice]:", err);
+    }
+  };
+
   const updateUserProfile = (partial: Partial<AuthUser>) => {
     setUser((prev) => {
       if (!prev) return null;
       const updated = { ...prev, ...partial };
       if (typeof window !== "undefined") {
-        localStorage.setItem("nexthire_auth_user_session", JSON.stringify(updated));
+        authService.saveSessionUser(updated);
+        window.dispatchEvent(new Event("storage"));
       }
       return updated;
     });
+  };
+
+  const updateSubscriptionTier = (tier: string) => {
+    updateUserProfile({ subscriptionTier: tier });
   };
 
   return (
@@ -183,6 +206,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         registerRecruiter,
         logout,
         updateUserProfile,
+        updateSubscriptionTier,
+        refreshUser,
       }}
     >
       {children}

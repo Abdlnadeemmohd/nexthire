@@ -34,16 +34,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { planId, paymentMethod = "SIMULATION" } = body;
 
-    const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId && p.id !== "trial");
-    if (!plan) {
+    const isFreeOrTrial = planId === "trial" || planId === "free";
+    const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId);
+    if (!plan && !isFreeOrTrial) {
       return NextResponse.json(
-        { success: false, error: `Invalid paid plan ID "${planId}". Available plans: silver, gold, diamond, platinum.` },
+        { success: false, error: `Invalid plan ID "${planId}". Available plans: trial, silver, gold, diamond, platinum.` },
         { status: 400 }
       );
     }
-
-    const startDate = new Date();
-    const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
     // Deactivate previous active subscriptions
     await prisma.subscription.updateMany({
@@ -51,17 +49,49 @@ export async function POST(request: Request) {
       data: { status: "EXPIRED" },
     });
 
+    if (isFreeOrTrial || plan?.id === "trial") {
+      await logAuditEvent(
+        authUser.id,
+        "SUBSCRIPTION_CANCELLED",
+        "Subscription",
+        authUser.id,
+        {
+          planId: "trial",
+          planName: "Trial / Free Tier",
+        }
+      );
+
+      const entitlements = await getRecruiterEntitlements(authUser.id);
+
+      return NextResponse.json({
+        success: true,
+        message: "Successfully reverted to Free / Evaluation Tier",
+        subscription: null,
+        entitlements,
+        subscriptionTier: "FREE",
+        data: {
+          subscription: null,
+          entitlements,
+          subscriptionTier: "FREE",
+        },
+      });
+    }
+
+    const targetPlan = plan!;
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + targetPlan.durationDays * 24 * 60 * 60 * 1000);
+
     // Create new active subscription
     const newSub = await prisma.subscription.create({
       data: {
         userId: authUser.id,
         companyId: authUser.companyId,
-        planId: plan.id,
+        planId: targetPlan.id,
         status: "ACTIVE",
         startDate,
         endDate,
-        amountPaid: plan.price,
-        currency: plan.currency,
+        amountPaid: targetPlan.price,
+        currency: targetPlan.currency,
         paymentId: `PAY-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
         autoRenew: false,
       },
@@ -74,10 +104,10 @@ export async function POST(request: Request) {
       "Subscription",
       newSub.id,
       {
-        planId: plan.id,
-        planName: plan.name,
-        price: plan.price,
-        currency: plan.currency,
+        planId: targetPlan.id,
+        planName: targetPlan.name,
+        price: targetPlan.price,
+        currency: targetPlan.currency,
         paymentMethod,
       }
     );
@@ -86,12 +116,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully upgraded to NextHire ${plan.name}!`,
+      message: `Successfully upgraded to NextHire ${targetPlan.name}!`,
       subscription: newSub,
       entitlements,
+      subscriptionTier: targetPlan.tier,
       data: {
         subscription: newSub,
         entitlements,
+        subscriptionTier: targetPlan.tier,
       },
     });
   } catch (err: any) {

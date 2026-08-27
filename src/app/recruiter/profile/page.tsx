@@ -381,9 +381,9 @@ export default function RecruiterProfilePage() {
                       </h1>
 
                       <VerifiedBadge
-                        isVerified={profileData.isVerified}
+                        isVerified={user?.isVerified ?? profileData.isVerified}
                         role="RECRUITER"
-                        tier={profileData.subscriptionTier}
+                        tier={user?.subscriptionTier || profileData.subscriptionTier}
                         size="md"
                       />
 
