@@ -129,7 +129,7 @@ function JobSearchContent() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-outline-variant/20 pb-3">
               <div>
                 <h1 className="font-display text-2xl sm:text-3xl font-bold text-on-surface">
-                  Enterprise Job Search
+                  Browse Jobs
                 </h1>
                 <p className="text-on-surface-variant font-body-sm text-xs sm:text-sm pt-0.5">
                   Showing <strong>{sortedJobs.length}</strong> active roles {keyword && `for "${keyword}"`} {location && `in ${location}`}
