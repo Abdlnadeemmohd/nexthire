@@ -508,7 +508,7 @@ export function canViewCompanyMarketIntelligence(user?: { role?: UserRole | stri
 /**
  * Returns the canonical home/landing route according to the user's authenticated role.
  * - UNAUTHENTICATED VISITOR: / (Public NextHire landing / search page)
- * - JOB_SEEKER / CANDIDATE: / (Universal NextHire search / landing page)
+ * - JOB_SEEKER / CANDIDATE: /dashboard (Authenticated Candidate Portal Home / Dashboard)
  * - RECRUITER / RECRUITER_MANAGER / COMPANY_ADMIN: /recruiter (Recruiter Dashboard / Workspace)
  * - PLATFORM_ADMIN / OWNER: /admin (Platform Owner / Super Admin Dashboard)
  */
@@ -516,7 +516,7 @@ export function getHomeRouteForRole(role?: UserRole | string | null): string {
   if (!role) return "/";
   if (role === "PLATFORM_ADMIN") return "/admin";
   if (role === "RECRUITER" || role === "RECRUITER_MANAGER" || role === "COMPANY_ADMIN") return "/recruiter";
-  if (role === "JOB_SEEKER") return "/";
+  if (role === "JOB_SEEKER") return "/dashboard";
   return "/";
 }
 
@@ -525,8 +525,7 @@ export function getHomeRouteForUser(user?: { role?: UserRole | string | null } |
 }
 
 export function getLogoutRouteForRole(role?: UserRole | string | null): string {
-  if (role === "JOB_SEEKER") return "/jobs";
-  return "/login";
+  return "/";
 }
 
 export function getLogoutRouteForUser(user?: { role?: UserRole | string | null } | null): string {
