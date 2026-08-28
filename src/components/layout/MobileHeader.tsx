@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { UserRole } from "@/context/AuthContext";
-import { getHomeRouteForRole } from "@/lib/auth";
+import { getHomeRouteForRole, isRecruiterOrAdmin } from "@/lib/auth";
 import { MobileDrawer } from "@/components/layout/MobileDrawer";
 import { MobileSearchScreen } from "@/components/layout/MobileSearchScreen";
 
@@ -15,7 +15,7 @@ interface MobileHeaderProps {
 export function MobileHeader({ isAuthenticated, user }: MobileHeaderProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSearchScreenOpen, setIsSearchScreenOpen] = useState(false);
-  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
+  const homeHref = isRecruiterOrAdmin(user?.role) ? getHomeRouteForRole(user?.role) : "/";
 
   return (
     <>

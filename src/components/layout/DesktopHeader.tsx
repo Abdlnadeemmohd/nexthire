@@ -7,7 +7,7 @@ import { NotificationCenterPanel } from "./NotificationCenterPanel";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { HeaderSearchDropdown } from "./HeaderSearchDropdown";
 import { useAuth, UserRole } from "@/context/AuthContext";
-import { getHomeRouteForRole } from "@/lib/auth";
+import { getHomeRouteForRole, isRecruiterOrAdmin } from "@/lib/auth";
 
 interface DesktopHeaderProps {
   isAuthenticated: boolean;
@@ -25,7 +25,7 @@ export function DesktopHeader({ isAuthenticated, user, isMounted }: DesktopHeade
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
-  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
+  const homeHref = isRecruiterOrAdmin(user?.role) ? getHomeRouteForRole(user?.role) : "/";
 
 
   const headerRef = useRef<HTMLDivElement>(null);

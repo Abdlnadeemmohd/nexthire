@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { UserRole, useAuth } from "@/context/AuthContext";
-import { getHomeRouteForRole } from "@/lib/auth";
+import { getHomeRouteForRole, isRecruiterOrAdmin } from "@/lib/auth";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ interface MobileDrawerProps {
 
 export function MobileDrawer({ isOpen, onClose, isAuthenticated, user }: MobileDrawerProps) {
   const { logout } = useAuth();
-  const homeHref = getHomeRouteForRole(isAuthenticated ? user?.role : null);
+  const homeHref = isRecruiterOrAdmin(user?.role) ? getHomeRouteForRole(user?.role) : "/";
 
   useEffect(() => {
     if (!isOpen) return;
